@@ -95,9 +95,17 @@ class TestBinancePublicDataCollector:
                     assert len(df) > 0
                     # Verify all expected columns are present
                     expected_columns = [
-                        'date', 'open', 'high', 'low', 'close', 'volume',
-                        'close_time', 'quote_asset_volume', 'number_of_trades',
-                        'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
+                        "date",
+                        "open",
+                        "high",
+                        "low",
+                        "close",
+                        "volume",
+                        "close_time",
+                        "quote_asset_volume",
+                        "number_of_trades",
+                        "taker_buy_base_asset_volume",
+                        "taker_buy_quote_asset_volume",
                     ]
                     for col in expected_columns:
                         assert col in df.columns, f"Missing column: {col}"

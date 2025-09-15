@@ -93,7 +93,11 @@ class UniversalGapFiller:
         return gaps
 
     def fetch_binance_data(
-        self, start_time: datetime, end_time: datetime, timeframe: str, enhanced_format: bool = False
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        timeframe: str,
+        enhanced_format: bool = False,
     ) -> Optional[List[Dict]]:
         """Fetch authentic microstructure data from Binance API - NO synthetic data"""
         binance_interval = self.timeframe_mapping[timeframe]
@@ -102,9 +106,9 @@ class UniversalGapFiller:
         # ✅ UTC ONLY: All timestamps are UTC - no timezone conversion needed
 
         # Convert pandas Timestamp to datetime if needed
-        if hasattr(start_time, 'to_pydatetime'):
+        if hasattr(start_time, "to_pydatetime"):
             start_time = start_time.to_pydatetime()
-        if hasattr(end_time, 'to_pydatetime'):
+        if hasattr(end_time, "to_pydatetime"):
             end_time = end_time.to_pydatetime()
 
         # Simple UTC timestamp conversion - CSV timestamps are naive UTC
@@ -156,13 +160,15 @@ class UniversalGapFiller:
 
                     # Add authentic microstructure data for enhanced format
                     if enhanced_format:
-                        ohlcv.update({
-                            "close_time": close_time.strftime("%Y-%m-%d %H:%M:%S"),
-                            "quote_asset_volume": float(candle[7]),
-                            "number_of_trades": int(candle[8]),
-                            "taker_buy_base_asset_volume": float(candle[9]),
-                            "taker_buy_quote_asset_volume": float(candle[10]),
-                        })
+                        ohlcv.update(
+                            {
+                                "close_time": close_time.strftime("%Y-%m-%d %H:%M:%S"),
+                                "quote_asset_volume": float(candle[7]),
+                                "number_of_trades": int(candle[8]),
+                                "taker_buy_base_asset_volume": float(candle[9]),
+                                "taker_buy_quote_asset_volume": float(candle[10]),
+                            }
+                        )
 
                     candles.append(ohlcv)
                     logger.info(f"   ✅ Retrieved authentic candle: {open_time}")
@@ -174,7 +180,9 @@ class UniversalGapFiller:
             logger.error(f"   ❌ Binance API error: {e}")
             return None
 
-    def fill_gap(self, gap_info: Dict, csv_path: Path, timeframe: str, metadata_path: Path = None) -> bool:
+    def fill_gap(
+        self, gap_info: Dict, csv_path: Path, timeframe: str, metadata_path: Path = None
+    ) -> bool:
         """Fill a single gap with authentic Binance data using API-first validation protocol"""
         logger.info(f"🔧 Filling gap: {gap_info['start_time']} → {gap_info['end_time']}")
         logger.info("   📋 Applying API-first validation protocol")
@@ -185,9 +193,17 @@ class UniversalGapFiller:
 
         # Detect format: enhanced (11 columns) vs legacy (6 columns)
         enhanced_columns = [
-            "date", "open", "high", "low", "close", "volume",
-            "close_time", "quote_asset_volume", "number_of_trades",
-            "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "close_time",
+            "quote_asset_volume",
+            "number_of_trades",
+            "taker_buy_base_asset_volume",
+            "taker_buy_quote_asset_volume",
         ]
         legacy_columns = ["date", "open", "high", "low", "close", "volume"]
 
@@ -207,21 +223,24 @@ class UniversalGapFiller:
         # ✅ API-FIRST VALIDATION: Always try REST API before forward-fill
         logger.info("   🔍 Step 1: Attempting authentic Binance REST API data retrieval")
         binance_data = self.fetch_binance_data(
-            gap_info["start_time"], gap_info["end_time"], timeframe,
-            enhanced_format=is_enhanced_format
+            gap_info["start_time"],
+            gap_info["end_time"],
+            timeframe,
+            enhanced_format=is_enhanced_format,
         )
 
         # Track gap filling details for metadata
         gap_fill_details = {
             "timestamp": gap_info["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
-            "duration_hours": (gap_info["end_time"] - gap_info["start_time"]).total_seconds() / 3600,
+            "duration_hours": (gap_info["end_time"] - gap_info["start_time"]).total_seconds()
+            / 3600,
             "fill_method": None,
             "data_source": None,
             "authentic_data": False,
             "synthetic_data": False,
             "reason": None,
             "ohlcv": None,
-            "microstructure_data": None
+            "microstructure_data": None,
         }
 
         if not binance_data:
@@ -234,16 +253,20 @@ class UniversalGapFiller:
             logger.info("   📋 Preserving authentic data integrity - no synthetic fill applied")
             return False
         else:
-            logger.info(f"   ✅ Step 1 Success: Retrieved {len(binance_data)} authentic candles from API")
+            logger.info(
+                f"   ✅ Step 1 Success: Retrieved {len(binance_data)} authentic candles from API"
+            )
 
             # Update gap fill details for authentic API data
-            gap_fill_details.update({
-                "fill_method": "binance_rest_api",
-                "data_source": "https://api.binance.com/api/v3/klines",
-                "authentic_data": True,
-                "synthetic_data": False,
-                "reason": "missing_from_monthly_file_but_available_via_api"
-            })
+            gap_fill_details.update(
+                {
+                    "fill_method": "binance_rest_api",
+                    "data_source": "https://api.binance.com/api/v3/klines",
+                    "authentic_data": True,
+                    "synthetic_data": False,
+                    "reason": "missing_from_monthly_file_but_available_via_api",
+                }
+            )
 
             if binance_data:
                 first_candle = binance_data[0]
@@ -252,7 +275,7 @@ class UniversalGapFiller:
                     "high": first_candle["high"],
                     "low": first_candle["low"],
                     "close": first_candle["close"],
-                    "volume": first_candle["volume"]
+                    "volume": first_candle["volume"],
                 }
 
                 if is_enhanced_format and "quote_asset_volume" in first_candle:
@@ -260,7 +283,9 @@ class UniversalGapFiller:
                         "quote_asset_volume": first_candle["quote_asset_volume"],
                         "number_of_trades": first_candle["number_of_trades"],
                         "taker_buy_base_asset_volume": first_candle["taker_buy_base_asset_volume"],
-                        "taker_buy_quote_asset_volume": first_candle["taker_buy_quote_asset_volume"]
+                        "taker_buy_quote_asset_volume": first_candle[
+                            "taker_buy_quote_asset_volume"
+                        ],
                     }
 
         # Create DataFrame for Binance data
@@ -272,10 +297,15 @@ class UniversalGapFiller:
             # For enhanced format, include all microstructure columns
             available_columns = ["date", "open", "high", "low", "close", "volume"]
             if "close_time" in binance_df.columns:
-                available_columns.extend([
-                    "close_time", "quote_asset_volume", "number_of_trades",
-                    "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
-                ])
+                available_columns.extend(
+                    [
+                        "close_time",
+                        "quote_asset_volume",
+                        "number_of_trades",
+                        "taker_buy_base_asset_volume",
+                        "taker_buy_quote_asset_volume",
+                    ]
+                )
             binance_df = binance_df[available_columns]
         else:
             # For legacy format, only basic OHLCV columns
@@ -293,7 +323,9 @@ class UniversalGapFiller:
             logger.warning("   ⚠️ No authentic Binance data falls within gap period after filtering")
             return False
 
-        logger.info(f"   📊 Filtered to {len(filtered_binance_df)} authentic candles within gap period")
+        logger.info(
+            f"   📊 Filtered to {len(filtered_binance_df)} authentic candles within gap period"
+        )
 
         # FIXED: Simple append and sort - no position-based insertion needed
         filled_df = pd.concat([df, filtered_binance_df], ignore_index=True)

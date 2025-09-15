@@ -1235,7 +1235,9 @@ class BinancePublicDataCollector:
                 else:
                     success_rate = result["success_rate"]
                     status = "✅" if success_rate == 100.0 else "⚠️" if success_rate > 0 else "❌"
-                    print(f"   {status} {result['gaps_filled']}/{result['gaps_detected']} gaps filled ({success_rate:.1f}%)")
+                    print(
+                        f"   {status} {result['gaps_filled']}/{result['gaps_detected']} gaps filled ({success_rate:.1f}%)"
+                    )
 
             # Comprehensive summary
             print("\n" + "=" * 60)
@@ -1244,18 +1246,34 @@ class BinancePublicDataCollector:
 
             for result in results:
                 if result["gaps_detected"] > 0:
-                    status = "✅" if result["success_rate"] == 100.0 else "⚠️" if result["success_rate"] > 0 else "❌"
-                    print(f"{status} {result['timeframe']:>3}: {result['gaps_filled']:>2}/{result['gaps_detected']:>2} gaps filled ({result['success_rate']:>5.1f}%)")
+                    status = (
+                        "✅"
+                        if result["success_rate"] == 100.0
+                        else "⚠️"
+                        if result["success_rate"] > 0
+                        else "❌"
+                    )
+                    print(
+                        f"{status} {result['timeframe']:>3}: {result['gaps_filled']:>2}/{result['gaps_detected']:>2} gaps filled ({result['success_rate']:>5.1f}%)"
+                    )
 
             print("-" * 60)
-            overall_success = (total_gaps_filled / total_gaps_detected * 100) if total_gaps_detected > 0 else 100.0
-            print(f"🎯 OVERALL: {total_gaps_filled}/{total_gaps_detected} gaps filled ({overall_success:.1f}%)")
+            overall_success = (
+                (total_gaps_filled / total_gaps_detected * 100)
+                if total_gaps_detected > 0
+                else 100.0
+            )
+            print(
+                f"🎯 OVERALL: {total_gaps_filled}/{total_gaps_detected} gaps filled ({overall_success:.1f}%)"
+            )
 
             if overall_success == 100.0:
                 print("🎉 ALL GAPS FILLED SUCCESSFULLY!")
                 print("✅ Datasets are now 100% gapless and ready for production use")
             else:
-                print(f"⚠️  {total_gaps_failed} gaps failed to fill (may be legitimate exchange outages)")
+                print(
+                    f"⚠️  {total_gaps_failed} gaps failed to fill (may be legitimate exchange outages)"
+                )
                 print("📋 Review failed gaps to confirm they are legitimate market closures")
 
             print(f"\nFiles processed: {files_processed}")
@@ -1266,6 +1284,7 @@ class BinancePublicDataCollector:
             print(f"❌ Gap filling error: {e}")
             print("⚠️  Continuing without gap filling...")
             import traceback
+
             traceback.print_exc()
 
     def _extract_timeframe_from_filename(self, filename):
