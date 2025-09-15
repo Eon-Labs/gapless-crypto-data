@@ -1259,8 +1259,8 @@ class BinancePublicDataCollector:
                 print("📋 Review failed gaps to confirm they are legitimate market closures")
 
             print(f"\nFiles processed: {files_processed}")
-            print(f"Data source: Authentic Binance REST API")
-            print(f"Gap filling protocol: API-first validation (no synthetic data)")
+            print("Data source: Authentic Binance REST API")
+            print("Gap filling protocol: API-first validation (no synthetic data)")
 
         except Exception as e:
             print(f"❌ Gap filling error: {e}")

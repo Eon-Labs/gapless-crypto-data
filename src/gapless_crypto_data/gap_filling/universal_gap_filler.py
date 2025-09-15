@@ -20,7 +20,7 @@ Key Features:
 
 import logging
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -129,7 +129,7 @@ class UniversalGapFiller:
             data = response.json()
 
             if not data:
-                logger.warning(f"   ❌ Binance returned no data")
+                logger.warning("   ❌ Binance returned no data")
                 return None
 
             # Convert Binance data to required format with authentic microstructure data

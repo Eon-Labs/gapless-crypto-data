@@ -30,9 +30,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from . import __version__
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.universal_gap_filler import UniversalGapFiller
-from . import __version__
 
 
 def collect_data(args: Any) -> int:
