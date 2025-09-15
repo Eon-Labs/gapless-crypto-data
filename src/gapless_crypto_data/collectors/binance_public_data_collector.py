@@ -73,7 +73,7 @@ class BinancePublicDataCollector:
                 f"⚠️  Requested end date {self.end_date.strftime('%Y-%m-%d')} is in the future. "
                 f"Binance public data is typically available up to {yesterday}. "
                 f"Recent data may not be available and requests may fail with 404 errors.",
-                UserWarning
+                UserWarning, stacklevel=2
             )
 
         # Check symbol availability
@@ -84,7 +84,7 @@ class BinancePublicDataCollector:
                     f"⚠️  Requested start date {self.start_date.strftime('%Y-%m-%d')} is before "
                     f"{self.symbol} listing date ({symbol_start}). "
                     f"Data before {symbol_start} is not available.",
-                    UserWarning
+                    UserWarning, stacklevel=2
                 )
         else:
             # Unknown symbol - provide general guidance

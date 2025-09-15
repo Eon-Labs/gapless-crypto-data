@@ -1,0 +1,17 @@
+# Binance Spot Market Data v3.0.0
+# Generated: 2025-09-15T04:56:32.967954Z
+# Source: Binance Public Data Repository
+# Market: SPOT | Symbol: ETHUSDT | Timeframe: 4h
+# Coverage: 6 bars
+# Period: 2025-08-31 00:00:00 to 2025-08-31 20:00:00
+# Collection: direct_download in 0.6s
+# Data Hash: a596453981f367fb...
+# Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source
+#
+date,open,high,low,close,volume
+2025-08-31 00:00:00,4373.7,4488.58,4372.63,4488.12,86870.5588
+2025-08-31 04:00:00,4488.12,4491.46,4433.04,4450.84,46105.6365
+2025-08-31 08:00:00,4450.84,4483.8,4440.47,4476.98,64280.1686
+2025-08-31 12:00:00,4476.98,4498.47,4451.03,4485.27,74632.1358
+2025-08-31 16:00:00,4485.28,4490.87,4454.89,4456.01,33871.4872
+2025-08-31 20:00:00,4456.0,4477.1,4378.43,4391.83,50826.1992

@@ -10,6 +10,7 @@ to have data available. Avoid using future dates or dates before symbol listing.
 """
 
 from datetime import datetime, timedelta
+
 from gapless_crypto_data import BinancePublicDataCollector
 
 

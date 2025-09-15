@@ -14,6 +14,7 @@ Key Principles:
 
 import warnings
 from datetime import datetime, timedelta
+
 from gapless_crypto_data import BinancePublicDataCollector
 
 
