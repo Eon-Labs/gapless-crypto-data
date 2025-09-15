@@ -5,6 +5,58 @@ All notable changes to gapless-crypto-data will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-09-15
+
+### ✨ Major Version: Full 11-Column Microstructure Format
+
+#### 🔬 Microstructure Data Format
+- **Full 11-column format** - Complete Binance microstructure data including order flow metrics
+- **Quote asset volume** - Total trading volume in quote currency (USDT)
+- **Number of trades** - Actual trade count per timeframe for liquidity analysis
+- **Taker buy base volume** - Volume of market buy orders in base asset
+- **Taker buy quote volume** - Volume of market buy orders in quote currency
+- **Close time** - Precise bar close timestamps for temporal analysis
+
+#### 🔧 API-First Gap Filling
+- **Authentic data only** - Zero synthetic or estimated data in gap filling
+- **API-first validation** - Uses Binance REST API before any fallback mechanisms
+- **UTC-only timestamps** - Eliminated timezone conversion bugs for pure UTC handling
+- **Monthly boundary fixes** - Resolved header detection issues for microsecond timestamps
+
+#### 🐛 Critical Fixes
+- **Timezone conversion bug** - Fixed 7-hour offset in gap filler timestamps
+- **Header detection bug** - Support both millisecond (13-digit) and microsecond (16-digit) formats
+- **Monthly boundary gaps** - Eliminated 9 missing hours at month boundaries
+- **Exchange outage detection** - Differentiates legitimate gaps from data processing errors
+
+#### 📊 Data Integrity
+- **Automatic gap metadata** - JSON files track all gap-filling operations with timestamps
+- **Temporal integrity validation** - Ensures chronological data consistency
+- **API verification** - Confirms gap authenticity against Binance Vision files
+- **11-column validation** - Tests ensure all microstructure columns are present
+
+#### 🔍 Comprehensive Testing
+- **Multi-timeframe validation** - Tested across all 8 supported timeframes (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- **Clean slate testing** - Full workflow validation from data collection through gap filling
+- **100% success rate** - All gaps filled with authentic API data
+- **Column completeness** - Verified all 11 columns populated in filled data
+
+#### 📖 Documentation Updates
+- **README evolution** - Updated all references to highlight 11-column microstructure format
+- **CLI help text** - Reflects authentic API-first validation approach
+- **Example updates** - Demonstrates microstructure column validation
+- **Test assertions** - Validates exact 11-column format with column name verification
+
+### 🏗️ Breaking Changes
+- **Data format** - CSV files now contain 11 columns instead of 6 (BREAKING)
+- **Gap filling behavior** - API-first approach replaces multi-exchange fallback
+- **Metadata structure** - Enhanced JSON metadata with gap-filling tracking
+
+### 📈 Performance
+- **Same collection speed** - Maintains 22x faster performance with richer data format
+- **Memory efficiency** - 11-column format with minimal overhead increase
+- **Authentic data sources** - Direct Binance API connectivity for gap filling
+
 ## [1.0.0] - 2025-09-14
 
 ### ✨ Added

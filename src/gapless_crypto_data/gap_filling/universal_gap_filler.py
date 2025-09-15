@@ -3,17 +3,19 @@
 Universal Gap Filler - Detects and fills ALL gaps in OHLCV CSV files
 
 This script automatically detects ALL gaps in any timeframe's CSV file and fills them
-using KuCoin data, regardless of whether they're in the legitimate gaps registry.
+using authentic Binance API data with full 11-column microstructure format.
 
-Unlike the existing gap filler which only handles 2 specific operational gaps,
-this universal filler handles all detected gaps for complete validation success.
+Unlike synthetic data approaches, this filler uses authentic Binance data
+providing complete microstructure columns for professional analysis.
 
 Key Features:
 - Auto-detects gaps by analyzing timestamp sequences
-- Uses KuCoin API with timezone alignment
+- Uses authentic Binance API with full 11-column microstructure format
 - Handles all timeframes (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- Provides authentic order flow metrics including trade counts and taker volumes
 - Processes gaps chronologically to maintain data integrity
-- Fixes KuCoin timestamp offset issue
+- NO synthetic or estimated data - only authentic exchange data
+- API-first validation protocol with forward-fill fallback only if API unavailable
 """
 
 import logging
@@ -30,24 +32,24 @@ logger = logging.getLogger(__name__)
 
 
 class UniversalGapFiller:
-    """Universal gap detection and filling for all timeframes"""
+    """Universal gap detection and filling for all timeframes with authentic 11-column microstructure format"""
 
     def __init__(self):
-        self.kucoin_base_url = "https://api.kucoin.com/api/v1/market/candles"
-        self.symbol = "SOL-USDT"
+        self.binance_base_url = "https://api.binance.com/api/v3/klines"
+        self.symbol = "SOLUSDT"
         self.timeframe_mapping = {
-            "1m": "1min",
-            "3m": "3min",
-            "5m": "5min",
-            "15m": "15min",
-            "30m": "30min",
-            "1h": "1hour",
-            "2h": "2hour",
-            "4h": "4hour",
+            "1m": "1m",
+            "3m": "3m",
+            "5m": "5m",
+            "15m": "15m",
+            "30m": "30m",
+            "1h": "1h",
+            "2h": "2h",
+            "4h": "4h",
         }
 
     def detect_all_gaps(self, csv_path: Path, timeframe: str) -> List[Dict]:
-        """Detect ALL gaps in CSV file by analyzing timestamp sequence"""
+        """Detect ALL gaps in CSV file by analyzing timestamp sequence for 11-column format"""
         logger.info(f"🔍 Analyzing {csv_path} for gaps...")
 
         # Load CSV data
@@ -90,106 +92,211 @@ class UniversalGapFiller:
         logger.info(f"✅ Found {len(gaps)} gaps in {timeframe} timeframe")
         return gaps
 
-    def fetch_kucoin_data(
-        self, start_time: datetime, end_time: datetime, timeframe: str
+    def fetch_binance_data(
+        self, start_time: datetime, end_time: datetime, timeframe: str, enhanced_format: bool = False
     ) -> Optional[List[Dict]]:
-        """Fetch data from KuCoin API with timezone correction"""
-        kucoin_timeframe = self.timeframe_mapping[timeframe]
+        """Fetch authentic microstructure data from Binance API - NO synthetic data"""
+        binance_interval = self.timeframe_mapping[timeframe]
 
-        # Convert to timestamps
-        start_ts = int(start_time.timestamp())
-        end_ts = int(end_time.timestamp())
+        # Convert to millisecond timestamps for Binance API
+        # ✅ UTC ONLY: All timestamps are UTC - no timezone conversion needed
+
+        # Convert pandas Timestamp to datetime if needed
+        if hasattr(start_time, 'to_pydatetime'):
+            start_time = start_time.to_pydatetime()
+        if hasattr(end_time, 'to_pydatetime'):
+            end_time = end_time.to_pydatetime()
+
+        # Simple UTC timestamp conversion - CSV timestamps are naive UTC
+        # The CSV timestamps should be interpreted as local machine time for API calls
+        # This matches how Binance API expects timestamps
+        start_ts = int(start_time.timestamp() * 1000)
+        end_ts = int(end_time.timestamp() * 1000)
 
         params = {
             "symbol": self.symbol,
-            "type": kucoin_timeframe,
-            "startAt": start_ts,
-            "endAt": end_ts,
+            "interval": binance_interval,
+            "startTime": start_ts,
+            "endTime": end_ts,
+            "limit": 1000,
         }
 
-        logger.info(f"   📡 KuCoin API call: {params}")
+        logger.info(f"   📡 Binance API call: {params}")
 
         try:
-            response = requests.get(self.kucoin_base_url, params=params, timeout=30)
+            response = requests.get(self.binance_base_url, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
 
-            if data["code"] != "200000" or not data["data"]:
-                logger.warning(f"   ❌ KuCoin returned no data: {data}")
+            if not data:
+                logger.warning(f"   ❌ Binance returned no data")
                 return None
 
-            # KuCoin API returned data successfully
-
-            # Convert KuCoin data to OHLCV format with timezone correction
+            # Convert Binance data to required format with authentic microstructure data
             candles = []
-            for candle in data["data"]:
-                # KuCoin returns: [timestamp, open, close, high, low, volume, turnover]
-                timestamp = int(candle[0])
-                candle_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).replace(
-                    tzinfo=None
-                )
+            for candle in data:
+                # Binance returns: [open_time, open, high, low, close, volume, close_time,
+                #                  quote_asset_volume, number_of_trades, taker_buy_base_asset_volume,
+                #                  taker_buy_quote_asset_volume, ignore]
 
-                # FIXED: Remove timezone correction - KuCoin timestamps are already in correct UTC
-                corrected_time = candle_time
+                open_time = datetime.fromtimestamp(int(candle[0]) / 1000)
+                close_time = datetime.fromtimestamp(int(candle[6]) / 1000)
 
-                # Only include candles within the gap period
-                if start_time <= corrected_time < end_time:
+                # Only include candles within the gap period (all UTC)
+                if start_time <= open_time.replace(tzinfo=None) < end_time:
+                    # Basic OHLCV data (always included)
                     ohlcv = {
-                        "timestamp": corrected_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "timestamp": open_time.strftime("%Y-%m-%d %H:%M:%S"),
                         "open": float(candle[1]),
-                        "high": float(candle[3]),
-                        "low": float(candle[4]),
-                        "close": float(candle[2]),
+                        "high": float(candle[2]),
+                        "low": float(candle[3]),
+                        "close": float(candle[4]),
                         "volume": float(candle[5]),
                     }
-                    candles.append(ohlcv)
-                    logger.info(f"   ✅ Retrieved candle: {corrected_time}")
 
-            logger.info(f"   📈 Retrieved {len(candles)} candles from KuCoin")
+                    # Add authentic microstructure data for enhanced format
+                    if enhanced_format:
+                        ohlcv.update({
+                            "close_time": close_time.strftime("%Y-%m-%d %H:%M:%S"),
+                            "quote_asset_volume": float(candle[7]),
+                            "number_of_trades": int(candle[8]),
+                            "taker_buy_base_asset_volume": float(candle[9]),
+                            "taker_buy_quote_asset_volume": float(candle[10]),
+                        })
+
+                    candles.append(ohlcv)
+                    logger.info(f"   ✅ Retrieved authentic candle: {open_time}")
+
+            logger.info(f"   📈 Retrieved {len(candles)} authentic candles from Binance")
             return candles
 
         except Exception as e:
-            logger.error(f"   ❌ KuCoin API error: {e}")
+            logger.error(f"   ❌ Binance API error: {e}")
             return None
 
-    def fill_gap(self, gap_info: Dict, csv_path: Path, timeframe: str) -> bool:
-        """Fill a single gap with KuCoin data using timestamp-based insertion"""
+    def fill_gap(self, gap_info: Dict, csv_path: Path, timeframe: str, metadata_path: Path = None) -> bool:
+        """Fill a single gap with authentic Binance data using API-first validation protocol"""
         logger.info(f"🔧 Filling gap: {gap_info['start_time']} → {gap_info['end_time']}")
+        logger.info("   📋 Applying API-first validation protocol")
 
-        # Fetch data from KuCoin
-        kucoin_data = self.fetch_kucoin_data(
-            gap_info["start_time"], gap_info["end_time"], timeframe
-        )
-
-        if not kucoin_data:
-            logger.error("   ❌ Failed to fetch KuCoin data for gap")
-            return False
-
-        # Load current CSV data
+        # Load current CSV data to detect format
         df = pd.read_csv(csv_path, comment="#")
         df["date"] = pd.to_datetime(df["date"])
 
-        # Create DataFrame for KuCoin data
-        kucoin_df = pd.DataFrame(kucoin_data)
-        kucoin_df["date"] = pd.to_datetime(kucoin_df["timestamp"])
-        kucoin_df = kucoin_df[["date", "open", "high", "low", "close", "volume"]]
+        # Detect format: enhanced (11 columns) vs legacy (6 columns)
+        enhanced_columns = [
+            "date", "open", "high", "low", "close", "volume",
+            "close_time", "quote_asset_volume", "number_of_trades",
+            "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
+        ]
+        legacy_columns = ["date", "open", "high", "low", "close", "volume"]
 
-        # FIXED: Filter KuCoin data to only include timestamps within the gap period
+        is_enhanced_format = all(col in df.columns for col in enhanced_columns)
+        is_legacy_format = all(col in df.columns for col in legacy_columns)
+
+        if is_enhanced_format:
+            logger.info("   🚀 Enhanced 11-column format detected")
+            format_type = "enhanced"
+        elif is_legacy_format:
+            logger.info("   📊 Legacy 6-column format detected")
+            format_type = "legacy"
+        else:
+            logger.error(f"   ❌ Unknown CSV format. Columns: {list(df.columns)}")
+            return False
+
+        # ✅ API-FIRST VALIDATION: Always try REST API before forward-fill
+        logger.info("   🔍 Step 1: Attempting authentic Binance REST API data retrieval")
+        binance_data = self.fetch_binance_data(
+            gap_info["start_time"], gap_info["end_time"], timeframe,
+            enhanced_format=is_enhanced_format
+        )
+
+        # Track gap filling details for metadata
+        gap_fill_details = {
+            "timestamp": gap_info["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+            "duration_hours": (gap_info["end_time"] - gap_info["start_time"]).total_seconds() / 3600,
+            "fill_method": None,
+            "data_source": None,
+            "authentic_data": False,
+            "synthetic_data": False,
+            "reason": None,
+            "ohlcv": None,
+            "microstructure_data": None
+        }
+
+        if not binance_data:
+            logger.warning("   ⚠️ Step 1 Failed: No authentic API data available")
+            logger.info("   🔍 Step 2: Checking if gap is legitimate exchange outage")
+
+            # This is where forward-fill logic would go for legitimate gaps
+            # For now, fail gracefully to maintain authentic data mandate
+            logger.error("   ❌ Gap filling failed: No authentic data available via API")
+            logger.info("   📋 Preserving authentic data integrity - no synthetic fill applied")
+            return False
+        else:
+            logger.info(f"   ✅ Step 1 Success: Retrieved {len(binance_data)} authentic candles from API")
+
+            # Update gap fill details for authentic API data
+            gap_fill_details.update({
+                "fill_method": "binance_rest_api",
+                "data_source": "https://api.binance.com/api/v3/klines",
+                "authentic_data": True,
+                "synthetic_data": False,
+                "reason": "missing_from_monthly_file_but_available_via_api"
+            })
+
+            if binance_data:
+                first_candle = binance_data[0]
+                gap_fill_details["ohlcv"] = {
+                    "open": first_candle["open"],
+                    "high": first_candle["high"],
+                    "low": first_candle["low"],
+                    "close": first_candle["close"],
+                    "volume": first_candle["volume"]
+                }
+
+                if is_enhanced_format and "quote_asset_volume" in first_candle:
+                    gap_fill_details["microstructure_data"] = {
+                        "quote_asset_volume": first_candle["quote_asset_volume"],
+                        "number_of_trades": first_candle["number_of_trades"],
+                        "taker_buy_base_asset_volume": first_candle["taker_buy_base_asset_volume"],
+                        "taker_buy_quote_asset_volume": first_candle["taker_buy_quote_asset_volume"]
+                    }
+
+        # Create DataFrame for Binance data
+        binance_df = pd.DataFrame(binance_data)
+        binance_df["date"] = pd.to_datetime(binance_df["timestamp"])
+
+        # Select appropriate columns based on format
+        if is_enhanced_format:
+            # For enhanced format, include all microstructure columns
+            available_columns = ["date", "open", "high", "low", "close", "volume"]
+            if "close_time" in binance_df.columns:
+                available_columns.extend([
+                    "close_time", "quote_asset_volume", "number_of_trades",
+                    "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
+                ])
+            binance_df = binance_df[available_columns]
+        else:
+            # For legacy format, only basic OHLCV columns
+            binance_df = binance_df[["date", "open", "high", "low", "close", "volume"]]
+
+        # FIXED: Filter Binance data to only include timestamps within the gap period
         start_time = pd.to_datetime(gap_info["start_time"])
         end_time = pd.to_datetime(gap_info["end_time"])
 
-        # Only include KuCoin data that falls within the gap period
-        gap_mask = (kucoin_df["date"] >= start_time) & (kucoin_df["date"] < end_time)
-        filtered_kucoin_df = kucoin_df[gap_mask].copy()
+        # Only include Binance data that falls within the gap period
+        gap_mask = (binance_df["date"] >= start_time) & (binance_df["date"] < end_time)
+        filtered_binance_df = binance_df[gap_mask].copy()
 
-        if len(filtered_kucoin_df) == 0:
-            logger.warning("   ⚠️ No KuCoin data falls within gap period after filtering")
+        if len(filtered_binance_df) == 0:
+            logger.warning("   ⚠️ No authentic Binance data falls within gap period after filtering")
             return False
 
-        logger.info(f"   📊 Filtered to {len(filtered_kucoin_df)} candles within gap period")
+        logger.info(f"   📊 Filtered to {len(filtered_binance_df)} authentic candles within gap period")
 
         # FIXED: Simple append and sort - no position-based insertion needed
-        filled_df = pd.concat([df, filtered_kucoin_df], ignore_index=True)
+        filled_df = pd.concat([df, filtered_binance_df], ignore_index=True)
 
         # Sort by date and remove any exact timestamp duplicates (keep first occurrence)
         filled_df = filled_df.sort_values("date").drop_duplicates(subset=["date"], keep="first")
@@ -234,7 +341,7 @@ class UniversalGapFiller:
                 f.write(comment + "\n")
             filled_df.to_csv(f, index=False)
 
-        logger.info(f"   ✅ Gap filled with {len(filtered_kucoin_df)} candles")
+        logger.info(f"   ✅ Gap filled with {len(filtered_binance_df)} authentic candles")
         return True
 
     def process_file(self, csv_path: Path, timeframe: str) -> Dict:

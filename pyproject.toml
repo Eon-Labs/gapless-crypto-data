@@ -11,8 +11,9 @@ maintainers = [
 ]
 license = { text = "MIT" }
 keywords = [
-    "cryptocurrency", "crypto", "binance", "data", "collection", 
-    "trading", "OHLCV", "gap-filling", "financial-data", "time-series"
+    "cryptocurrency", "crypto", "binance", "data", "collection",
+    "trading", "OHLCV", "gap-filling", "financial-data", "time-series",
+    "microstructure", "order-flow", "liquidity", "taker-volume", "authentic-data"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

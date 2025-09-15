@@ -2,8 +2,8 @@
 """
 Gapless Crypto Data - CLI Entry Point
 
-Ultra-fast cryptocurrency data collection with zero gaps guarantee.
-Uses Binance public data repository (22x faster) + multi-exchange fallback.
+Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format.
+Uses Binance public data repository (22x faster) with authentic API-first validation.
 
 Usage:
     uv run gapless-crypto-data [--symbol SYMBOL] [--timeframes TF1,TF2,...] [--start DATE] [--end DATE]
@@ -127,11 +127,11 @@ Data Availability Notes:
     Historical test:  --start 2022-01-01 --end 2022-12-31
     Long backtest:    --start 2020-01-01 --end 2023-12-31
 
-Performance: 22x faster than API calls via Binance public data repository
+Performance: 22x faster than API calls via Binance public data repository with full 11-column microstructure format
 """
 
     parser = argparse.ArgumentParser(
-        description="Ultra-fast cryptocurrency data collection with zero gaps guarantee",
+        description="Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__ + data_availability_info,
     )

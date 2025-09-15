@@ -3,10 +3,10 @@
 Complete Workflow Example
 
 This example demonstrates the complete workflow of the gapless-crypto-data package:
-1. Ultra-fast data collection from Binance public repository
+1. Ultra-fast data collection from Binance public repository with 11-column microstructure format
 2. Gap detection and analysis
-3. Gap filling with multi-exchange fallback
-4. Data validation and quality checks
+3. Gap filling with authentic API-first validation
+4. Data validation and quality checks for all 11 columns
 """
 
 import pandas as pd
@@ -44,6 +44,7 @@ def collect_data_sample():
         print("✅ Collection successful!")
         print(f"   File: {csv_file.name} ({file_size_mb:.2f} MB)")
         print(f"   Data points: {len(df)}")
+        print(f"   Columns: {len(df.columns)} (Full 11-column microstructure format)")
         print(f"   Date range: {df.iloc[0]['date']} to {df.iloc[-1]['date']}")
         print()
 
@@ -149,6 +150,7 @@ def validate_final_data(csv_file):
 
     print(f"Final dataset: {csv_file.name}")
     print(f"Total records: {len(df)}")
+    print(f"Columns: {len(df.columns)} (Full 11-column microstructure format)")
     print(f"Date range: {df['date'].min()} to {df['date'].max()}")
 
     # Check data completeness

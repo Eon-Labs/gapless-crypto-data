@@ -45,6 +45,11 @@ class TestUniversalGapFiller:
                     "low": [95.0] * 100,
                     "close": [102.0] * 100,
                     "volume": [1000.0] * 100,
+                    "close_time": [0] * 100,
+                    "quote_asset_volume": [10000.0] * 100,
+                    "number_of_trades": [50] * 100,
+                    "taker_buy_base_asset_volume": [500.0] * 100,
+                    "taker_buy_quote_asset_volume": [5000.0] * 100,
                 }
             )
 
@@ -73,6 +78,11 @@ class TestUniversalGapFiller:
                     "low": [95.0] * 24,
                     "close": [102.0] * 24,
                     "volume": [1000.0] * 24,
+                    "close_time": [0] * 24,
+                    "quote_asset_volume": [10000.0] * 24,
+                    "number_of_trades": [50] * 24,
+                    "taker_buy_base_asset_volume": [500.0] * 24,
+                    "taker_buy_quote_asset_volume": [5000.0] * 24,
                 }
             )
 
@@ -148,6 +158,11 @@ class TestUniversalGapFiller:
                     "low": [95.0 + i for i in range(48)],
                     "close": [102.0 + i for i in range(48)],
                     "volume": [1000.0] * 48,
+                    "close_time": [0] * 48,
+                    "quote_asset_volume": [10000.0] * 48,
+                    "number_of_trades": [50] * 48,
+                    "taker_buy_base_asset_volume": [500.0] * 48,
+                    "taker_buy_quote_asset_volume": [5000.0] * 48,
                 }
             )
 

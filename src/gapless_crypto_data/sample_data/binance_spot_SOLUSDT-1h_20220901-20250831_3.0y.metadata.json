@@ -1,0 +1,125 @@
+{
+  "version": "4.0.0",
+  "generator": "BinancePublicDataCollector",
+  "generation_timestamp": "2025-09-15T06:53:54.781650Z",
+  "data_source": "Binance Public Data Repository",
+  "data_source_url": "https://data.binance.vision/data/spot/monthly/klines",
+  "market_type": "spot",
+  "symbol": "SOLUSDT",
+  "timeframe": "1h",
+  "collection_method": "direct_download",
+  "target_period": {
+    "start": "2022-09-01T00:00:00",
+    "end": "2025-08-31T23:59:59",
+    "total_days": 1095
+  },
+  "actual_bars": 26304,
+  "date_range": {
+    "start": "2022-09-01 00:00:00",
+    "end": "2025-08-31 23:00:00"
+  },
+  "statistics": {
+    "price_min": 8.0,
+    "price_max": 295.83,
+    "volume_total": 5146357757.749,
+    "volume_mean": 195656.68394285822
+  },
+  "collection_performance": {
+    "start_time": 1757919221.356095,
+    "end_time": 1757919234.7803159,
+    "duration": 13.42422080039978,
+    "method": "direct_download",
+    "bars_collected": 26303
+  },
+  "data_integrity": {
+    "chronological_order": true,
+    "data_hash": "030a7e427190dc32b5afcbfee3bea95a12190b8b4e37c37080ff1ecc9e39b965",
+    "corruption_detected": false,
+    "corrupted_rows_count": 0,
+    "corruption_details": [],
+    "header_detection": {
+      "header_found": false,
+      "header_content": null,
+      "data_start_row": 0
+    },
+    "gaps_present": false,
+    "gaps_filled_count": 1,
+    "post_fill_validation": true,
+    "authentic_data_only": true
+  },
+  "timestamp_format_analysis": {
+    "total_rows_analyzed": 744,
+    "formats_detected": {
+      "microseconds": 744
+    },
+    "transitions_detected": 0,
+    "transition_details": [],
+    "primary_format": "microseconds",
+    "format_consistency": true
+  },
+  "enhanced_microstructure_format": {
+    "format_version": "4.0.0",
+    "total_columns": 11,
+    "enhanced_features": [
+      "quote_asset_volume",
+      "number_of_trades",
+      "taker_buy_base_asset_volume",
+      "taker_buy_quote_asset_volume",
+      "close_time"
+    ],
+    "analysis_capabilities": [
+      "order_flow_analysis",
+      "liquidity_metrics",
+      "market_microstructure",
+      "trade_weighted_prices",
+      "institutional_data_patterns"
+    ],
+    "professional_features": true,
+    "api_format_compatibility": true
+  },
+  "compliance": {
+    "zero_magic_numbers": true,
+    "temporal_integrity": true,
+    "authentic_spot_data_only": true,
+    "official_binance_source": true,
+    "binance_format_transition_aware": true,
+    "supports_milliseconds_microseconds": true,
+    "full_binance_microstructure_format": true,
+    "professional_trading_ready": true
+  },
+  "gap_filling": {
+    "gap_filling_applied": true,
+    "gap_filling_timestamp": "2025-09-15T07:23:34.757825Z",
+    "gap_filling_method": "authentic_binance_api",
+    "gaps_detected": 1,
+    "gaps_filled": 1,
+    "gaps_failed": 0,
+    "success_rate": 100.0,
+    "filled_periods": [
+      {
+        "timestamp": "2023-03-24 13:00:00",
+        "duration_hours": 1,
+        "fill_method": "binance_rest_api",
+        "data_source": "https://api.binance.com/api/v3/klines",
+        "authentic_data": true,
+        "synthetic_data": false,
+        "reason": "missing_from_monthly_file_but_available_via_api",
+        "ohlcv": {
+          "open": 20.76,
+          "high": 20.8,
+          "low": 20.43,
+          "close": 20.51,
+          "volume": 320808.82
+        },
+        "microstructure_data": {
+          "quote_asset_volume": 6613215.71,
+          "number_of_trades": 12712,
+          "taker_buy_base_asset_volume": 122849.68,
+          "taker_buy_quote_asset_volume": 2530346.5
+        }
+      }
+    ],
+    "validation_protocol": "api_first_validation",
+    "forward_fill_policy": "only_if_api_unavailable"
+  }
+}

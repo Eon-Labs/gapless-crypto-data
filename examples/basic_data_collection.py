@@ -3,7 +3,8 @@
 Basic Data Collection Example
 
 This example demonstrates how to collect cryptocurrency data using the
-BinancePublicDataCollector for ultra-fast downloads (22x faster than APIs).
+BinancePublicDataCollector for ultra-fast downloads with full 11-column
+microstructure format (22x faster than APIs).
 
 IMPORTANT: This example uses safe historical date ranges that are guaranteed
 to have data available. Avoid using future dates or dates before symbol listing.
@@ -60,6 +61,7 @@ def main():
 
             df = pd.read_csv(filepath)
             print(f"    Rows: {len(df)}")
+            print(f"    Columns: {len(df.columns)} (Full 11-column microstructure format)")
             print(f"    Date range: {df.iloc[0]['date']} to {df.iloc[-1]['date']}")
             print()
     else:

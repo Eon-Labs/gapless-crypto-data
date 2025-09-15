@@ -5,16 +5,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![UV Managed](https://img.shields.io/badge/uv-managed-blue.svg)](https://github.com/astral-sh/uv)
 
-Ultra-fast cryptocurrency data collection with zero gaps guarantee - **22x faster** than API calls via Binance public data repository.
+Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format - **22x faster** than API calls via Binance public data repository.
 
 ## ⚡ Features
 
 - 🚀 **22x faster** than API calls via Binance public data repository
-- 🔒 **Zero gaps guarantee** through multi-exchange fallback (Binance → KuCoin)
+- 📊 **Full 11-column microstructure format** with order flow and liquidity metrics
+- 🔒 **Zero gaps guarantee** through authentic API-first validation
 - ⚡ **UV-first** modern Python tooling
 - 🛡️ **Corruption-proof** atomic file operations
 - 📊 **Multi-timeframe support** (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
-- 🔧 **Gap detection and filling** capabilities
+- 🔧 **Gap detection and filling** with authentic data only
 - 📈 **Production-grade** data collection for quantitative trading
 
 ## 🚀 Quick Start
@@ -72,29 +73,29 @@ gap_filler.fill_gaps(directory="./data")
 
 ## 📊 Performance Comparison
 
-| Method | Collection Speed | Gap Handling | Data Integrity |
-|--------|-----------------|--------------|----------------|
-| **Gapless Crypto Data** | **22x faster** | ✅ Multi-exchange fallback | ✅ Atomic operations |
-| Traditional APIs | 1x baseline | ❌ Manual handling | ⚠️ Corruption risk |
-| Other downloaders | 2-5x faster | ❌ Limited coverage | ⚠️ Basic validation |
+| Method | Collection Speed | Microstructure Data | Gap Handling | Data Integrity |
+|--------|-----------------|-------------------|--------------|----------------|
+| **Gapless Crypto Data** | **22x faster** | ✅ Full 11-column format | ✅ Authentic API-first | ✅ Atomic operations |
+| Traditional APIs | 1x baseline | ⚠️ Basic OHLCV only | ❌ Manual handling | ⚠️ Corruption risk |
+| Other downloaders | 2-5x faster | ❌ Limited format | ❌ Limited coverage | ⚠️ Basic validation |
 
 ## 🏗️ Architecture
 
 ### Core Components
 
-- **BinancePublicDataCollector**: Ultra-fast data collection from Binance public data repository
-- **UniversalGapFiller**: Intelligent gap detection and filling with multi-exchange fallback
+- **BinancePublicDataCollector**: Ultra-fast data collection with full 11-column microstructure format
+- **UniversalGapFiller**: Intelligent gap detection and filling with authentic API-first validation
 - **AtomicCSVOperations**: Corruption-proof file operations with atomic writes
 - **SafeCSVMerger**: Safe merging of data files with integrity validation
 
 ### Data Flow
 
 ```
-Binance Public Data Repository → BinancePublicDataCollector → Local Storage
+Binance Public Data Repository → BinancePublicDataCollector → 11-Column Microstructure Format
                 ↓
-Gap Detection → UniversalGapFiller → KuCoin Fallback (if needed)
+Gap Detection → UniversalGapFiller → Authentic API-First Validation
                 ↓
-AtomicCSVOperations → Final Gapless Dataset
+AtomicCSVOperations → Final Gapless Dataset with Order Flow Metrics
 ```
 
 ## 📝 CLI Options
@@ -271,6 +272,7 @@ Gapless Crypto Data is developed by [Eon Labs](https://github.com/Eon-Labs), spe
 
 ---
 
-**⚡ Powered by UV** - Modern Python dependency management  
-**🚀 22x Faster** - Than traditional API-based collection  
-**🔒 Zero Gaps** - Guaranteed complete datasets
+**⚡ Powered by UV** - Modern Python dependency management
+**🚀 22x Faster** - Than traditional API-based collection
+**📊 11-Column Format** - Full microstructure data with order flow metrics
+**🔒 Zero Gaps** - Guaranteed complete datasets with authentic data only

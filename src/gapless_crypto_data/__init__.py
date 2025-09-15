@@ -3,7 +3,8 @@ Gapless Crypto Data - Ultra-fast cryptocurrency data collection with zero gaps g
 
 Features:
 - 🚀 22x faster than API calls via Binance public data repository
-- 🔒 Zero gaps guarantee through multi-exchange fallback (Binance → KuCoin)
+- 📊 Full 11-column microstructure format with order flow and liquidity metrics
+- 🔒 Zero gaps guarantee through authentic API-first validation
 - ⚡ UV-first modern Python tooling
 - 🛡️ Corruption-proof atomic file operations
 - 📊 Multi-timeframe support (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
@@ -13,7 +14,7 @@ Usage:
     uv run gapless-crypto-data --fill-gaps --directory ./data
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 

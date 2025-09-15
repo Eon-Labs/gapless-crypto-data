@@ -91,8 +91,16 @@ class TestBinancePublicDataCollector:
             if csv_files:
                 for csv_file in csv_files:
                     df = pd.read_csv(csv_file)
-                    assert len(df.columns) >= 6  # OHLCV + timestamp
+                    assert len(df.columns) == 11  # Full 11-column microstructure format
                     assert len(df) > 0
+                    # Verify all expected columns are present
+                    expected_columns = [
+                        'date', 'open', 'high', 'low', 'close', 'volume',
+                        'close_time', 'quote_asset_volume', 'number_of_trades',
+                        'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
+                    ]
+                    for col in expected_columns:
+                        assert col in df.columns, f"Missing column: {col}"
 
         except Exception as e:
             # If network issues, skip the test

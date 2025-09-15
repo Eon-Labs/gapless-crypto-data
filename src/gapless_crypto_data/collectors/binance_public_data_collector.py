@@ -178,8 +178,14 @@ class BinancePublicDataCollector:
             # Test if first field is numeric timestamp
             timestamp_val = int(first_row[0])
 
-            # Valid timestamp range check (2001-2286)
-            if 1000000000000 <= timestamp_val <= 9999999999999:
+            # ✅ BOUNDARY FIX: Support both milliseconds (13-digit) AND microseconds (16-digit) formats
+            # Valid timestamp ranges:
+            # Milliseconds: 1000000000000 (2001) to 9999999999999 (2286)
+            # Microseconds: 1000000000000000 (2001) to 9999999999999999 (2286)
+            is_valid_milliseconds = 1000000000000 <= timestamp_val <= 9999999999999
+            is_valid_microseconds = 1000000000000000 <= timestamp_val <= 9999999999999999
+
+            if is_valid_milliseconds or is_valid_microseconds:
                 # Test if other fields are numeric (prices/volumes)
                 for i in [1, 2, 3, 4, 5]:  # OHLCV fields
                     float(first_row[i])
@@ -281,26 +287,25 @@ class BinancePublicDataCollector:
                     # Eliminates artificial DST gaps caused by local timezone conversion
                     dt = datetime.utcfromtimestamp(timestamp_seconds)
 
-                    # Filter by date range
-                    if self.start_date <= dt <= self.end_date:
-                        # Enhanced processing: capture all 11 essential Binance columns for complete microstructure analysis
-                        processed_row = [
-                            dt.strftime("%Y-%m-%d %H:%M:%S"),  # date (from open_time)
-                            float(row[1]),  # open
-                            float(row[2]),  # high
-                            float(row[3]),  # low
-                            float(row[4]),  # close
-                            float(row[5]),  # volume (base asset volume)
-                            # Additional microstructure columns for professional analysis
-                            datetime.utcfromtimestamp(
-                                int(row[6]) / (1000000 if len(str(int(row[6]))) >= 16 else 1000)
-                            ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
-                            float(row[7]),  # quote_asset_volume
-                            int(row[8]),  # number_of_trades
-                            float(row[9]),  # taker_buy_base_asset_volume
-                            float(row[10]),  # taker_buy_quote_asset_volume
-                        ]
-                        processed_data.append(processed_row)
+                    # ✅ BOUNDARY FIX: Don't filter per-monthly-file to preserve month boundaries
+                    # Enhanced processing: capture all 11 essential Binance columns for complete microstructure analysis
+                    processed_row = [
+                        dt.strftime("%Y-%m-%d %H:%M:%S"),  # date (from open_time)
+                        float(row[1]),  # open
+                        float(row[2]),  # high
+                        float(row[3]),  # low
+                        float(row[4]),  # close
+                        float(row[5]),  # volume (base asset volume)
+                        # Additional microstructure columns for professional analysis
+                        datetime.utcfromtimestamp(
+                            int(row[6]) / (1000000 if len(str(int(row[6]))) >= 16 else 1000)
+                        ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
+                        float(row[7]),  # quote_asset_volume
+                        int(row[8]),  # number_of_trades
+                        float(row[9]),  # taker_buy_base_asset_volume
+                        float(row[10]),  # taker_buy_quote_asset_volume
+                    ]
+                    processed_data.append(processed_row)
 
                 except (ValueError, OSError, OverflowError) as e:
                     self.format_stats["unknown"]["count"] += 1
@@ -430,7 +435,7 @@ class BinancePublicDataCollector:
         }
 
     def collect_timeframe_data(self, timeframe):
-        """Collect complete historical data for a single timeframe."""
+        """Collect complete historical data for a single timeframe with full 11-column microstructure format."""
         print(f"\n{'=' * 60}")
         print(f"COLLECTING {timeframe.upper()} DATA FROM BINANCE PUBLIC REPOSITORY")
         print(f"{'=' * 60}")
@@ -464,12 +469,26 @@ class BinancePublicDataCollector:
         if all_data:
             # Sort by timestamp to ensure chronological order
             all_data.sort(key=lambda x: x[0])
-            print(f"  Date range: {all_data[0][0]} to {all_data[-1][0]}")
+            print(f"  Pre-filtering range: {all_data[0][0]} to {all_data[-1][0]}")
+
+            # ✅ BOUNDARY FIX: Apply final date range filtering after combining all monthly data
+            # This preserves month boundaries while respecting the requested date range
+            filtered_data = []
+            for row in all_data:
+                row_dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+                if self.start_date <= row_dt <= self.end_date:
+                    filtered_data.append(row)
+
+            print(f"  Post-filtering: {len(filtered_data):,} bars in requested range")
+            if filtered_data:
+                print(f"  Final range: {filtered_data[0][0]} to {filtered_data[-1][0]}")
+
+            return filtered_data
 
         return all_data
 
     def generate_metadata(self, timeframe, data, collection_stats):
-        """Generate comprehensive metadata."""
+        """Generate comprehensive metadata for 11-column microstructure format."""
         if not data:
             return {}
 
@@ -570,7 +589,7 @@ class BinancePublicDataCollector:
         return hashlib.sha256(data_string.encode()).hexdigest()
 
     def save_to_csv(self, timeframe, data, collection_stats):
-        """Save data to enhanced CSV file with metadata."""
+        """Save data to CSV file with full 11-column microstructure format and metadata."""
         if not data:
             print(f"❌ No data to save for {timeframe}")
             return None
@@ -643,7 +662,7 @@ class BinancePublicDataCollector:
         return filepath
 
     def collect_multiple_timeframes(self, timeframes=None):
-        """Collect data for multiple timeframes using Binance public data."""
+        """Collect data for multiple timeframes with full 11-column microstructure format."""
         if timeframes is None:
             timeframes = ["1m", "3m", "5m", "15m", "30m", "1h", "2h"]
 
