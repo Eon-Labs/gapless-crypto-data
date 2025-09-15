@@ -61,10 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 - **Ultra-fast data collection** - 22x faster than API calls via Binance public data repository
-- **Zero gaps guarantee** - Multi-exchange fallback (Binance → KuCoin) ensures complete datasets
+- **Zero gaps guarantee** - Advanced gap detection and intelligent interpolation ensures complete datasets
 - **Multi-timeframe support** - Collect data across 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h intervals
 - **Intelligent gap detection** - Automatic analysis of timestamp sequences to identify missing data
-- **Universal gap filler** - Seamless data filling using KuCoin API with timezone alignment
+- **Universal gap filler** - Seamless data filling using advanced interpolation with timezone alignment
 - **Atomic file operations** - Corruption-proof CSV handling with atomic writes and backups
 - **Production-grade CLI** - Complete command-line interface with comprehensive options
 - **Python API** - Full programmatic access to all functionality
@@ -102,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 Binance Public Repository → BinancePublicDataCollector → Local Storage
                     ↓
-Gap Detection → UniversalGapFiller → KuCoin Fallback (if needed)
+Gap Detection → UniversalGapFiller → Intelligent Interpolation
                     ↓
 AtomicCSVOperations → Final Gapless Dataset
 ```
