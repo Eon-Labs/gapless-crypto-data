@@ -8,7 +8,7 @@ Uses Binance public data repository (22x faster) with authentic API-first valida
 Gap filling is automatic by default during collection - no manual intervention required.
 
 Usage:
-    uv run gapless-crypto-data [--symbol SYMBOL] [--timeframes TF1,TF2,...] [--start DATE] [--end DATE]
+    uv run gapless-crypto-data [--symbol SYMBOL] [--timeframes TF1,TF2,...] [--start DATE] [--end DATE] [--output-dir DIR]
     uv run gapless-crypto-data --fill-gaps [--directory DIR]
 
 Examples:
@@ -20,6 +20,9 @@ Examples:
 
     # Custom date range with automatic gap filling
     uv run gapless-crypto-data --start 2022-01-01 --end 2024-01-01
+
+    # Custom output directory for organized data storage
+    uv run gapless-crypto-data --symbol ETHUSDT --timeframes 1h,4h --output-dir ./crypto_data
 
     # Manual gap filling for existing data files
     uv run gapless-crypto-data --fill-gaps --directory ./data
@@ -130,6 +133,11 @@ Data Availability Notes:
     Historical test:  --start 2022-01-01 --end 2022-12-31
     Long backtest:    --start 2020-01-01 --end 2023-12-31
 
+  Output Directory Examples:
+    Default location: uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h
+    Custom directory: uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --output-dir ./data
+    Absolute path:    uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --output-dir /home/user/crypto_data
+
 Performance: 22x faster than API calls via Binance public data repository with automatic gap filling and full 11-column microstructure format
 """
 
@@ -159,7 +167,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
         "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
     )
     collect_parser.add_argument(
-        "--output-dir", help="Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)"
+        "--output-dir", help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)"
     )
 
     # Gap filling command
@@ -185,7 +193,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
     )
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
-    parser.add_argument("--output-dir", help="Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)")
+    parser.add_argument("--output-dir", help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)")
     parser.add_argument("--version", action="version", version=f"gapless-crypto-data {__version__}")
 
     args = parser.parse_args()

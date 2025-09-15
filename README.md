@@ -39,11 +39,14 @@ pip install gapless-crypto-data
 ### CLI Usage
 
 ```bash
-# Collect data for multiple timeframes
+# Collect data for multiple timeframes (default output location)
 gapless-crypto-data --symbol SOLUSDT --timeframes 1m,3m,5m,15m,30m,1h,2h,4h
 
-# Collect specific date range
-gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2023-01-01 --end 2023-12-31
+# Collect specific date range with custom output directory
+gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2023-01-01 --end 2023-12-31 --output-dir ./crypto_data
+
+# Collect to absolute path
+gapless-crypto-data --symbol ETHUSDT --timeframes 5m,1h --output-dir /home/user/financial_data
 
 # Fill gaps in existing data
 gapless-crypto-data --fill-gaps --directory ./data
@@ -110,7 +113,7 @@ Options:
   --timeframes TEXT      Comma-separated timeframes (1m,3m,5m,15m,30m,1h,2h,4h)
   --start TEXT          Start date (YYYY-MM-DD)
   --end TEXT            End date (YYYY-MM-DD)
-  --directory TEXT      Output directory (default: ./data)
+  --output-dir TEXT     Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)
   --workers INTEGER     Number of parallel workers (default: 4)
   --help                Show this message and exit
 ```
@@ -171,29 +174,87 @@ gap_filler.fill_gaps(
 
 ## 🛠️ Development
 
-### Using UV (Recommended)
+### Prerequisites
 
+- **UV Package Manager** (recommended) - [Install UV](https://docs.astral.sh/uv/getting-started/installation/)
+- **Python 3.9+** - UV will manage Python versions automatically
+- **Git** - For repository cloning and version control
+
+### Development Installation Workflow
+
+#### Step 1: Clone Repository
 ```bash
-# Clone repository
 git clone https://github.com/Eon-Labs/gapless-crypto-data.git
 cd gapless-crypto-data
+```
 
-# Create development environment
+#### Step 2: Development Environment Setup
+```bash
+# Create isolated virtual environment
 uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install development dependencies
+# Activate virtual environment
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
+
+# Install all dependencies (production + development)
 uv sync --dev
+```
 
-# Run tests
+#### Step 3: Verify Installation
+```bash
+# Test CLI functionality
+uv run gapless-crypto-data --help
+
+# Run test suite
 uv run pytest
 
-# Code formatting and linting
+# Quick data collection test
+uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2024-01-01 --end 2024-01-01 --output-dir ./test_data
+```
+
+#### Step 4: Development Tools
+```bash
+# Code formatting
 uv run ruff format .
+
+# Linting and auto-fixes
 uv run ruff check --fix .
 
 # Type checking
 uv run mypy src/
+
+# Run specific tests
+uv run pytest tests/test_binance_collector.py -v
+```
+
+### Development Commands Reference
+
+| Task | Command |
+|------|---------|
+| Install dependencies | `uv sync --dev` |
+| Add new dependency | `uv add package-name` |
+| Add dev dependency | `uv add --dev package-name` |
+| Run CLI | `uv run gapless-crypto-data [args]` |
+| Run tests | `uv run pytest` |
+| Format code | `uv run ruff format .` |
+| Lint code | `uv run ruff check --fix .` |
+| Type check | `uv run mypy src/` |
+| Build package | `uv build` |
+
+### Project Structure for Development
+```
+gapless-crypto-data/
+├── src/gapless_crypto_data/        # Main package
+│   ├── __init__.py                 # Package exports
+│   ├── cli.py                      # CLI interface
+│   ├── collectors/                 # Data collection modules
+│   └── gap_filling/                # Gap detection/filling
+├── tests/                          # Test suite
+├── docs/                           # Documentation
+├── examples/                       # Usage examples
+├── pyproject.toml                  # Project configuration
+└── uv.lock                        # Dependency lock file
 ```
 
 ### Building and Publishing

@@ -23,6 +23,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn
 
 from ..gap_filling.universal_gap_filler import UniversalGapFiller
 
@@ -48,6 +50,9 @@ class BinancePublicDataCollector:
 
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Initialize Rich console for progress indicators
+        self.console = Console()
 
         # Available timeframes on Binance public data
         self.available_timeframes = [
@@ -495,7 +500,7 @@ class BinancePublicDataCollector:
 
         return all_data
 
-    def generate_metadata(self, timeframe, data, collection_stats):
+    def generate_metadata(self, timeframe, data, collection_stats, gap_analysis=None):
         """Generate comprehensive metadata for 11-column microstructure format."""
         if not data:
             return {}
@@ -579,6 +584,16 @@ class BinancePublicDataCollector:
                 "professional_features": True,
                 "api_format_compatibility": True,
             },
+            "gap_analysis": gap_analysis or {
+                "analysis_performed": False,
+                "total_gaps_detected": 0,
+                "gaps_filled": 0,
+                "gaps_remaining": 0,
+                "gap_details": [],
+                "gap_filling_method": "authentic_binance_api",
+                "data_completeness_score": 1.0,
+                "note": "Gap analysis can be performed using UniversalGapFiller.detect_all_gaps()"
+            },
             "compliance": {
                 "zero_magic_numbers": True,
                 "temporal_integrity": True,
@@ -589,6 +604,72 @@ class BinancePublicDataCollector:
                 "full_binance_microstructure_format": True,
                 "professional_trading_ready": True,
             },
+        }
+
+    def _perform_gap_analysis(self, data, timeframe):
+        """Perform gap analysis on collected data and return detailed results."""
+        if not data or len(data) < 2:
+            return {
+                "analysis_performed": True,
+                "total_gaps_detected": 0,
+                "gaps_filled": 0,
+                "gaps_remaining": 0,
+                "gap_details": [],
+                "gap_filling_method": "authentic_binance_api",
+                "data_completeness_score": 1.0,
+                "note": "Insufficient data for gap analysis (< 2 rows)"
+            }
+
+        # Calculate expected interval in minutes
+        timeframe_minutes = {
+            "1m": 1, "3m": 3, "5m": 5, "15m": 15, "30m": 30,
+            "1h": 60, "2h": 120, "4h": 240, "1d": 1440
+        }
+
+        interval_minutes = timeframe_minutes.get(timeframe, 60)
+        expected_gap_minutes = interval_minutes
+
+        # Analyze timestamp gaps
+        gaps_detected = []
+        total_bars_expected = 0
+
+        for i in range(1, len(data)):
+            current_time = datetime.strptime(data[i][0], "%Y-%m-%d %H:%M:%S")
+            previous_time = datetime.strptime(data[i-1][0], "%Y-%m-%d %H:%M:%S")
+
+            actual_gap_minutes = (current_time - previous_time).total_seconds() / 60
+
+            if actual_gap_minutes > expected_gap_minutes * 1.5:  # Allow 50% tolerance
+                missing_bars = int(actual_gap_minutes / expected_gap_minutes) - 1
+                if missing_bars > 0:
+                    gaps_detected.append({
+                        "gap_start": data[i-1][0],
+                        "gap_end": data[i][0],
+                        "missing_bars": missing_bars,
+                        "duration_minutes": actual_gap_minutes - expected_gap_minutes
+                    })
+                    total_bars_expected += missing_bars
+
+        # Calculate completeness score
+        total_bars_collected = len(data)
+        total_bars_should_exist = total_bars_collected + total_bars_expected
+        completeness_score = total_bars_collected / total_bars_should_exist if total_bars_should_exist > 0 else 1.0
+
+        return {
+            "analysis_performed": True,
+            "total_gaps_detected": len(gaps_detected),
+            "gaps_filled": 0,  # Will be updated during gap filling process
+            "gaps_remaining": len(gaps_detected),
+            "gap_details": gaps_detected[:10],  # Limit to first 10 gaps for metadata size
+            "total_missing_bars": total_bars_expected,
+            "gap_filling_method": "authentic_binance_api",
+            "data_completeness_score": round(completeness_score, 4),
+            "analysis_timestamp": datetime.utcnow().isoformat() + "Z",
+            "analysis_parameters": {
+                "timeframe": timeframe,
+                "expected_interval_minutes": expected_gap_minutes,
+                "tolerance_factor": 1.5
+            }
         }
 
     def _calculate_data_hash(self, data):
@@ -614,8 +695,11 @@ class BinancePublicDataCollector:
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate metadata
-        metadata = self.generate_metadata(timeframe, data, collection_stats)
+        # Perform gap analysis on collected data
+        gap_analysis = self._perform_gap_analysis(data, timeframe)
+
+        # Generate metadata with gap analysis results
+        metadata = self.generate_metadata(timeframe, data, collection_stats, gap_analysis)
 
         # Write CSV with metadata headers
         with open(filepath, "w", newline="") as f:
@@ -674,43 +758,61 @@ class BinancePublicDataCollector:
         if timeframes is None:
             timeframes = ["1m", "3m", "5m", "15m", "30m", "1h", "2h"]
 
-        print("BINANCE PUBLIC DATA ULTRA-FAST COLLECTION")
-        print(f"Timeframes: {timeframes}")
-        print("=" * 80)
+        self.console.print("\n🚀 [bold blue]BINANCE PUBLIC DATA ULTRA-FAST COLLECTION[/bold blue]")
+        self.console.print(f"[cyan]Timeframes:[/cyan] {timeframes}")
+        self.console.print("=" * 80)
 
         results = {}
         overall_start = datetime.now()
 
-        for i, timeframe in enumerate(timeframes):
-            print(f"\nPROGRESS: {i + 1}/{len(timeframes)} timeframes")
+        # Create progress bar for timeframes
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeElapsedColumn(),
+            console=self.console,
+            expand=True
+        ) as progress:
 
-            tf_start = datetime.now()
-            data = self.collect_timeframe_data(timeframe)
-            tf_duration = (datetime.now() - tf_start).total_seconds()
+            main_task = progress.add_task(
+                f"[bold green]Collecting {len(timeframes)} timeframes",
+                total=len(timeframes)
+            )
 
-            if data:
-                collection_stats = {
-                    "method": "direct_download",
-                    "duration": tf_duration,
-                    "bars_per_second": len(data) / tf_duration if tf_duration > 0 else 0,
-                }
+            for i, timeframe in enumerate(timeframes):
+                # Update main progress
+                progress.update(main_task, description=f"[bold green]Processing {timeframe} ({i+1}/{len(timeframes)})")
 
-                filepath = self.save_to_csv(timeframe, data, collection_stats)
-                if filepath:
-                    results[timeframe] = filepath
-            else:
-                print(f"❌ Failed to collect {timeframe} data")
+                tf_start = datetime.now()
+                data = self.collect_timeframe_data(timeframe)
+                tf_duration = (datetime.now() - tf_start).total_seconds()
+
+                if data:
+                    collection_stats = {
+                        "method": "direct_download",
+                        "duration": tf_duration,
+                        "bars_per_second": len(data) / tf_duration if tf_duration > 0 else 0,
+                    }
+
+                    filepath = self.save_to_csv(timeframe, data, collection_stats)
+                    if filepath:
+                        results[timeframe] = filepath
+                        file_size_mb = filepath.stat().st_size / (1024 * 1024)
+                        self.console.print(f"✅ [green]{timeframe}[/green]: {filepath.name} ([cyan]{file_size_mb:.1f} MB[/cyan])")
+                else:
+                    self.console.print(f"❌ [red]Failed to collect {timeframe} data[/red]")
+
+                # Update progress
+                progress.advance(main_task)
 
         overall_duration = (datetime.now() - overall_start).total_seconds()
 
-        print("\n" + "=" * 80)
-        print("ULTRA-FAST COLLECTION COMPLETE")
-        print(f"Total time: {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)")
-        print(f"Generated {len(results)} files:")
-
-        for timeframe, filepath in results.items():
-            file_size_mb = filepath.stat().st_size / (1024 * 1024)
-            print(f"  {timeframe}: {filepath.name} ({file_size_mb:.1f} MB)")
+        self.console.print("\n" + "=" * 80)
+        self.console.print("🎉 [bold green]ULTRA-FAST COLLECTION COMPLETE[/bold green]")
+        self.console.print(f"⏱️  [yellow]Total time:[/yellow] {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)")
+        self.console.print(f"📊 [yellow]Generated {len(results)} files[/yellow]")
 
         return results
 
