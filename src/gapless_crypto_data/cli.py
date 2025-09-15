@@ -30,6 +30,7 @@ from typing import Any
 
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.universal_gap_filler import UniversalGapFiller
+from . import __version__
 
 
 def collect_data(args: Any) -> int:
@@ -179,6 +180,7 @@ Performance: 22x faster than API calls via Binance public data repository with f
     )
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
+    parser.add_argument("--version", action="version", version=f"gapless-crypto-data {__version__}")
 
     args = parser.parse_args()
 
