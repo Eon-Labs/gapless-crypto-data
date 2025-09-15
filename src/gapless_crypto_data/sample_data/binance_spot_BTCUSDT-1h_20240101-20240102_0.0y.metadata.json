@@ -1,7 +1,7 @@
 {
   "version": "3.0.0",
   "generator": "BinancePublicDataCollector",
-  "generation_timestamp": "2025-09-15T04:12:37.370960Z",
+  "generation_timestamp": "2025-09-15T04:30:34.957978Z",
   "data_source": "Binance Public Data Repository",
   "data_source_url": "https://data.binance.vision/data/spot/monthly/klines",
   "market_type": "spot",
@@ -26,8 +26,8 @@
   },
   "collection_performance": {
     "method": "direct_download",
-    "duration": 0.459626,
-    "bars_per_second": 104.43273444061042
+    "duration": 0.422554,
+    "bars_per_second": 113.5949488112762
   },
   "data_integrity": {
     "chronological_order": true,

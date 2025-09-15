@@ -18,12 +18,12 @@ __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
-from .gap_filling.universal_gap_filler import UniversalGapFiller
 from .gap_filling.safe_file_operations import AtomicCSVOperations, SafeCSVMerger
+from .gap_filling.universal_gap_filler import UniversalGapFiller
 
 __all__ = [
     "BinancePublicDataCollector",
-    "UniversalGapFiller", 
+    "UniversalGapFiller",
     "AtomicCSVOperations",
     "SafeCSVMerger"
 ]

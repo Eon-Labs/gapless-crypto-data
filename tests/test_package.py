@@ -1,7 +1,6 @@
 """Test package structure and imports."""
-import importlib
-import sys
 from pathlib import Path
+
 import pytest
 
 
@@ -70,7 +69,7 @@ def test_version_available():
             # Basic semantic version format check
             parts = version.split('.')
             assert len(parts) >= 2  # At least major.minor
-    except Exception as e:
+    except Exception:
         # Version might not be implemented yet
         pass
 
@@ -114,6 +113,6 @@ def test_no_syntax_errors():
             compile(content, str(py_file), 'exec')
         except SyntaxError as e:
             pytest.fail(f"Syntax error in {py_file}: {e}")
-        except Exception as e:
+        except Exception:
             # Other errors (like import errors) are acceptable for this test
             pass

@@ -6,8 +6,8 @@ This example demonstrates how to collect cryptocurrency data using the
 BinancePublicDataCollector for ultra-fast downloads (22x faster than APIs).
 """
 
-from pathlib import Path
 from gapless_crypto_data import BinancePublicDataCollector
+
 
 def main():
     """Demonstrate basic data collection"""

@@ -6,9 +6,12 @@ This example demonstrates how to detect and fill gaps in cryptocurrency data
 using the UniversalGapFiller with multi-exchange fallback capability.
 """
 
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
 from gapless_crypto_data import UniversalGapFiller
+
 
 def create_sample_data_with_gaps():
     """Create sample CSV data with intentional gaps for demonstration"""
@@ -55,7 +58,7 @@ def main():
     print("Detecting gaps...")
     gaps = gap_filler.detect_all_gaps(sample_file, "1h")
 
-    print(f"✅ Gap detection completed")
+    print("✅ Gap detection completed")
     print(f"   Found {len(gaps)} gaps")
     print()
 

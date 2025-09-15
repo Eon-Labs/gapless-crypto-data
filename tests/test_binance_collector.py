@@ -2,8 +2,9 @@
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-import pytest
+
 import pandas as pd
+import pytest
 
 from gapless_crypto_data.collectors.binance_public_data_collector import BinancePublicDataCollector
 

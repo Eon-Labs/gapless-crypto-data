@@ -23,8 +23,8 @@ Examples:
     uv run gapless-crypto-data --fill-gaps --directory ./data
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -36,23 +36,23 @@ def collect_data(args: Any) -> int:
     """Main data collection workflow"""
     # Parse timeframes
     timeframes = [tf.strip() for tf in args.timeframes.split(',')]
-    
+
     print("🚀 Gapless Crypto Data Collection")
     print(f"Symbol: {args.symbol}")
     print(f"Timeframes: {timeframes}")
     print(f"Date Range: {args.start} to {args.end}")
     print("=" * 60)
-    
+
     # Initialize ultra-fast collector
     collector = BinancePublicDataCollector(
         symbol=args.symbol,
         start_date=args.start,
         end_date=args.end
     )
-    
+
     # Collect data (22x faster than API)
     results = collector.collect_multiple_timeframes(timeframes)
-    
+
     if results:
         print(f"\n🚀 ULTRA-FAST SUCCESS: Generated {len(results)} datasets")
         for tf, filepath in results.items():
@@ -101,7 +101,7 @@ def fill_gaps(args: Any) -> int:
                 success_count += 1
 
     success = success_count > 0
-    
+
     if success:
         print("\n✅ GAP FILLING SUCCESS: All gaps filled")
         return 0
@@ -117,13 +117,13 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__
     )
-    
+
     # Subcommands
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
+
     # Data collection command (default)
     collect_parser = subparsers.add_parser('collect', help='Collect cryptocurrency data')
-    collect_parser.add_argument('--symbol', default='SOLUSDT', 
+    collect_parser.add_argument('--symbol', default='SOLUSDT',
                                help='Trading pair symbol (default: SOLUSDT)')
     collect_parser.add_argument('--timeframes', default='1m,3m,5m,15m,30m,1h,2h,4h',
                                help='Comma-separated timeframes (default: 1m,3m,5m,15m,30m,1h,2h,4h)')
@@ -131,11 +131,11 @@ def main() -> int:
                                help='Start date YYYY-MM-DD (default: 2021-08-06)')
     collect_parser.add_argument('--end', default='2025-08-31',
                                help='End date YYYY-MM-DD (default: 2025-08-31)')
-    
+
     # Gap filling command
     gaps_parser = subparsers.add_parser('fill-gaps', help='Fill gaps in existing data')
     gaps_parser.add_argument('--directory', help='Directory containing CSV files (default: current)')
-    
+
     # Legacy support: direct flags for backwards compatibility
     parser.add_argument('--symbol', default='SOLUSDT',
                        help='Trading pair symbol (default: SOLUSDT)')
@@ -148,9 +148,9 @@ def main() -> int:
     parser.add_argument('--fill-gaps', action='store_true',
                        help='Fill gaps in existing data')
     parser.add_argument('--directory', help='Directory containing CSV files (default: current)')
-    
+
     args = parser.parse_args()
-    
+
     # Route to appropriate function
     if args.command == 'fill-gaps' or args.fill_gaps:
         return fill_gaps(args)

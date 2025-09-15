@@ -1,10 +1,10 @@
 # Binance Spot Market Data v3.0.0
-# Generated: 2025-09-15T04:12:37.370960Z
+# Generated: 2025-09-15T04:30:34.957978Z
 # Source: Binance Public Data Repository
 # Market: SPOT | Symbol: BTCUSDT | Timeframe: 1h
 # Coverage: 48 bars
 # Period: 2024-01-01 00:00:00 to 2024-01-02 23:00:00
-# Collection: direct_download in 0.5s
+# Collection: direct_download in 0.4s
 # Data Hash: 2ee17ac5f24bc0e8...
 # Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source
 #

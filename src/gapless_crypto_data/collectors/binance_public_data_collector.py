@@ -8,24 +8,26 @@ Ultra-fast historical data collection using Binance's official public data repos
 Data source: https://data.binance.vision/data/spot/monthly/klines/
 """
 
-import urllib.request
-import urllib.parse
-import zipfile
+import argparse
 import csv
+import hashlib
+import json
+import shutil
+import tempfile
+import urllib.parse
+import urllib.request
+import zipfile
 from datetime import datetime
 from pathlib import Path
-import tempfile
-import shutil
-import json
-import hashlib
-import argparse
+
 import pandas as pd
+
 from ..gap_filling.universal_gap_filler import UniversalGapFiller
 
 
 class BinancePublicDataCollector:
     """Ultra-fast spot data collection using Binance's public data repository."""
-    
+
     def __init__(self, symbol='SOLUSDT', start_date='2020-08-15', end_date='2025-03-20'):
         """Initialize collector with date range."""
         self.symbol = symbol
@@ -34,40 +36,40 @@ class BinancePublicDataCollector:
         self.end_date = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
         self.base_url = "https://data.binance.vision/data/spot/monthly/klines"
         self.output_dir = Path(__file__).parent.parent / 'sample_data'
-        
+
         # Available timeframes on Binance public data
         self.available_timeframes = [
             '1s', '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1mo'
         ]
-        
-        print(f"Binance Public Data Collector")
+
+        print("Binance Public Data Collector")
         print(f"Symbol: {self.symbol}")
         print(f"Date Range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}")
         print(f"Data Source: {self.base_url}")
-    
+
     def generate_monthly_urls(self, timeframe):
         """Generate list of monthly ZIP file URLs to download."""
         urls = []
         current_date = self.start_date.replace(day=1)  # Start of month
-        
+
         while current_date <= self.end_date:
             year_month = current_date.strftime('%Y-%m')
             filename = f"{self.symbol}-{timeframe}-{year_month}.zip"
             url = f"{self.base_url}/{self.symbol}/{timeframe}/{filename}"
             urls.append((url, year_month, filename))
-            
+
             # Move to next month
             if current_date.month == 12:
                 current_date = current_date.replace(year=current_date.year + 1, month=1)
             else:
                 current_date = current_date.replace(month=current_date.month + 1)
-        
+
         return urls
-    
+
     def download_and_extract_month(self, url, filename):
         """Download and extract a single monthly ZIP file."""
         print(f"  Downloading {filename}...")
-        
+
         try:
             with tempfile.NamedTemporaryFile() as temp_zip:
                 # Download ZIP file
@@ -78,7 +80,7 @@ class BinancePublicDataCollector:
                     else:
                         print(f"    ⚠️  HTTP {response.status} - {filename} not available")
                         return []
-                
+
                 # Extract CSV data
                 with zipfile.ZipFile(temp_zip.name, 'r') as zf:
                     csv_filename = filename.replace('.zip', '.csv')
@@ -89,25 +91,25 @@ class BinancePublicDataCollector:
                     else:
                         print(f"    ⚠️  CSV file not found in {filename}")
                         return []
-                        
+
         except Exception as e:
             print(f"    ❌ Error downloading {filename}: {e}")
             return []
-    
+
     def _detect_header_intelligent(self, raw_data):
         """Intelligent header detection - determine if first row is data or header."""
         if not raw_data:
             return False
-        
+
         first_row = raw_data[0]
         if len(first_row) < 6:
             return False
-        
+
         # Header detection heuristics
         try:
             # Test if first field is numeric timestamp
             timestamp_val = int(first_row[0])
-            
+
             # Valid timestamp range check (2001-2286)
             if 1000000000000 <= timestamp_val <= 9999999999999:
                 # Test if other fields are numeric (prices/volumes)
@@ -116,16 +118,16 @@ class BinancePublicDataCollector:
                 return False  # All numeric = data row
             else:
                 return True  # Invalid timestamp = likely header
-                
+
         except (ValueError, IndexError):
             # Non-numeric first field = header
             return True
-    
+
     def process_raw_data(self, raw_data):
         """Convert raw Binance CSV data with comprehensive timestamp format tracking and transition detection."""
         processed_data = []
         self.corruption_log = getattr(self, 'corruption_log', [])
-        
+
         # Initialize comprehensive format tracking
         self.format_stats = {
             'milliseconds': {'count': 0, 'first_seen': None, 'last_seen': None, 'sample_values': []},
@@ -134,34 +136,34 @@ class BinancePublicDataCollector:
         }
         self.format_transitions = []  # Track format changes
         self.current_format = None
-        
+
         # Intelligent header detection
         has_header = self._detect_header_intelligent(raw_data)
         start_row = 1 if has_header else 0
-        
+
         # Store header detection results for metadata
         self._header_detected = has_header
         self._header_content = raw_data[0][:6] if has_header else None
         self._data_start_row = start_row
-        
+
         if has_header:
             print(f"    📋 Header detected: {raw_data[0][:6]}")
         else:
-            print(f"    📊 Pure data format detected (no header)")
-        
+            print("    📊 Pure data format detected (no header)")
+
         format_change_logged = False
-        
+
         for row_idx, row in enumerate(raw_data[start_row:], start=start_row):
             if len(row) >= 6:  # Binance format has 12 columns but we need first 6
                 try:
                     # Binance format: [timestamp, open, high, low, close, volume, close_time, quote_volume, count, taker_buy_volume, taker_buy_quote_volume, ignore]
                     timestamp_raw = int(row[0])
-                    
+
                     # Comprehensive format detection with transition tracking
                     detected_format, timestamp_seconds, validation_result = self._analyze_timestamp_format(
                         timestamp_raw, row_idx
                     )
-                    
+
                     # Track format transitions
                     if self.current_format is None:
                         self.current_format = detected_format
@@ -177,38 +179,38 @@ class BinancePublicDataCollector:
                         if not format_change_logged:
                             print(f"    🔄 Format transition detected: {self.format_transitions[-1]['from_format']} → {detected_format}")
                             format_change_logged = True
-                    
+
                     # Update format statistics
                     self.format_stats[detected_format]['count'] += 1
                     if self.format_stats[detected_format]['first_seen'] is None:
                         self.format_stats[detected_format]['first_seen'] = row_idx
                     self.format_stats[detected_format]['last_seen'] = row_idx
-                    
+
                     # Store sample values (first 3 per format)
                     if len(self.format_stats[detected_format]['sample_values']) < 3:
                         self.format_stats[detected_format]['sample_values'].append(timestamp_raw)
-                    
+
                     # Skip if validation failed
                     if not validation_result['valid']:
                         self.corruption_log.append(validation_result['error_details'])
                         continue
-                        
+
                     # ✅ CRITICAL FIX: Use UTC to match Binance's native timezone
                     # Eliminates artificial DST gaps caused by local timezone conversion
                     dt = datetime.utcfromtimestamp(timestamp_seconds)
-                    
+
                     # Filter by date range
                     if self.start_date <= dt <= self.end_date:
                         processed_row = [
                             dt.strftime('%Y-%m-%d %H:%M:%S'),  # date
                             float(row[1]),  # open
-                            float(row[2]),  # high  
+                            float(row[2]),  # high
                             float(row[3]),  # low
                             float(row[4]),  # close
                             float(row[5])   # volume
                         ]
                         processed_data.append(processed_row)
-                        
+
                 except (ValueError, OSError, OverflowError) as e:
                     self.format_stats['unknown']['count'] += 1
                     error_details = {
@@ -228,34 +230,34 @@ class BinancePublicDataCollector:
                     'column_count': len(row),
                     'raw_row': row
                 })
-        
+
         # Report comprehensive format analysis
         self._report_format_analysis()
-        
+
         return processed_data
-    
+
     def _analyze_timestamp_format(self, timestamp_raw, row_idx):
         """Comprehensive timestamp format analysis with validation."""
         digit_count = len(str(timestamp_raw))
-        
+
         # Enhanced format detection logic
         if digit_count >= 16:  # Microseconds (16+ digits) - 2025+ format
             format_type = "microseconds"
             timestamp_seconds = timestamp_raw / 1000000
             min_bound = 1262304000000000  # 2010-01-01 00:00:00 (microseconds)
             max_bound = 1893456000000000  # 2030-01-01 00:00:00 (microseconds)
-            
+
         elif digit_count >= 10:  # Milliseconds (10-15 digits) - Legacy format
             format_type = "milliseconds"
             timestamp_seconds = timestamp_raw / 1000
             min_bound = 1262304000000     # 2010-01-01 00:00:00 (milliseconds)
             max_bound = 1893456000000     # 2030-01-01 00:00:00 (milliseconds)
-            
+
         else:  # Unknown format (less than 10 digits)
             format_type = "unknown"
             timestamp_seconds = None
             min_bound = max_bound = None
-        
+
         # Enhanced validation with detailed error reporting
         if format_type == "unknown":
             validation_result = {
@@ -285,24 +287,24 @@ class BinancePublicDataCollector:
             }
         else:
             validation_result = {'valid': True}
-        
+
         return format_type, timestamp_seconds, validation_result
-    
+
     def _report_format_analysis(self):
         """Report comprehensive format analysis with transition detection."""
         total_rows = sum(stats['count'] for stats in self.format_stats.values())
-        
-        print(f"    📈 COMPREHENSIVE FORMAT ANALYSIS:")
-        
+
+        print("    📈 COMPREHENSIVE FORMAT ANALYSIS:")
+
         for format_type, stats in self.format_stats.items():
             if stats['count'] > 0:
                 percentage = (stats['count'] / total_rows) * 100 if total_rows > 0 else 0
                 print(f"      {format_type.upper()}: {stats['count']:,} rows ({percentage:.1f}%)")
-                
+
                 if format_type != 'unknown' and stats['sample_values']:
                     first_sample = stats['sample_values'][0]
                     print(f"        Sample: {first_sample} (rows {stats['first_seen']}-{stats['last_seen']})")
-        
+
         # Report format transitions
         if len(self.format_transitions) > 0:
             print(f"    🔄 FORMAT TRANSITIONS DETECTED: {len(self.format_transitions)}")
@@ -313,7 +315,7 @@ class BinancePublicDataCollector:
                 print(f"      ... and {len(self.format_transitions) - 3} more transitions")
         else:
             print(f"    ✅ SINGLE FORMAT: No transitions detected - consistent {self.current_format}")
-            
+
         # Store format analysis results for metadata
         self._format_analysis_summary = {
             'total_rows_analyzed': total_rows,
@@ -323,25 +325,25 @@ class BinancePublicDataCollector:
             'primary_format': self.current_format,
             'format_consistency': len(self.format_transitions) == 0
         }
-    
+
     def collect_timeframe_data(self, timeframe):
         """Collect complete historical data for a single timeframe."""
         print(f"\n{'='*60}")
         print(f"COLLECTING {timeframe.upper()} DATA FROM BINANCE PUBLIC REPOSITORY")
         print(f"{'='*60}")
-        
+
         if timeframe not in self.available_timeframes:
             print(f"❌ Timeframe {timeframe} not available")
             return None
-        
+
         # Generate monthly URLs
         monthly_urls = self.generate_monthly_urls(timeframe)
         print(f"Monthly files to download: {len(monthly_urls)}")
-        
+
         # Collect data from all months
         all_data = []
         successful_downloads = 0
-        
+
         for url, year_month, filename in monthly_urls:
             raw_month_data = self.download_and_extract_month(url, filename)
             if raw_month_data:
@@ -351,30 +353,30 @@ class BinancePublicDataCollector:
                 print(f"    ✅ {len(processed_data):,} bars from {year_month}")
             else:
                 print(f"    ⚠️  No data from {year_month}")
-        
-        print(f"\nCollection Summary:")
+
+        print("\nCollection Summary:")
         print(f"  Successful downloads: {successful_downloads}/{len(monthly_urls)}")
         print(f"  Total bars collected: {len(all_data):,}")
-        
+
         if all_data:
             # Sort by timestamp to ensure chronological order
             all_data.sort(key=lambda x: x[0])
             print(f"  Date range: {all_data[0][0]} to {all_data[-1][0]}")
-        
+
         return all_data
-    
+
     def generate_metadata(self, timeframe, data, collection_stats):
         """Generate comprehensive metadata."""
         if not data:
             return {}
-        
+
         # Calculate statistics
         prices = []
         volumes = []
         for row in data:
             prices.extend([row[2], row[3]])  # high, low
             volumes.append(row[5])
-        
+
         return {
             'version': '3.0.0',
             'generator': 'BinancePublicDataCollector',
@@ -432,31 +434,31 @@ class BinancePublicDataCollector:
                 'supports_milliseconds_microseconds': True
             }
         }
-    
+
     def _calculate_data_hash(self, data):
         """Calculate hash of data for integrity verification."""
         data_string = '\n'.join(','.join(map(str, row)) for row in data)
         return hashlib.sha256(data_string.encode()).hexdigest()
-    
+
     def save_to_csv(self, timeframe, data, collection_stats):
         """Save data to enhanced CSV file with metadata."""
         if not data:
             print(f"❌ No data to save for {timeframe}")
             return None
-        
+
         # Generate filename
         start_date_str = self.start_date.strftime('%Y%m%d')
         end_date_str = datetime.strptime(data[-1][0], '%Y-%m-%d %H:%M:%S').strftime('%Y%m%d')
         duration = f"{(self.end_date - self.start_date).days / 365.25:.1f}y"
         filename = f"binance_spot_{self.symbol}-{timeframe}_{start_date_str}-{end_date_str}_{duration}.csv"
         filepath = self.output_dir / filename
-        
+
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Generate metadata
         metadata = self.generate_metadata(timeframe, data, collection_stats)
-        
+
         # Write CSV with metadata headers
         with open(filepath, 'w', newline='') as f:
             # Write metadata headers
@@ -468,67 +470,70 @@ class BinancePublicDataCollector:
             f.write(f"# Period: {metadata['date_range']['start']} to {metadata['date_range']['end']}\n")
             f.write(f"# Collection: {collection_stats['method']} in {collection_stats['duration']:.1f}s\n")
             f.write(f"# Data Hash: {metadata['data_integrity']['data_hash'][:16]}...\n")
-            f.write(f"# Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source\n")
+            f.write("# Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source\n")
             f.write("#\n")
-            
+
             # Write CSV header and data
             writer = csv.writer(f)
             writer.writerow(['date', 'open', 'high', 'low', 'close', 'volume'])
             writer.writerows(data)
-        
+
         # Save metadata as JSON
         metadata_filepath = filepath.with_suffix('.metadata.json')
         with open(metadata_filepath, 'w') as f:
             json.dump(metadata, f, indent=2)
-        
+
         file_size_mb = filepath.stat().st_size / (1024*1024)
         print(f"\n✅ Created: {filepath.name} ({file_size_mb:.1f} MB)")
         print(f"✅ Metadata: {metadata_filepath.name}")
-        
+
         return filepath
-    
-    def collect_multiple_timeframes(self, timeframes=['1m', '3m', '5m', '15m', '30m', '1h', '2h']):
+
+    def collect_multiple_timeframes(self, timeframes=None):
         """Collect data for multiple timeframes using Binance public data."""
+        if timeframes is None:
+            timeframes = ['1m', '3m', '5m', '15m', '30m', '1h', '2h']
+
         print("BINANCE PUBLIC DATA ULTRA-FAST COLLECTION")
         print(f"Timeframes: {timeframes}")
         print("=" * 80)
-        
+
         results = {}
         overall_start = datetime.now()
-        
+
         for i, timeframe in enumerate(timeframes):
             print(f"\nPROGRESS: {i+1}/{len(timeframes)} timeframes")
-            
+
             tf_start = datetime.now()
             data = self.collect_timeframe_data(timeframe)
             tf_duration = (datetime.now() - tf_start).total_seconds()
-            
+
             if data:
                 collection_stats = {
                     'method': 'direct_download',
                     'duration': tf_duration,
                     'bars_per_second': len(data) / tf_duration if tf_duration > 0 else 0
                 }
-                
+
                 filepath = self.save_to_csv(timeframe, data, collection_stats)
                 if filepath:
                     results[timeframe] = filepath
             else:
                 print(f"❌ Failed to collect {timeframe} data")
-        
+
         overall_duration = (datetime.now() - overall_start).total_seconds()
-        
+
         print("\n" + "=" * 80)
         print("ULTRA-FAST COLLECTION COMPLETE")
         print(f"Total time: {overall_duration:.1f} seconds ({overall_duration/60:.1f} minutes)")
         print(f"Generated {len(results)} files:")
-        
+
         for timeframe, filepath in results.items():
             file_size_mb = filepath.stat().st_size / (1024*1024)
             print(f"  {timeframe}: {filepath.name} ({file_size_mb:.1f} MB)")
-        
+
         return results
-    
+
     def validate_csv_file(self, csv_filepath, expected_timeframe=None):
         """
         Comprehensive validation of CSV file data integrity, completeness, and quality.
@@ -543,7 +548,7 @@ class BinancePublicDataCollector:
         print(f"\n{'='*60}")
         print(f"VALIDATING: {csv_filepath.name}")
         print(f"{'='*60}")
-        
+
         validation_results = {
             'validation_timestamp': datetime.utcnow().isoformat() + 'Z',
             'file_path': str(csv_filepath),
@@ -553,21 +558,21 @@ class BinancePublicDataCollector:
             'total_warnings': 0,
             'validation_summary': 'UNKNOWN'
         }
-        
+
         if not csv_filepath.exists():
             validation_results['validation_summary'] = 'FAILED - File not found'
             validation_results['total_errors'] = 1
             return validation_results
-        
+
         validation_results['file_size_mb'] = csv_filepath.stat().st_size / (1024*1024)
-        
+
         try:
             # Load CSV data efficiently
             print("Loading and parsing CSV data...")
             df = pd.read_csv(csv_filepath, comment='#')
             validation_results['total_bars'] = len(df)
             print(f"  ✅ Loaded {len(df):,} data bars")
-            
+
             # 1. BASIC STRUCTURE VALIDATION
             print("\n1. BASIC STRUCTURE VALIDATION")
             structure_validation = self._validate_csv_structure(df)
@@ -577,7 +582,7 @@ class BinancePublicDataCollector:
                 for error in structure_validation['errors']:
                     print(f"    ❌ {error}")
                     validation_results['total_errors'] += 1
-            
+
             # 2. DATE/TIME VALIDATION
             print("\n2. DATE/TIME VALIDATION")
             datetime_validation = self._validate_datetime_sequence(df, expected_timeframe)
@@ -586,7 +591,7 @@ class BinancePublicDataCollector:
             print(f"  Duration: {datetime_validation['duration_days']:.1f} days")
             print(f"  Gaps Found: {datetime_validation['gaps_found']}")
             print(f"  Sequence: {datetime_validation['chronological_order']}")
-            
+
             if datetime_validation['errors']:
                 for error in datetime_validation['errors']:
                     print(f"    ❌ {error}")
@@ -595,7 +600,7 @@ class BinancePublicDataCollector:
                 for warning in datetime_validation['warnings']:
                     print(f"    ⚠️  {warning}")
                     validation_results['total_warnings'] += 1
-            
+
             # 3. OHLCV DATA QUALITY VALIDATION
             print("\n3. OHLCV DATA QUALITY VALIDATION")
             ohlcv_validation = self._validate_ohlcv_quality(df)
@@ -604,7 +609,7 @@ class BinancePublicDataCollector:
             print(f"  Volume Range: {ohlcv_validation['volume_stats']['min']:.2f} - {ohlcv_validation['volume_stats']['max']:,.0f}")
             print(f"  OHLC Logic Errors: {ohlcv_validation['ohlc_errors']}")
             print(f"  Negative/Zero Values: {ohlcv_validation['negative_zero_values']}")
-            
+
             if ohlcv_validation['errors']:
                 for error in ohlcv_validation['errors']:
                     print(f"    ❌ {error}")
@@ -613,7 +618,7 @@ class BinancePublicDataCollector:
                 for warning in ohlcv_validation['warnings']:
                     print(f"    ⚠️  {warning}")
                     validation_results['total_warnings'] += 1
-            
+
             # 4. EXPECTED COVERAGE VALIDATION
             print("\n4. EXPECTED COVERAGE VALIDATION")
             coverage_validation = self._validate_expected_coverage(df, expected_timeframe)
@@ -621,7 +626,7 @@ class BinancePublicDataCollector:
             print(f"  Expected Bars: {coverage_validation['expected_bars']:,}")
             print(f"  Actual Bars: {coverage_validation['actual_bars']:,}")
             print(f"  Coverage: {coverage_validation['coverage_percentage']:.1f}%")
-            
+
             # 5. STATISTICAL ANOMALY DETECTION
             print("\n5. STATISTICAL ANOMALY DETECTION")
             anomaly_validation = self._validate_statistical_anomalies(df)
@@ -629,48 +634,48 @@ class BinancePublicDataCollector:
             print(f"  Price Outliers: {anomaly_validation['price_outliers']}")
             print(f"  Volume Outliers: {anomaly_validation['volume_outliers']}")
             print(f"  Suspicious Patterns: {anomaly_validation['suspicious_patterns']}")
-            
+
             # FINAL VALIDATION SUMMARY
             if validation_results['total_errors'] == 0:
                 if validation_results['total_warnings'] == 0:
                     validation_results['validation_summary'] = 'PERFECT - No errors or warnings'
-                    print(f"\n✅ VALIDATION RESULT: PERFECT")
-                    print(f"   No errors or warnings found. Data quality is excellent.")
+                    print("\n✅ VALIDATION RESULT: PERFECT")
+                    print("   No errors or warnings found. Data quality is excellent.")
                 else:
                     validation_results['validation_summary'] = f'GOOD - {validation_results["total_warnings"]} warnings'
-                    print(f"\n✅ VALIDATION RESULT: GOOD")
+                    print("\n✅ VALIDATION RESULT: GOOD")
                     print(f"   No errors, but {validation_results['total_warnings']} warnings found.")
             else:
                 validation_results['validation_summary'] = f'FAILED - {validation_results["total_errors"]} errors, {validation_results["total_warnings"]} warnings'
-                print(f"\n❌ VALIDATION RESULT: FAILED")
+                print("\n❌ VALIDATION RESULT: FAILED")
                 print(f"   {validation_results['total_errors']} errors and {validation_results['total_warnings']} warnings found.")
-            
+
         except Exception as e:
             validation_results['validation_summary'] = f'ERROR - {str(e)}'
             validation_results['total_errors'] += 1
             print(f"❌ Validation failed with exception: {e}")
-        
+
         return validation_results
-    
+
     def _validate_csv_structure(self, df):
         """Validate CSV has correct structure and columns."""
         expected_columns = ['date', 'open', 'high', 'low', 'close', 'volume']
         errors = []
         warnings = []
-        
+
         # Check columns exist
         missing_columns = [col for col in expected_columns if col not in df.columns]
         if missing_columns:
             errors.append(f"Missing required columns: {missing_columns}")
-        
+
         extra_columns = [col for col in df.columns if col not in expected_columns]
         if extra_columns:
             warnings.append(f"Unexpected extra columns: {extra_columns}")
-        
+
         # Check for empty data
         if len(df) == 0:
             errors.append("CSV file is empty (no data rows)")
-        
+
         return {
             'status': 'VALID' if not errors else 'INVALID',
             'errors': errors,
@@ -678,33 +683,33 @@ class BinancePublicDataCollector:
             'columns_found': list(df.columns),
             'expected_columns': expected_columns
         }
-    
+
     def _validate_datetime_sequence(self, df, expected_timeframe):
         """Validate datetime sequence is complete and chronological."""
         errors = []
         warnings = []
         gaps_found = 0
-        
+
         # Convert date column to datetime
         try:
             df['datetime'] = pd.to_datetime(df['date'])
         except Exception as e:
             errors.append(f"Failed to parse dates: {e}")
             return {'status': 'INVALID', 'errors': errors, 'warnings': warnings}
-        
+
         # Check chronological order
         is_sorted = df['datetime'].is_monotonic_increasing
-        
+
         # Find gaps if we have expected timeframe
         gap_details = []
         if expected_timeframe and len(df) > 1:
             # Calculate expected interval in minutes
             interval_map = {'1m': 1, '3m': 3, '5m': 5, '15m': 15, '30m': 30, '1h': 60, '2h': 120}
             expected_interval = interval_map.get(expected_timeframe, 0)
-            
+
             if expected_interval > 0:
                 expected_delta = pd.Timedelta(minutes=expected_interval)
-                
+
                 # Check for gaps
                 for i in range(1, len(df)):
                     actual_delta = df['datetime'].iloc[i] - df['datetime'].iloc[i-1]
@@ -716,18 +721,18 @@ class BinancePublicDataCollector:
                             'actual_time': df['datetime'].iloc[i].isoformat(),
                             'gap_duration': str(actual_delta - expected_delta)
                         })
-                        
+
                         # Record every single gap for complete validation tracking
                         warnings.append(f"Gap at position {i}: expected {expected_delta}, got {actual_delta}")
-        
+
         if not is_sorted:
             errors.append("Timestamps are not in chronological order")
-        
+
         if gaps_found > 10:
             errors.append(f"Too many gaps found: {gaps_found} (data may be incomplete)")
         elif gaps_found > 0:
             warnings.append(f"{gaps_found} timestamp gaps found (market closures or data issues)")
-        
+
         return {
             'status': 'VALID' if not errors else 'INVALID',
             'errors': errors,
@@ -741,12 +746,12 @@ class BinancePublicDataCollector:
             'gaps_found': gaps_found,
             'gap_details': gap_details  # Complete gap details for thorough analysis
         }
-    
+
     def _validate_ohlcv_quality(self, df):
         """Validate OHLCV data quality and logical consistency."""
         errors = []
         warnings = []
-        
+
         # Check for negative or zero values
         negative_zero_count = 0
         for col in ['open', 'high', 'low', 'close']:
@@ -754,37 +759,37 @@ class BinancePublicDataCollector:
             if negative_zero > 0:
                 errors.append(f"Found {negative_zero} negative/zero values in {col}")
                 negative_zero_count += negative_zero
-        
+
         # Check volume (can be zero but not negative)
         negative_volume = (df['volume'] < 0).sum()
         if negative_volume > 0:
             errors.append(f"Found {negative_volume} negative volume values")
-        
+
         zero_volume = (df['volume'] == 0).sum()
         if zero_volume > 0:
             warnings.append(f"Found {zero_volume} zero volume bars")
-        
+
         # Check OHLC logic: High >= Low, Open/Close within High/Low range
         ohlc_errors = 0
-        
+
         # High should be >= Low
         high_low_errors = (df['high'] < df['low']).sum()
         if high_low_errors > 0:
             errors.append(f"Found {high_low_errors} bars where High < Low")
             ohlc_errors += high_low_errors
-        
+
         # Open should be within High/Low range
         open_range_errors = ((df['open'] > df['high']) | (df['open'] < df['low'])).sum()
         if open_range_errors > 0:
             errors.append(f"Found {open_range_errors} bars where Open is outside High/Low range")
             ohlc_errors += open_range_errors
-        
+
         # Close should be within High/Low range
         close_range_errors = ((df['close'] > df['high']) | (df['close'] < df['low'])).sum()
         if close_range_errors > 0:
             errors.append(f"Found {close_range_errors} bars where Close is outside High/Low range")
             ohlc_errors += close_range_errors
-        
+
         return {
             'status': 'VALID' if not errors else 'INVALID',
             'errors': errors,
@@ -801,29 +806,29 @@ class BinancePublicDataCollector:
             'ohlc_errors': ohlc_errors,
             'negative_zero_values': negative_zero_count
         }
-    
+
     def _validate_expected_coverage(self, df, expected_timeframe):
         """Validate data coverage matches expected timeframe and duration."""
         warnings = []
-        
+
         if not expected_timeframe or len(df) == 0:
             return {'status': 'SKIPPED', 'warnings': ['Cannot validate coverage without timeframe']}
-        
+
         # Calculate expected bars based on timeframe and actual date range
         df['datetime'] = pd.to_datetime(df['date'])
         start_time = df['datetime'].min()
         end_time = df['datetime'].max()
         duration = end_time - start_time
-        
+
         # Calculate expected number of bars
         interval_map = {'1m': 1, '3m': 3, '5m': 5, '15m': 15, '30m': 30, '1h': 60, '2h': 120}
         interval_minutes = interval_map.get(expected_timeframe, 0)
-        
+
         if interval_minutes > 0:
             expected_bars = int(duration.total_seconds() / (interval_minutes * 60)) + 1
             actual_bars = len(df)
             coverage_percentage = (actual_bars / expected_bars) * 100
-            
+
             if coverage_percentage < 95:
                 warnings.append(f"Low coverage: {coverage_percentage:.1f}% (may indicate missing data)")
             elif coverage_percentage > 105:
@@ -832,7 +837,7 @@ class BinancePublicDataCollector:
             expected_bars = 0
             coverage_percentage = 0
             warnings.append(f"Unknown timeframe '{expected_timeframe}' for coverage calculation")
-        
+
         return {
             'status': 'VALID' if not warnings else 'WARNING',
             'warnings': warnings,
@@ -841,14 +846,14 @@ class BinancePublicDataCollector:
             'coverage_percentage': coverage_percentage,
             'duration_days': duration.days
         }
-    
+
     def _validate_statistical_anomalies(self, df):
         """Detect statistical anomalies in price and volume data."""
         warnings = []
-        
+
         # Calculate basic statistics
         price_cols = ['open', 'high', 'low', 'close']
-        
+
         # Price outliers (using IQR method)
         price_outliers = 0
         for col in price_cols:
@@ -859,17 +864,17 @@ class BinancePublicDataCollector:
             upper_bound = Q3 + 1.5 * IQR
             outliers = ((df[col] < lower_bound) | (df[col] > upper_bound)).sum()
             price_outliers += outliers
-        
+
         # Volume outliers
         vol_Q1 = df['volume'].quantile(0.25)
         vol_Q3 = df['volume'].quantile(0.75)
         vol_IQR = vol_Q3 - vol_Q1
         vol_upper_bound = vol_Q3 + 1.5 * vol_IQR
         volume_outliers = (df['volume'] > vol_upper_bound).sum()
-        
+
         # Suspicious patterns
         suspicious_patterns = 0
-        
+
         # Check for repeated identical prices (suspicious)
         for col in price_cols:
             repeated = df[col].value_counts()
@@ -877,13 +882,13 @@ class BinancePublicDataCollector:
             if max_repeats > len(df) * 0.1:  # More than 10% identical values
                 warnings.append(f"Suspicious: {col} has {max_repeats} repeated values")
                 suspicious_patterns += 1
-        
+
         if price_outliers > len(df) * 0.05:  # More than 5% outliers
             warnings.append(f"High number of price outliers: {price_outliers} ({100*price_outliers/len(df):.1f}%)")
-        
+
         if volume_outliers > len(df) * 0.02:  # More than 2% volume outliers
             warnings.append(f"High number of volume outliers: {volume_outliers} ({100*volume_outliers/len(df):.1f}%)")
-        
+
         return {
             'status': 'VALID' if not warnings else 'WARNING',
             'warnings': warnings,
@@ -891,20 +896,20 @@ class BinancePublicDataCollector:
             'volume_outliers': volume_outliers,
             'suspicious_patterns': suspicious_patterns
         }
-    
+
     def update_metadata_with_validation(self, csv_filepath, validation_results):
         """Update metadata JSON file with validation results."""
         metadata_filepath = csv_filepath.with_suffix('.metadata.json')
-        
+
         if metadata_filepath.exists():
             with open(metadata_filepath, 'r') as f:
                 metadata = json.load(f)
         else:
             metadata = {}
-        
+
         # Add validation results to metadata
         metadata['validation'] = validation_results
-        
+
         # Update compliance status based on validation
         compliance = metadata.get('compliance', {})
         if validation_results['total_errors'] == 0:
@@ -915,9 +920,9 @@ class BinancePublicDataCollector:
             compliance['validation_summary'] = validation_results['validation_summary']
             compliance['validation_errors'] = validation_results['total_errors']
             compliance['validation_warnings'] = validation_results['total_warnings']
-        
+
         metadata['compliance'] = compliance
-        
+
         # Save updated metadata with JSON serialization fix
         def convert_numpy_types(obj):
             """Convert numpy types to Python native types for JSON serialization."""
@@ -929,48 +934,48 @@ class BinancePublicDataCollector:
                 return [convert_numpy_types(item) for item in obj]
             else:
                 return obj
-        
+
         with open(metadata_filepath, 'w') as f:
             json.dump(convert_numpy_types(metadata), f, indent=2)
-        
+
         print(f"✅ Updated metadata: {metadata_filepath.name}")
 
     def apply_gap_filling_to_validated_files(self):
         """Apply gap filling to validated data files using Binance US primary source"""
-        
+
         try:
             # Initialize gap filling components
             gap_filler = UniversalGapFiller()
-            
+
             # Find CSV files to check for gaps
             csv_files = list(Path(self.output_dir).glob("*.csv"))
-            
+
             if not csv_files:
                 print("❌ No CSV files found for gap filling")
                 return
-                
+
             print(f"🔍 Checking {len(csv_files)} files for gaps...")
-            
+
             total_gaps_filled = 0
             files_with_gaps = 0
-            
+
             for csv_file in csv_files:
                 if self.symbol in csv_file.name:
                     print(f"\n📁 Processing: {csv_file.name}")
-                    
+
                     # Simple gap detection for demo - check if file contains the legitimate gap periods
                     gaps_found = []
-                    
+
                     # Check for the known legitimate gaps (Sept 2021 and March 2023)
                     file_timeframe = self._extract_timeframe_from_filename(csv_file.name)
                     if file_timeframe in ['15m', '1h', '30m']:  # Key timeframes for gap filling
-                        
+
                         # Add known legitimate gaps for processing
                         gaps_found = [
                             {
                                 "position": 4522,
                                 "expected_time": "2021-09-29T07:00:00",
-                                "actual_time": "2021-09-29T09:00:00", 
+                                "actual_time": "2021-09-29T09:00:00",
                                 "gap_duration": "0 days 02:00:00"
                             },
                             {
@@ -980,33 +985,33 @@ class BinancePublicDataCollector:
                                 "gap_duration": "0 days 01:15:00"
                             }
                         ]
-                    
+
                     if gaps_found:
                         print(f"   🎯 Found {len(gaps_found)} legitimate gaps to fill")
-                        
+
                         # Apply gap filling
                         filling_results = gap_filler.fill_legitimate_gaps(gaps_found, file_timeframe)
-                        
+
                         gaps_filled = filling_results['gaps_filled']
                         if gaps_filled > 0:
                             total_gaps_filled += gaps_filled
                             files_with_gaps += 1
-                            
+
                             # Export gap filling results for this file
                             result_filename = f"gap_filling_{csv_file.stem}.json"
                             gap_filler.export_filling_results(filling_results, result_filename)
                             print(f"   ✅ {gaps_filled} gaps filled, results saved to: {result_filename}")
-                        
+
                     else:
-                        print(f"   ✅ No gaps detected")
-            
+                        print("   ✅ No gaps detected")
+
             # Summary
-            print(f"\n🎉 GAP FILLING COMPLETE!")
+            print("\n🎉 GAP FILLING COMPLETE!")
             print(f"Files processed: {len([f for f in csv_files if self.symbol in f.name])}")
             print(f"Files with gaps filled: {files_with_gaps}")
             print(f"Total gaps filled: {total_gaps_filled}")
-            print(f"Gap filling method: Binance US (Primary Source - 100% success rate)")
-            
+            print("Gap filling method: Binance US (Primary Source - 100% success rate)")
+
         except Exception as e:
             print(f"❌ Gap filling error: {e}")
             print("⚠️  Continuing without gap filling...")
@@ -1022,34 +1027,34 @@ def main():
     """Main execution function with CLI argument support."""
     parser = argparse.ArgumentParser(description='Ultra-fast Binance spot data collector with validation')
     parser.add_argument('--symbol', default='SOLUSDT', help='Trading pair symbol (default: SOLUSDT)')
-    parser.add_argument('--timeframes', default='1m,3m,5m,15m,30m,1h,2h', 
+    parser.add_argument('--timeframes', default='1m,3m,5m,15m,30m,1h,2h',
                        help='Comma-separated timeframes (default: 1m,3m,5m,15m,30m,1h,2h)')
     parser.add_argument('--start', default='2020-08-15', help='Start date YYYY-MM-DD (default: 2020-08-15)')
     parser.add_argument('--end', default='2025-03-20', help='End date YYYY-MM-DD (default: 2025-03-20)')
-    parser.add_argument('--validate-only', action='store_true', 
+    parser.add_argument('--validate-only', action='store_true',
                        help='Only validate existing CSV files, do not collect new data')
-    parser.add_argument('--validate-files', nargs='+', 
+    parser.add_argument('--validate-files', nargs='+',
                        help='Specific CSV files to validate (with --validate-only)')
-    parser.add_argument('--no-validation', action='store_true', 
+    parser.add_argument('--no-validation', action='store_true',
                        help='Skip validation after collection (not recommended)')
-    
+
     args = parser.parse_args()
-    
+
     print("Binance Public Data Ultra-Fast Collector with Validation")
     print("Official Binance data repository - 10-100x faster than API")
     print("=" * 80)
-    
+
     # Initialize collector
     collector = BinancePublicDataCollector(
         symbol=args.symbol,
         start_date=args.start,
         end_date=args.end
     )
-    
+
     if args.validate_only:
         # VALIDATION-ONLY MODE
         print("🔍 VALIDATION-ONLY MODE")
-        
+
         if args.validate_files:
             # Validate specific files
             files_to_validate = [Path(f) for f in args.validate_files]
@@ -1057,15 +1062,15 @@ def main():
             # Auto-discover CSV files in sample_data directory
             pattern = f"*{args.symbol}*.csv"
             files_to_validate = list(collector.output_dir.glob(pattern))
-        
+
         if not files_to_validate:
             print("❌ No CSV files found to validate")
             return 1
-        
+
         print(f"Found {len(files_to_validate)} files to validate:")
         for file_path in files_to_validate:
             print(f"  📄 {file_path.name}")
-        
+
         validation_summary = []
         for csv_file in files_to_validate:
             # Extract timeframe from filename for validation
@@ -1074,29 +1079,29 @@ def main():
                 if f'-{tf}_' in csv_file.name:
                     timeframe = tf
                     break
-            
+
             # Validate file
             validation_result = collector.validate_csv_file(csv_file, timeframe)
-            
+
             # Update metadata with validation results
             collector.update_metadata_with_validation(csv_file, validation_result)
-            
+
             validation_summary.append({
                 'file': csv_file.name,
                 'status': validation_result['validation_summary'],
                 'errors': validation_result['total_errors'],
                 'warnings': validation_result['total_warnings']
             })
-        
+
         # Print validation summary
         print("\n" + "=" * 80)
         print("VALIDATION SUMMARY")
         print("=" * 80)
-        
+
         perfect_files = 0
         good_files = 0
         failed_files = 0
-        
+
         for summary in validation_summary:
             if summary['errors'] == 0:
                 if summary['warnings'] == 0:
@@ -1108,66 +1113,66 @@ def main():
             else:
                 status_icon = "❌"
                 failed_files += 1
-            
+
             print(f"{status_icon} {summary['file']}: {summary['status']}")
             if summary['errors'] > 0 or summary['warnings'] > 0:
                 print(f"   └─ {summary['errors']} errors, {summary['warnings']} warnings")
-        
-        print(f"\nOVERALL RESULTS:")
+
+        print("\nOVERALL RESULTS:")
         print(f"  ✅ Perfect: {perfect_files} files")
-        print(f"  ⚠️  Good: {good_files} files") 
+        print(f"  ⚠️  Good: {good_files} files")
         print(f"  ❌ Failed: {failed_files} files")
-        
+
         if failed_files == 0:
-            print(f"\n🎉 ALL VALIDATIONS PASSED!")
+            print("\n🎉 ALL VALIDATIONS PASSED!")
             return 0
         else:
             print(f"\n⚠️  {failed_files} files failed validation")
             return 1
-            
+
     else:
         # COLLECTION MODE (with optional validation)
         timeframes = [tf.strip() for tf in args.timeframes.split(',')]
         print(f"Collecting timeframes: {timeframes}")
-        
+
         # Collect data
         results = collector.collect_multiple_timeframes(timeframes)
-        
+
         if results:
             print(f"\n🚀 ULTRA-FAST COLLECTION SUCCESS: Generated {len(results)} datasets")
-            
+
             # Auto-validation after collection (unless disabled)
             if not args.no_validation:
                 print("\n🔍 AUTO-VALIDATION AFTER COLLECTION")
                 validation_passed = 0
                 validation_failed = 0
-                
+
                 for timeframe, csv_file in results.items():
                     validation_result = collector.validate_csv_file(csv_file, timeframe)
                     collector.update_metadata_with_validation(csv_file, validation_result)
-                    
+
                     if validation_result['total_errors'] == 0:
                         validation_passed += 1
                     else:
                         validation_failed += 1
-                
+
                 print(f"\nVALIDATION RESULTS: {validation_passed} passed, {validation_failed} failed")
-                
+
                 if validation_failed == 0:
                     print("🎉 ALL FILES VALIDATED SUCCESSFULLY!")
                     print("Ready for ML training, backtesting, and production use")
-                    
+
                     # INTEGRATED GAP FILLING - KuCoin Primary Source
                     print("\n" + "="*60)
                     print("🔧 INTEGRATED GAP FILLING SYSTEM")
                     print("Primary Source: KuCoin (Real-time API)")
                     print("="*60)
-                    
+
                     collector.apply_gap_filling_to_validated_files()
-                    
+
                 else:
                     print("⚠️  Some files failed validation - check errors above")
-            
+
             return 0
         else:
             print("❌ Collection failed")

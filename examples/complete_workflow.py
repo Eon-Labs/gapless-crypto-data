@@ -9,10 +9,11 @@ This example demonstrates the complete workflow of the gapless-crypto-data packa
 4. Data validation and quality checks
 """
 
+
 import pandas as pd
-from pathlib import Path
-from datetime import datetime
+
 from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
+
 
 def collect_data_sample():
     """Collect a small sample of data for demonstration"""
@@ -39,7 +40,7 @@ def collect_data_sample():
         # Load and analyze the data
         df = pd.read_csv(csv_file)
 
-        print(f"✅ Collection successful!")
+        print("✅ Collection successful!")
         print(f"   File: {csv_file.name} ({file_size_mb:.2f} MB)")
         print(f"   Data points: {len(df)}")
         print(f"   Date range: {df.iloc[0]['date']} to {df.iloc[-1]['date']}")
@@ -121,9 +122,9 @@ def fill_gaps_if_needed(csv_file, gaps):
             success = gap_filler.fill_gap(gap, csv_file, "1h")
             if success:
                 filled_count += 1
-                print(f"    ✅ Success")
+                print("    ✅ Success")
             else:
-                print(f"    ❌ Failed")
+                print("    ❌ Failed")
         except Exception as e:
             print(f"    ❌ Error: {e}")
 
@@ -171,7 +172,7 @@ def validate_final_data(csv_file):
 
         print(f"OHLC data validity: {'✅ Valid' if valid_ohlc else '❌ Invalid'}")
 
-    print(f"\nSample data (first 3 rows):")
+    print("\nSample data (first 3 rows):")
     print(df.head(3).to_string(index=False))
     print()
 
