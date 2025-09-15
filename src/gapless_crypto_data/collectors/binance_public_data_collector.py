@@ -292,11 +292,13 @@ class BinancePublicDataCollector:
                             float(row[4]),  # close
                             float(row[5]),  # volume (base asset volume)
                             # Additional microstructure columns for professional analysis
-                            datetime.utcfromtimestamp(int(row[6]) / (1000000 if len(str(int(row[6]))) >= 16 else 1000)).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
+                            datetime.utcfromtimestamp(
+                                int(row[6]) / (1000000 if len(str(int(row[6]))) >= 16 else 1000)
+                            ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
                             float(row[7]),  # quote_asset_volume
-                            int(row[8]),    # number_of_trades
+                            int(row[8]),  # number_of_trades
                             float(row[9]),  # taker_buy_base_asset_volume
-                            float(row[10])  # taker_buy_quote_asset_volume
+                            float(row[10]),  # taker_buy_quote_asset_volume
                         ]
                         processed_data.append(processed_row)
 
@@ -538,17 +540,17 @@ class BinancePublicDataCollector:
                     "number_of_trades",
                     "taker_buy_base_asset_volume",
                     "taker_buy_quote_asset_volume",
-                    "close_time"
+                    "close_time",
                 ],
                 "analysis_capabilities": [
                     "order_flow_analysis",
                     "liquidity_metrics",
                     "market_microstructure",
                     "trade_weighted_prices",
-                    "institutional_data_patterns"
+                    "institutional_data_patterns",
                 ],
                 "professional_features": True,
-                "api_format_compatibility": True
+                "api_format_compatibility": True,
             },
             "compliance": {
                 "zero_magic_numbers": True,
@@ -612,11 +614,21 @@ class BinancePublicDataCollector:
 
             # Write enhanced CSV header and data with all microstructure columns
             writer = csv.writer(f)
-            writer.writerow([
-                "date", "open", "high", "low", "close", "volume",
-                "close_time", "quote_asset_volume", "number_of_trades",
-                "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
-            ])
+            writer.writerow(
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "close_time",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+            )
             writer.writerows(data)
 
         # Save metadata as JSON
@@ -816,9 +828,17 @@ class BinancePublicDataCollector:
         """Validate CSV has correct structure and columns."""
         # Enhanced expected columns for complete microstructure data
         expected_columns = [
-            "date", "open", "high", "low", "close", "volume",
-            "close_time", "quote_asset_volume", "number_of_trades",
-            "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "close_time",
+            "quote_asset_volume",
+            "number_of_trades",
+            "taker_buy_base_asset_volume",
+            "taker_buy_quote_asset_volume",
         ]
 
         # Legacy format for backward compatibility
@@ -838,7 +858,9 @@ class BinancePublicDataCollector:
                 errors.append(f"Missing enhanced columns: {missing_columns}")
         elif has_legacy_format:
             # Legacy format detected
-            warnings.append("Legacy format detected - missing microstructure columns for advanced analysis")
+            warnings.append(
+                "Legacy format detected - missing microstructure columns for advanced analysis"
+            )
             missing_enhanced = [col for col in expected_columns if col not in df.columns]
             warnings.append(f"Enhanced features unavailable: {missing_enhanced}")
         else:
@@ -856,7 +878,11 @@ class BinancePublicDataCollector:
 
         return {
             "status": "VALID" if not errors else "INVALID",
-            "format_type": "enhanced" if has_enhanced_format else "legacy" if has_legacy_format else "incomplete",
+            "format_type": "enhanced"
+            if has_enhanced_format
+            else "legacy"
+            if has_legacy_format
+            else "incomplete",
             "errors": errors,
             "warnings": warnings,
             "columns_found": list(df.columns),
