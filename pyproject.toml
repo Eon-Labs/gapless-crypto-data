@@ -1,6 +1,6 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.0.0"
+version = "2.0.1"
 description = "Cryptocurrency data collection with complete Binance microstructure format - 11-column output including quote volume, trade counts, and taker buy data"
 readme = "README.md"
 authors = [

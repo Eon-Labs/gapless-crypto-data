@@ -1180,9 +1180,13 @@ class BinancePublicDataCollector:
         print(f"✅ Updated metadata: {metadata_filepath.name}")
 
     def apply_gap_filling_to_validated_files(self):
-        """Apply gap filling to validated data files using Binance US primary source"""
+        """Apply comprehensive gap filling to validated data files using authentic Binance API data"""
 
         try:
+            print("\n🔧 INTEGRATED GAP FILLING SYSTEM")
+            print("Primary Source: Binance REST API (Authentic Data Only)")
+            print("=" * 60)
+
             # Initialize gap filling components
             gap_filler = UniversalGapFiller()
 
@@ -1193,70 +1197,76 @@ class BinancePublicDataCollector:
                 print("❌ No CSV files found for gap filling")
                 return
 
-            print(f"🔍 Checking {len(csv_files)} files for gaps...")
+            # Filter to only files for this symbol
+            symbol_files = [f for f in csv_files if self.symbol in f.name]
 
+            if not symbol_files:
+                print(f"❌ No CSV files found for symbol {self.symbol}")
+                return
+
+            print(f"🔍 Analyzing {len(symbol_files)} files for gaps...")
+
+            total_gaps_detected = 0
             total_gaps_filled = 0
-            files_with_gaps = 0
+            total_gaps_failed = 0
+            files_processed = 0
+            results = []
 
-            for csv_file in csv_files:
-                if self.symbol in csv_file.name:
-                    print(f"\n📁 Processing: {csv_file.name}")
+            for csv_file in symbol_files:
+                print(f"\n📁 Processing: {csv_file.name}")
 
-                    # Simple gap detection for demo - check if file contains the legitimate gap periods
-                    gaps_found = []
+                # Extract timeframe from filename
+                file_timeframe = self._extract_timeframe_from_filename(csv_file.name)
+                print(f"   📊 Detected timeframe: {file_timeframe}")
 
-                    # Check for the known legitimate gaps (Sept 2021 and March 2023)
-                    file_timeframe = self._extract_timeframe_from_filename(csv_file.name)
-                    if file_timeframe in ["15m", "1h", "30m"]:  # Key timeframes for gap filling
-                        # Add known legitimate gaps for processing
-                        gaps_found = [
-                            {
-                                "position": 4522,
-                                "expected_time": "2021-09-29T07:00:00",
-                                "actual_time": "2021-09-29T09:00:00",
-                                "gap_duration": "0 days 02:00:00",
-                            },
-                            {
-                                "position": 56473,
-                                "expected_time": "2023-03-24T12:45:00",
-                                "actual_time": "2023-03-24T14:00:00",
-                                "gap_duration": "0 days 01:15:00",
-                            },
-                        ]
+                # Use the proper UniversalGapFiller process_file method
+                result = gap_filler.process_file(csv_file, file_timeframe)
+                results.append(result)
+                files_processed += 1
 
-                    if gaps_found:
-                        print(f"   🎯 Found {len(gaps_found)} legitimate gaps to fill")
+                # Update totals
+                total_gaps_detected += result["gaps_detected"]
+                total_gaps_filled += result["gaps_filled"]
+                total_gaps_failed += result["gaps_failed"]
 
-                        # Apply gap filling
-                        filling_results = gap_filler.fill_legitimate_gaps(
-                            gaps_found, file_timeframe
-                        )
+                # Report per-file results
+                if result["gaps_detected"] == 0:
+                    print(f"   ✅ No gaps found in {file_timeframe}")
+                else:
+                    success_rate = result["success_rate"]
+                    status = "✅" if success_rate == 100.0 else "⚠️" if success_rate > 0 else "❌"
+                    print(f"   {status} {result['gaps_filled']}/{result['gaps_detected']} gaps filled ({success_rate:.1f}%)")
 
-                        gaps_filled = filling_results["gaps_filled"]
-                        if gaps_filled > 0:
-                            total_gaps_filled += gaps_filled
-                            files_with_gaps += 1
+            # Comprehensive summary
+            print("\n" + "=" * 60)
+            print("📊 GAP FILLING SUMMARY")
+            print("=" * 60)
 
-                            # Export gap filling results for this file
-                            result_filename = f"gap_filling_{csv_file.stem}.json"
-                            gap_filler.export_filling_results(filling_results, result_filename)
-                            print(
-                                f"   ✅ {gaps_filled} gaps filled, results saved to: {result_filename}"
-                            )
+            for result in results:
+                if result["gaps_detected"] > 0:
+                    status = "✅" if result["success_rate"] == 100.0 else "⚠️" if result["success_rate"] > 0 else "❌"
+                    print(f"{status} {result['timeframe']:>3}: {result['gaps_filled']:>2}/{result['gaps_detected']:>2} gaps filled ({result['success_rate']:>5.1f}%)")
 
-                    else:
-                        print("   ✅ No gaps detected")
+            print("-" * 60)
+            overall_success = (total_gaps_filled / total_gaps_detected * 100) if total_gaps_detected > 0 else 100.0
+            print(f"🎯 OVERALL: {total_gaps_filled}/{total_gaps_detected} gaps filled ({overall_success:.1f}%)")
 
-            # Summary
-            print("\n🎉 GAP FILLING COMPLETE!")
-            print(f"Files processed: {len([f for f in csv_files if self.symbol in f.name])}")
-            print(f"Files with gaps filled: {files_with_gaps}")
-            print(f"Total gaps filled: {total_gaps_filled}")
-            print("Gap filling method: Binance US (Primary Source - 100% success rate)")
+            if overall_success == 100.0:
+                print("🎉 ALL GAPS FILLED SUCCESSFULLY!")
+                print("✅ Datasets are now 100% gapless and ready for production use")
+            else:
+                print(f"⚠️  {total_gaps_failed} gaps failed to fill (may be legitimate exchange outages)")
+                print("📋 Review failed gaps to confirm they are legitimate market closures")
+
+            print(f"\nFiles processed: {files_processed}")
+            print(f"Data source: Authentic Binance REST API")
+            print(f"Gap filling protocol: API-first validation (no synthetic data)")
 
         except Exception as e:
             print(f"❌ Gap filling error: {e}")
             print("⚠️  Continuing without gap filling...")
+            import traceback
+            traceback.print_exc()
 
     def _extract_timeframe_from_filename(self, filename):
         """Extract timeframe from filename (e.g., 'SOLUSDT-15m-data.csv' -> '15m')"""
@@ -1442,12 +1452,7 @@ def main():
                     print("🎉 ALL FILES VALIDATED SUCCESSFULLY!")
                     print("Ready for ML training, backtesting, and production use")
 
-                    # INTEGRATED GAP FILLING - KuCoin Primary Source
-                    print("\n" + "=" * 60)
-                    print("🔧 INTEGRATED GAP FILLING SYSTEM")
-                    print("Primary Source: KuCoin (Real-time API)")
-                    print("=" * 60)
-
+                    # AUTOMATIC GAP FILLING - Now using comprehensive gap detection and filling
                     collector.apply_gap_filling_to_validated_files()
 
                 else:
