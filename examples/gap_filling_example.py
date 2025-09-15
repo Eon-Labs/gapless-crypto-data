@@ -3,7 +3,7 @@
 Gap Filling Example
 
 This example demonstrates how to detect and fill gaps in cryptocurrency data
-using the UniversalGapFiller with multi-exchange fallback capability.
+using the UniversalGapFiller with authentic Binance API data sources.
 """
 
 from pathlib import Path

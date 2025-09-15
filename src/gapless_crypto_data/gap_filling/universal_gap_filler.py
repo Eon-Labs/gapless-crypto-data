@@ -15,7 +15,7 @@ Key Features:
 - Provides authentic order flow metrics including trade counts and taker volumes
 - Processes gaps chronologically to maintain data integrity
 - NO synthetic or estimated data - only authentic exchange data
-- API-first validation protocol with forward-fill fallback only if API unavailable
+- API-first validation protocol using authentic Binance data exclusively
 """
 
 import logging
@@ -220,7 +220,7 @@ class UniversalGapFiller:
             logger.error(f"   ❌ Unknown CSV format. Columns: {list(df.columns)}")
             return False
 
-        # ✅ API-FIRST VALIDATION: Always try REST API before forward-fill
+        # ✅ API-FIRST VALIDATION: Always use authentic Binance REST API data
         logger.info("   🔍 Step 1: Attempting authentic Binance REST API data retrieval")
         binance_data = self.fetch_binance_data(
             gap_info["start_time"],
@@ -247,7 +247,7 @@ class UniversalGapFiller:
             logger.warning("   ⚠️ Step 1 Failed: No authentic API data available")
             logger.info("   🔍 Step 2: Checking if gap is legitimate exchange outage")
 
-            # This is where forward-fill logic would go for legitimate gaps
+            # Gap represents legitimate exchange outage - preserve data integrity
             # For now, fail gracefully to maintain authentic data mandate
             logger.error("   ❌ Gap filling failed: No authentic data available via API")
             logger.info("   📋 Preserving authentic data integrity - no synthetic fill applied")

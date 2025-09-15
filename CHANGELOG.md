@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### 🔧 API-First Gap Filling
 - **Authentic data only** - Zero synthetic or estimated data in gap filling
-- **API-first validation** - Uses Binance REST API before any fallback mechanisms
+- **API-first validation** - Uses Binance REST API exclusively for authentic data
 - **UTC-only timestamps** - Eliminated timezone conversion bugs for pure UTC handling
 - **Monthly boundary fixes** - Resolved header detection issues for microsecond timestamps
 

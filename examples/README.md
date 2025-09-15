@@ -37,7 +37,7 @@ uv run python examples/basic_data_collection.py
 **Key Features:**
 - Create sample data with gaps
 - Detect gaps using UniversalGapFiller
-- Fill gaps with multi-exchange fallback
+- Fill gaps with authentic Binance API data
 - Verify results
 
 **Run it:**
@@ -93,13 +93,10 @@ uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2024-01-01 -
 For real-world data collection:
 
 ```bash
-# 1. Large-scale collection
+# 1. Large-scale collection with automatic gap filling
 uv run gapless-crypto-data --symbol SOLUSDT --timeframes 1m,5m,1h,4h --start 2023-01-01 --end 2023-12-31
 
-# 2. Gap filling
-uv run gapless-crypto-data --fill-gaps
-
-# 3. Complete workflow demo
+# 2. Complete workflow demo
 uv run python examples/complete_workflow.py
 ```
 
@@ -107,14 +104,11 @@ uv run python examples/complete_workflow.py
 For multiple symbols:
 
 ```bash
-# Collect data for multiple assets
+# Collect data for multiple assets with automatic gap filling
 symbols=(BTCUSDT ETHUSDT SOLUSDT ADAUSDT)
 for symbol in "${symbols[@]}"; do
   uv run gapless-crypto-data --symbol $symbol --timeframes 1h,4h --start 2024-01-01 --end 2024-01-31
 done
-
-# Fill gaps for all data
-uv run gapless-crypto-data --fill-gaps
 ```
 
 ## 📊 Expected Output

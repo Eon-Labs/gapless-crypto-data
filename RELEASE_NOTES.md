@@ -1,8 +1,8 @@
-# 🚀 Gapless Crypto Data v1.0.0 Release Notes
+# 🚀 Gapless Crypto Data v2.0.1 Release Notes
 
-**Ultra-fast cryptocurrency data collection with zero gaps guarantee**
+**Ultra-fast cryptocurrency data collection with automatic gap filling and 11-column microstructure format**
 
-We're excited to announce the initial release of gapless-crypto-data, a production-grade Python package for collecting complete cryptocurrency datasets with unprecedented speed and reliability.
+We're excited to announce gapless-crypto-data v2.0.1, featuring automatic gap filling, comprehensive microstructure data, and authentic Binance API-only data sources for maximum reliability.
 
 ## ⚡ Key Highlights
 
@@ -13,8 +13,8 @@ We're excited to announce the initial release of gapless-crypto-data, a producti
 
 ### 🔒 Zero Gaps Guarantee
 - **Intelligent gap detection** using timestamp analysis
-- **Multi-exchange fallback** (Binance → KuCoin) for complete coverage
-- **Automatic data filling** with no manual intervention required
+- **Automatic gap filling** integrated into collection workflow
+- **Authentic Binance API** data sources exclusively - no synthetic data
 
 ### 🛡️ Production-Grade Reliability
 - **Atomic file operations** prevent data corruption
@@ -88,9 +88,9 @@ for file_path in results.values():
 
 ### Gap Detection & Filling
 - ✅ **Intelligent gap analysis** - Timestamp sequence validation
-- ✅ **Multi-exchange fallback** - KuCoin integration for missing data
-- ✅ **Automatic timezone handling** - Consistent UTC timestamps
-- ✅ **Comprehensive logging** - Detailed gap filling reports
+- ✅ **Automatic gap filling** - Integrated into collection workflow by default
+- ✅ **Authentic Binance API** - Direct REST API data sources only
+- ✅ **Comprehensive logging** - Detailed gap filling reports with metadata
 
 ### Data Integrity
 - ✅ **Atomic file operations** - Corruption-proof data handling
