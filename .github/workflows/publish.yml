@@ -81,13 +81,6 @@ jobs:
       - build
     runs-on: ubuntu-latest
 
-    environment:
-      name: pypi
-      url: https://pypi.org/p/gapless-crypto-data
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v4
@@ -99,6 +92,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: true
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
   sign-artifacts:
     name: Sign artifacts with Sigstore
