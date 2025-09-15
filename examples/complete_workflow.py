@@ -9,7 +9,6 @@ This example demonstrates the complete workflow of the gapless-crypto-data packa
 4. Data validation and quality checks
 """
 
-
 import pandas as pd
 
 from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
@@ -24,18 +23,20 @@ def collect_data_sample():
     collector = BinancePublicDataCollector(
         symbol="ETHUSDT",
         start_date="2024-01-01",
-        end_date="2024-01-03"  # Small range for quick demo
+        end_date="2024-01-03",  # Small range for quick demo
     )
 
     print(f"Collecting {collector.symbol} data...")
-    print(f"Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}")
+    print(
+        f"Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}"
+    )
 
     # Collect 1-hour data
     results = collector.collect_multiple_timeframes(["1h"])
 
     if results:
         csv_file = list(results.values())[0]
-        file_size_mb = csv_file.stat().st_size / (1024*1024)
+        file_size_mb = csv_file.stat().st_size / (1024 * 1024)
 
         # Load and analyze the data
         df = pd.read_csv(csv_file)
@@ -51,6 +52,7 @@ def collect_data_sample():
         print("❌ Collection failed")
         return None
 
+
 def analyze_data_quality(csv_file):
     """Analyze data quality and detect gaps"""
     print("🔍 Step 2: Data Quality Analysis")
@@ -65,15 +67,15 @@ def analyze_data_quality(csv_file):
     print(f"Total records: {len(df)}")
 
     # Convert dates and analyze time series
-    df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values('date')
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
 
     # Check for basic data quality issues
     print(f"Date range: {df['date'].min()} to {df['date'].max()}")
     print(f"Time span: {df['date'].max() - df['date'].min()}")
 
     # Expected vs actual data points (assuming 1-hour intervals)
-    expected_hours = int((df['date'].max() - df['date'].min()).total_seconds() / 3600) + 1
+    expected_hours = int((df["date"].max() - df["date"].min()).total_seconds() / 3600) + 1
     actual_points = len(df)
 
     print(f"Expected data points (1h intervals): {expected_hours}")
@@ -92,12 +94,13 @@ def analyze_data_quality(csv_file):
     if gaps:
         print("Gap details:")
         for i, gap in enumerate(gaps[:3]):  # Show first 3 gaps
-            print(f"  Gap {i+1}: {gap}")
+            print(f"  Gap {i + 1}: {gap}")
         if len(gaps) > 3:
             print(f"  ... and {len(gaps) - 3} more gaps")
     print()
 
     return gaps
+
 
 def fill_gaps_if_needed(csv_file, gaps):
     """Fill gaps if any are detected"""
@@ -118,7 +121,7 @@ def fill_gaps_if_needed(csv_file, gaps):
 
     for i, gap in enumerate(gaps):
         try:
-            print(f"  Filling gap {i+1}/{len(gaps)}...")
+            print(f"  Filling gap {i + 1}/{len(gaps)}...")
             success = gap_filler.fill_gap(gap, csv_file, "1h")
             if success:
                 filled_count += 1
@@ -133,6 +136,7 @@ def fill_gaps_if_needed(csv_file, gaps):
 
     return filled_count == len(gaps)
 
+
 def validate_final_data(csv_file):
     """Validate the final dataset"""
     print("✅ Step 4: Final Validation")
@@ -140,15 +144,15 @@ def validate_final_data(csv_file):
 
     # Load final data
     df = pd.read_csv(csv_file)
-    df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values('date')
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
 
     print(f"Final dataset: {csv_file.name}")
     print(f"Total records: {len(df)}")
     print(f"Date range: {df['date'].min()} to {df['date'].max()}")
 
     # Check data completeness
-    expected_hours = int((df['date'].max() - df['date'].min()).total_seconds() / 3600) + 1
+    expected_hours = int((df["date"].max() - df["date"].min()).total_seconds() / 3600) + 1
     completeness = len(df) / expected_hours * 100
 
     print(f"Data completeness: {completeness:.1f}%")
@@ -163,18 +167,21 @@ def validate_final_data(csv_file):
             print(f"  {col}: 0 (✅)")
 
     # Basic price data validation
-    if all(col in df.columns for col in ['open', 'high', 'low', 'close']):
+    if all(col in df.columns for col in ["open", "high", "low", "close"]):
         # Check OHLC relationships
-        valid_ohlc = ((df['high'] >= df['open']) &
-                      (df['high'] >= df['close']) &
-                      (df['low'] <= df['open']) &
-                      (df['low'] <= df['close'])).all()
+        valid_ohlc = (
+            (df["high"] >= df["open"])
+            & (df["high"] >= df["close"])
+            & (df["low"] <= df["open"])
+            & (df["low"] <= df["close"])
+        ).all()
 
         print(f"OHLC data validity: {'✅ Valid' if valid_ohlc else '❌ Invalid'}")
 
     print("\nSample data (first 3 rows):")
     print(df.head(3).to_string(index=False))
     print()
+
 
 def main():
     """Execute the complete workflow"""
@@ -213,7 +220,9 @@ def main():
     except Exception as e:
         print(f"❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

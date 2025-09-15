@@ -18,15 +18,17 @@ def create_sample_data_with_gaps():
     print("Creating sample data with gaps for demonstration...")
 
     # Create hourly data with gaps
-    dates = pd.date_range('2024-01-01', periods=48, freq='1h')
-    data = pd.DataFrame({
-        'date': dates,
-        'open': [100.0 + i for i in range(48)],
-        'high': [105.0 + i for i in range(48)],
-        'low': [95.0 + i for i in range(48)],
-        'close': [102.0 + i for i in range(48)],
-        'volume': [1000.0] * 48
-    })
+    dates = pd.date_range("2024-01-01", periods=48, freq="1h")
+    data = pd.DataFrame(
+        {
+            "date": dates,
+            "open": [100.0 + i for i in range(48)],
+            "high": [105.0 + i for i in range(48)],
+            "low": [95.0 + i for i in range(48)],
+            "close": [102.0 + i for i in range(48)],
+            "volume": [1000.0] * 48,
+        }
+    )
 
     # Remove some rows to create gaps
     data_with_gaps = data.drop([10, 11, 12, 25, 26, 27, 40])
@@ -42,6 +44,7 @@ def create_sample_data_with_gaps():
     print()
 
     return sample_file
+
 
 def main():
     """Demonstrate gap detection and filling"""
@@ -65,7 +68,7 @@ def main():
     if gaps:
         print("Gap details:")
         for i, gap in enumerate(gaps):
-            print(f"  Gap {i+1}: {gap}")
+            print(f"  Gap {i + 1}: {gap}")
         print()
 
         # Fill the first gap as demonstration
@@ -102,6 +105,7 @@ def main():
     if sample_file.exists():
         sample_file.unlink()
         print(f"\n🧹 Cleaned up sample file: {sample_file}")
+
 
 if __name__ == "__main__":
     main()

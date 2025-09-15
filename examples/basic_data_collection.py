@@ -32,14 +32,16 @@ def main():
     collector = BinancePublicDataCollector(
         symbol="BTCUSDT",  # Known to be available since 2017-08-17
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
     )
 
     # Collect data for multiple timeframes
     timeframes = ["1h", "4h"]
 
     print(f"Collecting {collector.symbol} data for {timeframes}")
-    print(f"Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}")
+    print(
+        f"Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}"
+    )
     print()
 
     # Collect the data
@@ -50,17 +52,19 @@ def main():
         print()
         print("Generated files:")
         for timeframe, filepath in results.items():
-            file_size_mb = filepath.stat().st_size / (1024*1024)
+            file_size_mb = filepath.stat().st_size / (1024 * 1024)
             print(f"  {timeframe}: {filepath.name} ({file_size_mb:.1f} MB)")
 
             # Show first few rows
             import pandas as pd
+
             df = pd.read_csv(filepath)
             print(f"    Rows: {len(df)}")
             print(f"    Date range: {df.iloc[0]['date']} to {df.iloc[-1]['date']}")
             print()
     else:
         print("❌ Collection failed")
+
 
 if __name__ == "__main__":
     main()

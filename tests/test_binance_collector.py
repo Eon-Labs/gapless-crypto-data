@@ -1,4 +1,5 @@
 """Test Binance Public Data Collector functionality."""
+
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -16,24 +17,22 @@ class TestBinancePublicDataCollector:
         """Test collector initialization."""
         collector = BinancePublicDataCollector()
         assert collector is not None
-        assert hasattr(collector, 'collect_timeframe_data')
+        assert hasattr(collector, "collect_timeframe_data")
 
     def test_init_with_custom_params(self):
         """Test collector initialization with custom parameters."""
         collector = BinancePublicDataCollector(
-            symbol="BTCUSDT",
-            start_date="2023-01-01",
-            end_date="2023-12-31"
+            symbol="BTCUSDT", start_date="2023-01-01", end_date="2023-12-31"
         )
         assert collector.symbol == "BTCUSDT"
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_download_file_success(self, mock_get):
         """Test successful file download."""
         # Mock successful response
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.iter_content.return_value = [b'test data chunk']
+        mock_response.iter_content.return_value = [b"test data chunk"]
         mock_get.return_value = mock_response
 
         collector = BinancePublicDataCollector()
@@ -49,7 +48,7 @@ class TestBinancePublicDataCollector:
         collector = BinancePublicDataCollector()
 
         # Valid symbols
-        valid_symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
+        valid_symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
         for symbol in valid_symbols:
             # The actual validation would depend on the implementation
             assert isinstance(symbol, str)
@@ -59,7 +58,7 @@ class TestBinancePublicDataCollector:
         """Test timeframe validation."""
         collector = BinancePublicDataCollector()
 
-        valid_timeframes = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h']
+        valid_timeframes = ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h"]
         for tf in valid_timeframes:
             assert isinstance(tf, str)
             assert len(tf) >= 2
@@ -69,18 +68,16 @@ class TestBinancePublicDataCollector:
         collector = BinancePublicDataCollector()
 
         # Test date format validation
-        valid_dates = ['2023-01-01', '2024-12-31']
+        valid_dates = ["2023-01-01", "2024-12-31"]
         for date_str in valid_dates:
             assert len(date_str) == 10
-            assert date_str.count('-') == 2
+            assert date_str.count("-") == 2
 
     @pytest.mark.integration
     def test_collect_small_dataset(self):
         """Integration test for collecting a small dataset."""
         collector = BinancePublicDataCollector(
-            symbol="BTCUSDT",
-            start_date="2024-01-01",
-            end_date="2024-01-02"
+            symbol="BTCUSDT", start_date="2024-01-01", end_date="2024-01-02"
         )
 
         # Test with a very small date range to minimize download time
@@ -112,7 +109,12 @@ class TestBinancePublicDataCollector:
         end_date = "2024-01-02"
 
         # The actual filename generation would depend on implementation
-        expected_parts = [symbol.lower(), timeframe, start_date.replace('-', ''), end_date.replace('-', '')]
+        expected_parts = [
+            symbol.lower(),
+            timeframe,
+            start_date.replace("-", ""),
+            end_date.replace("-", ""),
+        ]
 
         # Basic validation that these components are reasonable
         for part in expected_parts:

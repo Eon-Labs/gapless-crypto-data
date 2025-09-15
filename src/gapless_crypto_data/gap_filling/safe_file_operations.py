@@ -5,7 +5,7 @@ Prevents data corruption during CSV file modifications by using atomic operation
 
 Key Features:
 - Atomic file writes (temp file + rename)
-- Header preservation for commented CSV files  
+- Header preservation for commented CSV files
 - Validation checkpoints
 - Automatic rollback on failure
 - Progress tracking and validation
@@ -20,8 +20,9 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 class AtomicCSVOperations:
     """Safe atomic operations for CSV files with header preservation"""
@@ -53,9 +54,9 @@ class AtomicCSVOperations:
         if not self.csv_path.exists():
             return header_comments
 
-        with open(self.csv_path, 'r') as f:
+        with open(self.csv_path, "r") as f:
             for line in f:
-                if line.startswith('#'):
+                if line.startswith("#"):
                     header_comments.append(line.rstrip())
                 else:
                     break
@@ -69,19 +70,19 @@ class AtomicCSVOperations:
             return False, "DataFrame is None or empty"
 
         # Check required columns for OHLCV data
-        required_cols = ['date', 'open', 'high', 'low', 'close', 'volume']
+        required_cols = ["date", "open", "high", "low", "close", "volume"]
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             return False, f"Missing required columns: {missing_cols}"
 
         # Check for duplicate timestamps
-        if 'date' in df.columns:
-            duplicates = df['date'].duplicated().sum()
+        if "date" in df.columns:
+            duplicates = df["date"].duplicated().sum()
             if duplicates > 0:
                 return False, f"Found {duplicates} duplicate timestamps"
 
         # Check data types
-        numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+        numeric_cols = ["open", "high", "low", "close", "volume"]
         for col in numeric_cols:
             if col in df.columns and not pd.api.types.is_numeric_dtype(df[col]):
                 return False, f"Column {col} is not numeric"
@@ -89,7 +90,9 @@ class AtomicCSVOperations:
         logger.info(f"✅ DataFrame validation passed: {len(df)} rows, {len(df.columns)} columns")
         return True, "Validation passed"
 
-    def write_dataframe_atomic(self, df: pd.DataFrame, header_comments: Optional[List[str]] = None) -> bool:
+    def write_dataframe_atomic(
+        self, df: pd.DataFrame, header_comments: Optional[List[str]] = None
+    ) -> bool:
         """Write DataFrame to CSV using atomic operations"""
 
         # Validate DataFrame
@@ -104,26 +107,23 @@ class AtomicCSVOperations:
 
         try:
             # Create temporary file in same directory for atomic rename
-            temp_fd, temp_path = tempfile.mkstemp(
-                suffix='.csv.tmp',
-                dir=self.csv_path.parent
-            )
+            temp_fd, temp_path = tempfile.mkstemp(suffix=".csv.tmp", dir=self.csv_path.parent)
             self.temp_path = Path(temp_path)
 
             logger.info(f"🔧 Writing to temporary file: {self.temp_path}")
 
             # Write to temporary file
-            with open(temp_fd, 'w') as f:
+            with open(temp_fd, "w") as f:
                 # Write header comments
                 for comment in header_comments:
-                    f.write(comment + '\n')
+                    f.write(comment + "\n")
 
                 # Write DataFrame
                 df.to_csv(f, index=False)
 
             # Validate temporary file
             logger.info("🔍 Validating temporary file...")
-            test_df = pd.read_csv(self.temp_path, comment='#')
+            test_df = pd.read_csv(self.temp_path, comment="#")
 
             if len(test_df) != len(df):
                 raise ValueError(f"Row count mismatch: expected {len(df)}, got {len(test_df)}")
@@ -175,6 +175,7 @@ class AtomicCSVOperations:
             logger.warning(f"⚠️ Could not cleanup backup: {e}")
             return False
 
+
 class SafeCSVMerger:
     """Safe CSV data merging with gap filling capabilities"""
 
@@ -182,7 +183,9 @@ class SafeCSVMerger:
         self.csv_path = Path(csv_path)
         self.atomic_ops = AtomicCSVOperations(csv_path)
 
-    def merge_gap_data_safe(self, gap_data: pd.DataFrame, gap_start: datetime, gap_end: datetime) -> bool:
+    def merge_gap_data_safe(
+        self, gap_data: pd.DataFrame, gap_start: datetime, gap_end: datetime
+    ) -> bool:
         """Safely merge gap data into existing CSV using atomic operations"""
 
         logger.info(f"🎯 SAFE GAP MERGE: {gap_start} → {gap_end}")
@@ -194,18 +197,18 @@ class SafeCSVMerger:
 
             # Step 2: Load existing data
             logger.info("📄 Loading existing CSV data...")
-            existing_df = pd.read_csv(self.csv_path, comment='#')
-            existing_df['date'] = pd.to_datetime(existing_df['date'])
+            existing_df = pd.read_csv(self.csv_path, comment="#")
+            existing_df["date"] = pd.to_datetime(existing_df["date"])
 
             original_count = len(existing_df)
             logger.info(f"📊 Original data: {original_count} rows")
 
             # Step 3: Prepare gap data
             gap_data = gap_data.copy()
-            gap_data['date'] = pd.to_datetime(gap_data['date'])
+            gap_data["date"] = pd.to_datetime(gap_data["date"])
 
             # Step 4: Remove existing data in gap range
-            gap_mask = (existing_df['date'] >= gap_start) & (existing_df['date'] <= gap_end)
+            gap_mask = (existing_df["date"] >= gap_start) & (existing_df["date"] <= gap_end)
             removed_count = gap_mask.sum()
 
             logger.info(f"🗑️ Removing {removed_count} existing rows in gap range")
@@ -216,18 +219,20 @@ class SafeCSVMerger:
             merged_df = pd.concat([df_cleaned, gap_data], ignore_index=True)
 
             # Step 6: Sort by date
-            merged_df = merged_df.sort_values('date').reset_index(drop=True)
+            merged_df = merged_df.sort_values("date").reset_index(drop=True)
             final_count = len(merged_df)
 
             logger.info(f"📊 Merged result: {final_count} rows")
             logger.info(f"📈 Net change: {final_count - original_count:+d} rows")
 
             # Step 7: Validate merge
-            gap_check = ((merged_df['date'] >= gap_start) & (merged_df['date'] <= gap_end)).sum()
+            gap_check = ((merged_df["date"] >= gap_start) & (merged_df["date"] <= gap_end)).sum()
             expected_gap_rows = len(gap_data)
 
             if gap_check != expected_gap_rows:
-                raise ValueError(f"Gap merge validation failed: expected {expected_gap_rows}, got {gap_check}")
+                raise ValueError(
+                    f"Gap merge validation failed: expected {expected_gap_rows}, got {gap_check}"
+                )
 
             # Step 8: Atomic write
             success = self.atomic_ops.write_dataframe_atomic(merged_df)
@@ -245,11 +250,12 @@ class SafeCSVMerger:
             logger.error(f"❌ Safe gap merge failed: {e}")
 
             # Attempt rollback
-            if hasattr(self.atomic_ops, 'backup_path'):
+            if hasattr(self.atomic_ops, "backup_path"):
                 logger.info("🔄 Attempting rollback...")
                 self.atomic_ops.rollback_from_backup()
 
             return False
+
 
 def main():
     """Test atomic operations functionality"""
@@ -274,12 +280,13 @@ def main():
     logger.info(f"✅ Headers read: {len(headers)} lines")
 
     # Load and validate data
-    df = pd.read_csv(test_csv, comment='#')
+    df = pd.read_csv(test_csv, comment="#")
     is_valid, msg = atomic_ops.validate_dataframe(df)
     logger.info(f"✅ Validation: {is_valid} - {msg}")
 
     logger.info("✅ All atomic operations tests passed")
     return 0
+
 
 if __name__ == "__main__":
     exit(main())

@@ -25,10 +25,10 @@ def safe_data_collection_example():
 
     # Known symbols with their listing dates
     safe_symbols = {
-        'BTCUSDT': '2017-08-17',
-        'ETHUSDT': '2017-08-17',
-        'SOLUSDT': '2020-08-11',
-        'ADAUSDT': '2018-04-17'
+        "BTCUSDT": "2017-08-17",
+        "ETHUSDT": "2017-08-17",
+        "SOLUSDT": "2020-08-11",
+        "ADAUSDT": "2018-04-17",
     }
 
     # Calculate safe date range (1 week of recent historical data)
@@ -40,7 +40,7 @@ def safe_data_collection_example():
     print("   (Avoids future dates and uses recently confirmed data)")
     print()
 
-    for symbol in ['BTCUSDT', 'ETHUSDT']:
+    for symbol in ["BTCUSDT", "ETHUSDT"]:
         print(f"🚀 Collecting {symbol} data...")
 
         try:
@@ -49,9 +49,7 @@ def safe_data_collection_example():
                 warnings.simplefilter("always")
 
                 collector = BinancePublicDataCollector(
-                    symbol=symbol,
-                    start_date=start_date,
-                    end_date=end_date
+                    symbol=symbol, start_date=start_date, end_date=end_date
                 )
 
                 # Display any warnings
@@ -66,7 +64,7 @@ def safe_data_collection_example():
             if results:
                 print(f"✅ {symbol} collection successful!")
                 for tf, filepath in results.items():
-                    size_mb = filepath.stat().st_size / (1024*1024)
+                    size_mb = filepath.stat().st_size / (1024 * 1024)
                     print(f"   {tf}: {filepath.name} ({size_mb:.1f} MB)")
             else:
                 print(f"❌ {symbol} collection failed")
@@ -95,7 +93,7 @@ def demonstrate_date_validation():
             future_collector = BinancePublicDataCollector(
                 symbol="BTCUSDT",
                 start_date="2030-01-01",  # Future date
-                end_date="2030-01-31"
+                end_date="2030-01-31",
             )
 
             if w:
@@ -115,7 +113,7 @@ def demonstrate_date_validation():
             early_collector = BinancePublicDataCollector(
                 symbol="SOLUSDT",  # Listed 2020-08-11
                 start_date="2019-01-01",  # Before listing
-                end_date="2019-01-31"
+                end_date="2019-01-31",
             )
 
             if w:

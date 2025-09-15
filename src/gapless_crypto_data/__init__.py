@@ -25,5 +25,5 @@ __all__ = [
     "BinancePublicDataCollector",
     "UniversalGapFiller",
     "AtomicCSVOperations",
-    "SafeCSVMerger"
+    "SafeCSVMerger",
 ]

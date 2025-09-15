@@ -1,4 +1,5 @@
 """Test Universal Gap Filler functionality."""
+
 import tempfile
 from pathlib import Path
 
@@ -15,8 +16,8 @@ class TestUniversalGapFiller:
         """Test gap filler initialization."""
         gap_filler = UniversalGapFiller()
         assert gap_filler is not None
-        assert hasattr(gap_filler, 'detect_all_gaps')
-        assert hasattr(gap_filler, 'fill_gap')
+        assert hasattr(gap_filler, "detect_all_gaps")
+        assert hasattr(gap_filler, "fill_gap")
 
     def test_detect_gaps_empty_directory(self):
         """Test gap detection in empty directory."""
@@ -36,14 +37,16 @@ class TestUniversalGapFiller:
         """Test gap detection with sample CSV data."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create sample CSV with gaps
-            sample_data = pd.DataFrame({
-                'date': pd.date_range('2024-01-01', periods=100, freq='1h'),
-                'open': [100.0] * 100,
-                'high': [105.0] * 100,
-                'low': [95.0] * 100,
-                'close': [102.0] * 100,
-                'volume': [1000.0] * 100
-            })
+            sample_data = pd.DataFrame(
+                {
+                    "date": pd.date_range("2024-01-01", periods=100, freq="1h"),
+                    "open": [100.0] * 100,
+                    "high": [105.0] * 100,
+                    "low": [95.0] * 100,
+                    "close": [102.0] * 100,
+                    "volume": [1000.0] * 100,
+                }
+            )
 
             # Remove some rows to create gaps
             sample_data_with_gaps = sample_data.drop([10, 11, 12, 50, 51])
@@ -62,14 +65,16 @@ class TestUniversalGapFiller:
         """Test gap filling when no gaps exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create complete data without gaps
-            sample_data = pd.DataFrame({
-                'date': pd.date_range('2024-01-01', periods=24, freq='1h'),
-                'open': [100.0] * 24,
-                'high': [105.0] * 24,
-                'low': [95.0] * 24,
-                'close': [102.0] * 24,
-                'volume': [1000.0] * 24
-            })
+            sample_data = pd.DataFrame(
+                {
+                    "date": pd.date_range("2024-01-01", periods=24, freq="1h"),
+                    "open": [100.0] * 24,
+                    "high": [105.0] * 24,
+                    "low": [95.0] * 24,
+                    "close": [102.0] * 24,
+                    "volume": [1000.0] * 24,
+                }
+            )
 
             csv_file = Path(temp_dir) / "complete_data.csv"
             sample_data.to_csv(csv_file, index=False)
@@ -88,10 +93,12 @@ class TestUniversalGapFiller:
         """Test CSV structure validation."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create invalid CSV (missing required columns)
-            invalid_data = pd.DataFrame({
-                'date': pd.date_range('2024-01-01', periods=10, freq='1h'),
-                'price': [100.0] * 10  # Missing OHLCV columns
-            })
+            invalid_data = pd.DataFrame(
+                {
+                    "date": pd.date_range("2024-01-01", periods=10, freq="1h"),
+                    "price": [100.0] * 10,  # Missing OHLCV columns
+                }
+            )
 
             csv_file = Path(temp_dir) / "invalid_data.csv"
             invalid_data.to_csv(csv_file, index=False)
@@ -110,14 +117,16 @@ class TestUniversalGapFiller:
     def test_timeframe_detection(self):
         """Test automatic timeframe detection from data."""
         # Test data with 1-hour intervals
-        hourly_data = pd.DataFrame({
-            'date': pd.date_range('2024-01-01', periods=24, freq='1h'),
-            'open': [100.0] * 24,
-            'high': [105.0] * 24,
-            'low': [95.0] * 24,
-            'close': [102.0] * 24,
-            'volume': [1000.0] * 24
-        })
+        hourly_data = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=24, freq="1h"),
+                "open": [100.0] * 24,
+                "high": [105.0] * 24,
+                "low": [95.0] * 24,
+                "close": [102.0] * 24,
+                "volume": [1000.0] * 24,
+            }
+        )
 
         gap_filler = UniversalGapFiller()
 
@@ -130,15 +139,17 @@ class TestUniversalGapFiller:
         """Integration test for gap filling functionality."""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create data with known gaps
-            timestamps = pd.date_range('2024-01-01', periods=48, freq='1h')
-            full_data = pd.DataFrame({
-                'date': timestamps,
-                'open': [100.0 + i for i in range(48)],
-                'high': [105.0 + i for i in range(48)],
-                'low': [95.0 + i for i in range(48)],
-                'close': [102.0 + i for i in range(48)],
-                'volume': [1000.0] * 48
-            })
+            timestamps = pd.date_range("2024-01-01", periods=48, freq="1h")
+            full_data = pd.DataFrame(
+                {
+                    "date": timestamps,
+                    "open": [100.0 + i for i in range(48)],
+                    "high": [105.0 + i for i in range(48)],
+                    "low": [95.0 + i for i in range(48)],
+                    "close": [102.0 + i for i in range(48)],
+                    "volume": [1000.0] * 48,
+                }
+            )
 
             # Create gaps
             gapped_data = full_data.drop([10, 11, 12, 25, 26])
