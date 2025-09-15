@@ -38,6 +38,18 @@ jobs:
         source .venv/bin/activate
         uv sync --dev
     
+    - name: Validate file encoding
+      run: |
+        echo "Checking file encoding (UTF-8/ASCII required)..."
+        # Only check files in src/, tests/, and examples/ directories
+        find src/ tests/ examples/ -name "*.py" -o -name "*.md" -o -name "*.txt" -o -name "*.toml" -o -name "*.yml" -o -name "*.yaml" 2>/dev/null | \
+        xargs file --mime-encoding | grep -v -E "(utf-8|us-ascii)" && {
+          echo "❌ Non-UTF-8/ASCII files found! All text files must be UTF-8 or ASCII encoded."
+          exit 1
+        } || {
+          echo "✅ All project text files are properly encoded"
+        }
+
     - name: Lint with ruff
       run: |
         source .venv/bin/activate

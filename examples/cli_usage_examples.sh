@@ -3,6 +3,9 @@
 #
 # This script demonstrates various ways to use the gapless-crypto-data CLI tool
 # for ultra-fast cryptocurrency data collection and gap filling.
+#
+# IMPORTANT: All examples use safe historical date ranges to avoid 404 errors.
+# Avoid using future dates or dates before symbol listing dates.
 
 echo "🚀 Gapless Crypto Data - CLI Usage Examples"
 echo "=========================================="
@@ -19,12 +22,12 @@ echo "2. Custom symbol and timeframes:"
 echo "   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h,4h"
 echo
 
-echo "3. Specific date range:"
-echo "   uv run gapless-crypto-data --symbol ETHUSDT --timeframes 1m,5m --start 2024-01-01 --end 2024-01-31"
+echo "3. Safe historical date range (recommended):"
+echo "   uv run gapless-crypto-data --symbol ETHUSDT --timeframes 1m,5m --start 2022-01-01 --end 2022-01-31"
 echo
 
-echo "4. Multiple timeframes with custom range:"
-echo "   uv run gapless-crypto-data --symbol ADAUSDT --timeframes 1m,3m,5m,15m,30m,1h,2h,4h --start 2023-06-01 --end 2023-12-31"
+echo "4. Multiple timeframes with safe range:"
+echo "   uv run gapless-crypto-data --symbol ADAUSDT --timeframes 1m,3m,5m,15m,30m,1h,2h,4h --start 2023-01-01 --end 2023-06-30"
 echo
 
 echo "5. Gap filling in current directory:"

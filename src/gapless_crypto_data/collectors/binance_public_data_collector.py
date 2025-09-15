@@ -12,12 +12,14 @@ import argparse
 import csv
 import hashlib
 import json
+import logging
 import shutil
 import tempfile
 import urllib.parse
 import urllib.request
+import warnings
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -42,10 +44,55 @@ class BinancePublicDataCollector:
             '1s', '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1mo'
         ]
 
+        # Popular symbols with known availability (for validation)
+        self.known_symbols = {
+            'BTCUSDT': '2017-08-17',
+            'ETHUSDT': '2017-08-17',
+            'SOLUSDT': '2020-08-11',
+            'ADAUSDT': '2018-04-17',
+            'DOTUSDT': '2020-08-19',
+            'LINKUSDT': '2019-01-16'
+        }
+
+        # Validate date range and symbol
+        self._validate_parameters()
+
         print("Binance Public Data Collector")
         print(f"Symbol: {self.symbol}")
         print(f"Date Range: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}")
         print(f"Data Source: {self.base_url}")
+
+    def _validate_parameters(self):
+        """Validate date range and symbol parameters."""
+        today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
+
+        # Check for future dates
+        if self.end_date.date() > yesterday:
+            warnings.warn(
+                f"⚠️  Requested end date {self.end_date.strftime('%Y-%m-%d')} is in the future. "
+                f"Binance public data is typically available up to {yesterday}. "
+                f"Recent data may not be available and requests may fail with 404 errors.",
+                UserWarning
+            )
+
+        # Check symbol availability
+        if self.symbol in self.known_symbols:
+            symbol_start = datetime.strptime(self.known_symbols[self.symbol], '%Y-%m-%d').date()
+            if self.start_date.date() < symbol_start:
+                warnings.warn(
+                    f"⚠️  Requested start date {self.start_date.strftime('%Y-%m-%d')} is before "
+                    f"{self.symbol} listing date ({symbol_start}). "
+                    f"Data before {symbol_start} is not available.",
+                    UserWarning
+                )
+        else:
+            # Unknown symbol - provide general guidance
+            logging.info(
+                f"ℹ️  Symbol {self.symbol} availability not verified. "
+                f"Known symbols: {list(self.known_symbols.keys())}. "
+                f"If requests fail with 404 errors, check symbol availability on Binance."
+            )
 
     def generate_monthly_urls(self, timeframe):
         """Generate list of monthly ZIP file URLs to download."""

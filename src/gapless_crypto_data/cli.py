@@ -112,10 +112,30 @@ def fill_gaps(args: Any) -> int:
 
 def main() -> int:
     """Main CLI entry point"""
+
+    data_availability_info = """
+Data Availability Notes:
+  Historical Data: Available from each symbol's listing date
+  Current Data:    Up to yesterday (T-1) - updated daily
+  Future Data:     Not available (requests will fail with 404)
+
+  Popular Symbols & Listing Dates:
+    BTCUSDT:  2017-08-17  |  ETHUSDT:  2017-08-17
+    SOLUSDT:  2020-08-11  |  ADAUSDT:  2018-04-17
+    DOTUSDT:  2020-08-19  |  LINKUSDT: 2019-01-16
+
+  Safe Date Range Examples:
+    Recent data:      --start 2024-01-01 --end 2024-06-30
+    Historical test:  --start 2022-01-01 --end 2022-12-31
+    Long backtest:    --start 2020-01-01 --end 2023-12-31
+
+Performance: 22x faster than API calls via Binance public data repository
+"""
+
     parser = argparse.ArgumentParser(
         description='Ultra-fast cryptocurrency data collection with zero gaps guarantee',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__ + data_availability_info
     )
 
     # Subcommands

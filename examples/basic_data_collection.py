@@ -4,21 +4,34 @@ Basic Data Collection Example
 
 This example demonstrates how to collect cryptocurrency data using the
 BinancePublicDataCollector for ultra-fast downloads (22x faster than APIs).
+
+IMPORTANT: This example uses safe historical date ranges that are guaranteed
+to have data available. Avoid using future dates or dates before symbol listing.
 """
 
+from datetime import datetime, timedelta
 from gapless_crypto_data import BinancePublicDataCollector
 
 
 def main():
-    """Demonstrate basic data collection"""
+    """Demonstrate basic data collection with safe date ranges"""
     print("🚀 Gapless Crypto Data - Basic Collection Example")
     print("=" * 60)
 
-    # Initialize collector
+    # Use safe historical dates (avoid future dates and dates before listing)
+    # BTCUSDT has been available since 2017-08-17
+    end_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")  # One week ago
+    start_date = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")  # Two weeks ago
+
+    print(f"📅 Using safe date range: {start_date} to {end_date}")
+    print("   (This avoids 404 errors from requesting future or unavailable data)")
+    print()
+
+    # Initialize collector with safe parameters
     collector = BinancePublicDataCollector(
-        symbol="BTCUSDT",
-        start_date="2024-01-01",
-        end_date="2024-01-31"
+        symbol="BTCUSDT",  # Known to be available since 2017-08-17
+        start_date=start_date,
+        end_date=end_date
     )
 
     # Collect data for multiple timeframes

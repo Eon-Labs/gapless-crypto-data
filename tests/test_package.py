@@ -116,3 +116,68 @@ def test_no_syntax_errors():
         except Exception:
             # Other errors (like import errors) are acceptable for this test
             pass
+
+
+def test_all_imports_valid():
+    """Test that all imports in the package are valid and instantiable."""
+    # Test main package imports
+    try:
+        from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
+
+        # Test instantiation with safe defaults
+        collector = BinancePublicDataCollector(
+            symbol='BTCUSDT',
+            start_date='2022-01-01',
+            end_date='2022-01-02'
+        )
+        gap_filler = UniversalGapFiller()
+
+        assert collector is not None
+        assert gap_filler is not None
+        assert hasattr(collector, 'collect_multiple_timeframes')
+        assert hasattr(gap_filler, 'detect_all_gaps')
+
+    except ImportError as e:
+        pytest.fail(f"Failed to import main classes: {e}")
+    except Exception as e:
+        pytest.fail(f"Failed to instantiate classes: {e}")
+
+
+def test_cli_module_imports():
+    """Test that CLI module can be imported and has main function."""
+    try:
+        from gapless_crypto_data import cli
+        assert cli is not None
+        assert hasattr(cli, 'main')
+        assert callable(cli.main)
+    except ImportError as e:
+        pytest.fail(f"Failed to import CLI module: {e}")
+
+
+def test_no_missing_dependencies():
+    """Test that there are no missing module dependencies."""
+    import gapless_crypto_data
+    package_path = Path(gapless_crypto_data.__file__).parent
+
+    # Find all Python files and check for problematic imports
+    python_files = list(package_path.rglob('*.py'))
+
+    forbidden_imports = [
+        'multi_source_gap_filler',
+        'legitimate_gaps_registry',
+        'binance_data_downloader',
+        'kucoin_data_collector'
+    ]
+
+    for py_file in python_files:
+        try:
+            with open(py_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            for forbidden in forbidden_imports:
+                if f"from {forbidden} import" in content or f"import {forbidden}" in content:
+                    pytest.fail(f"Found forbidden import '{forbidden}' in {py_file}")
+
+        except Exception as e:
+            # Skip files that can't be read
+            pass
