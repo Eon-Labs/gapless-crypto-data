@@ -2,24 +2,26 @@
 """
 Gapless Crypto Data - CLI Entry Point
 
-Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format.
+Ultra-fast cryptocurrency data collection with automatic gap filling and full 11-column microstructure format.
 Uses Binance public data repository (22x faster) with authentic API-first validation.
+
+Gap filling is automatic by default during collection - no manual intervention required.
 
 Usage:
     uv run gapless-crypto-data [--symbol SYMBOL] [--timeframes TF1,TF2,...] [--start DATE] [--end DATE]
     uv run gapless-crypto-data --fill-gaps [--directory DIR]
 
 Examples:
-    # Default: SOLUSDT, all timeframes, 4.1-year coverage
+    # Default: SOLUSDT, all timeframes, 4.1-year coverage with automatic gap filling
     uv run gapless-crypto-data
 
-    # Custom symbol and timeframes
+    # Custom symbol and timeframes with automatic gap filling
     uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h,4h,1d
 
-    # Custom date range
+    # Custom date range with automatic gap filling
     uv run gapless-crypto-data --start 2022-01-01 --end 2024-01-01
 
-    # Fill gaps in existing data
+    # Manual gap filling for existing data files
     uv run gapless-crypto-data --fill-gaps --directory ./data
 """
 
@@ -128,11 +130,11 @@ Data Availability Notes:
     Historical test:  --start 2022-01-01 --end 2022-12-31
     Long backtest:    --start 2020-01-01 --end 2023-12-31
 
-Performance: 22x faster than API calls via Binance public data repository with full 11-column microstructure format
+Performance: 22x faster than API calls via Binance public data repository with automatic gap filling and full 11-column microstructure format
 """
 
     parser = argparse.ArgumentParser(
-        description="Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format",
+        description="Ultra-fast cryptocurrency data collection with automatic gap filling and full 11-column microstructure format",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__ + data_availability_info,
     )
