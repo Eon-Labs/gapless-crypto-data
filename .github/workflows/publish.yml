@@ -1,11 +1,9 @@
 ---
-name: Publish to PyPI and TestPyPI
+name: Build and Publish to PyPI
 
 on:
   push:
     branches: [main]
-  release:
-    types: [published]
 
 env:
   UV_SYSTEM_PYTHON: 1
@@ -75,36 +73,9 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  publish-to-testpypi:
-    name: Publish to TestPyPI
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs:
-      - build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/gapless-crypto-data
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-      - name: Publish distribution packages to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          verbose: true
-
   publish-to-pypi:
     name: Publish to PyPI
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - build
     runs-on: ubuntu-latest
@@ -128,15 +99,13 @@ jobs:
         with:
           verbose: true
 
-  github-release:
-    name: Sign with Sigstore and upload to GitHub Release
-    if: github.event_name == 'release' && github.event.action == 'published'
+  sign-artifacts:
+    name: Sign artifacts with Sigstore
     needs:
       - publish-to-pypi
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # IMPORTANT: mandatory for making GitHub Releases
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
@@ -152,11 +121,3 @@ jobs:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-
-      - name: Upload artifact signatures to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release upload
-          '${{ github.ref_name }}' dist/**
-          --repo '${{ github.repository }}'
