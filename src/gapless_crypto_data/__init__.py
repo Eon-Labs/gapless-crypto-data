@@ -14,7 +14,7 @@ Usage:
     uv run gapless-crypto-data --fill-gaps --directory ./data
 """
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 

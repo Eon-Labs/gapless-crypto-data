@@ -30,8 +30,8 @@ from ..gap_filling.universal_gap_filler import UniversalGapFiller
 class BinancePublicDataCollector:
     """Ultra-fast spot data collection using Binance's public data repository."""
 
-    def __init__(self, symbol="SOLUSDT", start_date="2020-08-15", end_date="2025-03-20"):
-        """Initialize collector with date range."""
+    def __init__(self, symbol="SOLUSDT", start_date="2020-08-15", end_date="2025-03-20", output_dir=None):
+        """Initialize collector with date range and optional output directory."""
         self.symbol = symbol
         self.start_date = datetime.strptime(start_date, "%Y-%m-%d")
         # Make end_date inclusive of the full day (23:59:59)
@@ -39,7 +39,15 @@ class BinancePublicDataCollector:
             hour=23, minute=59, second=59
         )
         self.base_url = "https://data.binance.vision/data/spot/monthly/klines"
-        self.output_dir = Path(__file__).parent.parent / "sample_data"
+
+        # Configure output directory - use provided path or default to sample_data
+        if output_dir:
+            self.output_dir = Path(output_dir)
+        else:
+            self.output_dir = Path(__file__).parent.parent / "sample_data"
+
+        # Ensure output directory exists
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Available timeframes on Binance public data
         self.available_timeframes = [

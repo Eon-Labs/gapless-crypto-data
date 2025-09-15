@@ -48,7 +48,7 @@ def collect_data(args: Any) -> int:
 
     # Initialize ultra-fast collector
     collector = BinancePublicDataCollector(
-        symbol=args.symbol, start_date=args.start, end_date=args.end
+        symbol=args.symbol, start_date=args.start, end_date=args.end, output_dir=args.output_dir
     )
 
     # Collect data (22x faster than API)
@@ -158,6 +158,9 @@ Performance: 22x faster than API calls via Binance public data repository with a
     collect_parser.add_argument(
         "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
     )
+    collect_parser.add_argument(
+        "--output-dir", help="Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)"
+    )
 
     # Gap filling command
     gaps_parser = subparsers.add_parser("fill-gaps", help="Fill gaps in existing data")
@@ -182,6 +185,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
     )
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
+    parser.add_argument("--output-dir", help="Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)")
     parser.add_argument("--version", action="version", version=f"gapless-crypto-data {__version__}")
 
     args = parser.parse_args()
