@@ -1,7 +1,7 @@
 [project]
 name = "gapless-crypto-data"
-version = "1.0.3"
-description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee - 22x faster than API calls via Binance public data repository"
+version = "2.0.0"
+description = "Professional cryptocurrency data collection with complete microstructure data - Full Binance format with order flow analysis, liquidity metrics, and institutional-grade features"
 readme = "README.md"
 authors = [
     { name = "Eon Labs", email = "terry@eonlabs.ai" }
