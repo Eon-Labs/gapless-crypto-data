@@ -14,7 +14,7 @@ Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-c
 - 🔒 **Zero gaps guarantee** through authentic API-first validation
 - ⚡ **UV-first** modern Python tooling
 - 🛡️ **Corruption-proof** atomic file operations
-- 📊 **Multi-timeframe support** (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- 📊 **Multi-symbol & multi-timeframe support** (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
 - 🔧 **Gap detection and filling** with authentic data only
 - 📈 **Production-grade** data collection for quantitative trading
 
@@ -42,11 +42,14 @@ pip install gapless-crypto-data
 # Collect data for multiple timeframes (default output location)
 gapless-crypto-data --symbol SOLUSDT --timeframes 1m,3m,5m,15m,30m,1h,2h,4h
 
+# Collect multiple symbols at once (native multi-symbol support)
+gapless-crypto-data --symbol BTCUSDT,ETHUSDT,SOLUSDT --timeframes 1h,4h
+
 # Collect specific date range with custom output directory
 gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2023-01-01 --end 2023-12-31 --output-dir ./crypto_data
 
-# Collect to absolute path
-gapless-crypto-data --symbol ETHUSDT --timeframes 5m,1h --output-dir /home/user/financial_data
+# Multi-symbol with custom settings
+gapless-crypto-data --symbol BTCUSDT,ETHUSDT --timeframes 5m,1h --start 2024-01-01 --end 2024-06-30 --output-dir ./crypto_data
 
 # Fill gaps in existing data
 gapless-crypto-data --fill-gaps --directory ./data
@@ -109,12 +112,11 @@ AtomicCSVOperations → Final Gapless Dataset with Order Flow Metrics
 gapless-crypto-data [OPTIONS]
 
 Options:
-  --symbol TEXT          Trading pair symbol (e.g., SOLUSDT, BTCUSDT)
+  --symbol TEXT          Trading pair symbol(s) - single symbol or comma-separated list (e.g., SOLUSDT, BTCUSDT,ETHUSDT)
   --timeframes TEXT      Comma-separated timeframes (1m,3m,5m,15m,30m,1h,2h,4h)
   --start TEXT          Start date (YYYY-MM-DD)
   --end TEXT            End date (YYYY-MM-DD)
   --output-dir TEXT     Output directory for CSV files (default: src/gapless_crypto_data/sample_data/)
-  --workers INTEGER     Number of parallel workers (default: 4)
   --help                Show this message and exit
 ```
 
@@ -134,12 +136,25 @@ Options:
 
 ### Batch Processing
 
+#### CLI Multi-Symbol (Recommended)
+
+```bash
+# Native multi-symbol support (fastest approach)
+gapless-crypto-data --symbol BTCUSDT,ETHUSDT,SOLUSDT,ADAUSDT --timeframes 1m,5m,15m,1h,4h --start 2023-01-01 --end 2023-12-31
+
+# Alternative: Multiple separate commands for different settings
+gapless-crypto-data --symbol BTCUSDT,ETHUSDT --timeframes 1m,1h --start 2023-01-01 --end 2023-06-30
+gapless-crypto-data --symbol SOLUSDT,ADAUSDT --timeframes 5m,4h --start 2023-07-01 --end 2023-12-31
+```
+
+#### Python API
+
 ```python
 from gapless_crypto_data import BinancePublicDataCollector
 
 collector = BinancePublicDataCollector()
 
-# Process multiple symbols
+# Process multiple symbols (loop-based for complex logic)
 symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT"]
 timeframes = ["1m", "5m", "15m", "1h", "4h"]
 
@@ -148,8 +163,7 @@ for symbol in symbols:
         symbol=symbol,
         timeframes=timeframes,
         start_date="2023-01-01",
-        end_date="2023-12-31",
-        workers=8  # Parallel downloads
+        end_date="2023-12-31"
     )
 ```
 
