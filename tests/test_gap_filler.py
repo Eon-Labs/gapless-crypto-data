@@ -124,6 +124,114 @@ class TestUniversalGapFiller:
                 # Expected to handle invalid data gracefully
                 assert isinstance(e, (ValueError, KeyError, AttributeError))
 
+    def test_extract_symbol_from_filename_standard_format(self):
+        """Test symbol extraction from standard filename format."""
+        gap_filler = UniversalGapFiller()
+
+        # Test standard Binance format
+        test_cases = [
+            ("binance_spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-4h_20230101-20231231_1.0y.csv", "ETHUSDT"),
+            ("binance_spot_SOLUSDT-1m_20220815-20250320_4.1y.csv", "SOLUSDT"),
+            ("binance_spot_ADAUSDT-15m_20240601-20240630_1.0m.csv", "ADAUSDT"),
+            ("binance_spot_DOGEUSDT-30m_20240101-20240701_6.0m.csv", "DOGEUSDT"),
+        ]
+
+        for filename, expected_symbol in test_cases:
+            csv_path = Path(filename)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+
+    def test_extract_symbol_from_filename_edge_cases(self):
+        """Test symbol extraction from edge case filenames."""
+        gap_filler = UniversalGapFiller()
+
+        # Test edge cases
+        test_cases = [
+            # Different timeframes
+            ("binance_spot_BTCUSDT-2h_20240101-20240131_1.0m.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-3m_20240101-20240131_1.0m.csv", "ETHUSDT"),
+            ("binance_spot_SOLUSDT-5m_20240101-20240131_1.0m.csv", "SOLUSDT"),
+
+            # Different periods
+            ("binance_spot_BTCUSDT-1h_20200101-20241231_5.0y.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-1h_20240101-20240102_1.0d.csv", "ETHUSDT"),
+
+            # Longer symbol names
+            ("binance_spot_BTCTUSD-1h_20240101-20240131_1.0m.csv", "BTCTUSD"),
+            ("binance_spot_SHIBUSDT-1h_20240101-20240131_1.0m.csv", "SHIBUSDT"),
+        ]
+
+        for filename, expected_symbol in test_cases:
+            csv_path = Path(filename)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+
+    def test_extract_symbol_from_filename_invalid_formats(self):
+        """Test symbol extraction from invalid filename formats."""
+        gap_filler = UniversalGapFiller()
+
+        # Test cases that should fall back to default
+        fallback_cases = [
+            "invalid_format.csv",
+            "random_filename.csv",
+            "data.csv",
+            "binance_BTCUSDT.csv",  # Missing required parts
+            "no_symbol_here.csv",
+            "",
+        ]
+
+        for filename in fallback_cases:
+            csv_path = Path(filename)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            # Should return default fallback "BTCUSDT"
+            assert symbol == "BTCUSDT", f"Failed for {filename}: expected BTCUSDT, got {symbol}"
+
+        # Test cases with specific behavior
+        special_cases = [
+            ("spot_BTCUSDT-1h.csv", "spot_BTCUSDT"),  # Valid symbol ending with USDT
+            ("binance_spot_-1h_20240101-20240131_1.0m.csv", ""),  # Empty symbol part
+        ]
+
+        for filename, expected_symbol in special_cases:
+            csv_path = Path(filename)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+
+    def test_extract_symbol_from_filename_case_sensitivity(self):
+        """Test symbol extraction with different case variations."""
+        gap_filler = UniversalGapFiller()
+
+        # Test case variations - symbols preserve original case and format
+        test_cases = [
+            ("binance_spot_btcusdt-1h_20240101-20240131_1.0m.csv", "btcusdt"),
+            ("binance_spot_BtcUsdt-1h_20240101-20240131_1.0m.csv", "BtcUsdt"),
+            ("Binance_Spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "Binance_Spot_BTCUSDT"),
+            ("BINANCE_SPOT_BTCUSDT-1H_20240101-20240131_1.0M.CSV", "BINANCE_SPOT_BTCUSDT"),
+        ]
+
+        for filename, expected_symbol in test_cases:
+            csv_path = Path(filename)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+
+    def test_extract_symbol_from_filename_with_path(self):
+        """Test symbol extraction from full file paths."""
+        gap_filler = UniversalGapFiller()
+
+        # Test with full paths
+        test_cases = [
+            ("/data/crypto/binance_spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "BTCUSDT"),
+            ("../output/binance_spot_ETHUSDT-4h_20240101-20240131_1.0m.csv", "ETHUSDT"),
+            ("./sample_data/binance_spot_SOLUSDT-1m_20240101-20240131_1.0m.csv", "SOLUSDT"),
+            ("/Users/user/crypto_data/binance_spot_ADAUSDT-15m_20240101-20240131_1.0m.csv", "ADAUSDT"),
+        ]
+
+        for filepath, expected_symbol in test_cases:
+            csv_path = Path(filepath)
+            symbol = gap_filler.extract_symbol_from_filename(csv_path)
+            assert symbol == expected_symbol, f"Failed for {filepath}: expected {expected_symbol}, got {symbol}"
+
     def test_timeframe_detection(self):
         """Test automatic timeframe detection from data."""
         # Test data with 1-hour intervals

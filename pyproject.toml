@@ -1,7 +1,7 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.0.4"
-description = "Cryptocurrency data collection with complete Binance microstructure format - 11-column output including quote volume, trade counts, and taker buy data"
+version = "2.0.5"
+description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format"
 readme = "README.md"
 authors = [
     { name = "Eon Labs", email = "terry@eonlabs.ai" }
