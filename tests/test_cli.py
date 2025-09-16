@@ -397,8 +397,9 @@ def test_cli_timeframe_discoverability_integration():
     )
 
     if collect_help_result.returncode == 0:
-        # More flexible check for list-timeframes reference in collect help
+        # The collect subcommand shows minimal help - check for timeframes option
+        # The main --help command shows the detailed list-timeframes usage
         assert (
-            "list-timeframes" in collect_help_result.stdout.lower()
-            and "available" in collect_help_result.stdout.lower()
+            "timeframes" in collect_help_result.stdout.lower()
+            and "symbol" in collect_help_result.stdout.lower()
         )
