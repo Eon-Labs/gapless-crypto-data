@@ -68,7 +68,7 @@ def list_timeframes() -> int:
         "1d": "1 day intervals (daily trading, long-term trends)",
         "3d": "3 day intervals (weekly pattern analysis)",
         "1w": "1 week intervals (long-term trend analysis)",
-        "1mo": "1 month intervals (macro trend analysis, small datasets)"
+        "1mo": "1 month intervals (macro trend analysis, small datasets)",
     }
 
     print("Timeframe | Description")
@@ -104,7 +104,9 @@ def collect_data(command_line_args: Any) -> int:
     """Main data collection workflow"""
     # Parse symbols and timeframes
     requested_symbols = [symbol.strip() for symbol in command_line_args.symbol.split(",")]
-    requested_timeframes = [timeframe.strip() for timeframe in command_line_args.timeframes.split(",")]
+    requested_timeframes = [
+        timeframe.strip() for timeframe in command_line_args.timeframes.split(",")
+    ]
 
     print("🚀 Gapless Crypto Data Collection")
     print(f"Symbols: {requested_symbols}")
@@ -126,7 +128,7 @@ def collect_data(command_line_args: Any) -> int:
                 symbol=symbol,
                 start_date=command_line_args.start,
                 end_date=command_line_args.end,
-                output_dir=command_line_args.output_dir
+                output_dir=command_line_args.output_dir,
             )
 
             # Collect data (22x faster than API)
@@ -151,7 +153,9 @@ def collect_data(command_line_args: Any) -> int:
     # Final summary
     print("\n" + "=" * 60)
     if total_datasets > 0:
-        print(f"🚀 ULTRA-FAST SUCCESS: Generated {total_datasets} datasets across {len(all_results)} symbols")
+        print(
+            f"🚀 ULTRA-FAST SUCCESS: Generated {total_datasets} datasets across {len(all_results)} symbols"
+        )
         if failed_symbols:
             print(f"⚠️  Failed symbols: {', '.join(failed_symbols)}")
         return 0
@@ -172,7 +176,9 @@ def fill_gaps(command_line_args: Any) -> int:
     gap_filler_instance = UniversalGapFiller()
 
     # Find CSV files and fill gaps
-    target_directory = Path(command_line_args.directory) if command_line_args.directory else Path.cwd()
+    target_directory = (
+        Path(command_line_args.directory) if command_line_args.directory else Path.cwd()
+    )
     discovered_csv_files = list(target_directory.glob("*.csv"))
 
     gaps_filled_count = 0
@@ -248,7 +254,9 @@ Performance: 22x faster than API calls via Binance public data repository with a
     # Data collection command (default)
     collect_parser = subparsers.add_parser("collect", help="Collect cryptocurrency data")
     collect_parser.add_argument(
-        "--symbol", default="SOLUSDT", help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)"
+        "--symbol",
+        default="SOLUSDT",
+        help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)",
     )
     collect_parser.add_argument(
         "--timeframes",
@@ -262,7 +270,8 @@ Performance: 22x faster than API calls via Binance public data repository with a
         "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
     )
     collect_parser.add_argument(
-        "--output-dir", help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)"
+        "--output-dir",
+        help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)",
     )
 
     # Gap filling command
@@ -273,7 +282,9 @@ Performance: 22x faster than API calls via Binance public data repository with a
 
     # Legacy support: direct flags for backwards compatibility
     parser.add_argument(
-        "--symbol", default="SOLUSDT", help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)"
+        "--symbol",
+        default="SOLUSDT",
+        help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)",
     )
     parser.add_argument(
         "--timeframes",
@@ -288,8 +299,15 @@ Performance: 22x faster than API calls via Binance public data repository with a
     )
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
-    parser.add_argument("--output-dir", help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)")
-    parser.add_argument("--list-timeframes", action="store_true", help="List all available timeframes with descriptions")
+    parser.add_argument(
+        "--output-dir",
+        help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)",
+    )
+    parser.add_argument(
+        "--list-timeframes",
+        action="store_true",
+        help="List all available timeframes with descriptions",
+    )
     parser.add_argument("--version", action="version", version=f"gapless-crypto-data {__version__}")
 
     parsed_arguments = parser.parse_args()

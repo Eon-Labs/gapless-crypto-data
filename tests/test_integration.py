@@ -27,10 +27,7 @@ class TestEndToEndIntegration:
             end_date = "2024-01-02"  # Just 2 days for testing
 
             collector = BinancePublicDataCollector(
-                symbol="BTCUSDT",
-                start_date=start_date,
-                end_date=end_date,
-                output_dir=output_dir
+                symbol="BTCUSDT", start_date=start_date, end_date=end_date, output_dir=output_dir
             )
 
             try:
@@ -48,7 +45,7 @@ class TestEndToEndIntegration:
                 assert csv_file.exists()
 
                 # Verify basic CSV structure
-                df = pd.read_csv(csv_file, comment='#')
+                df = pd.read_csv(csv_file, comment="#")
                 assert len(df) > 0, "CSV file is empty"
                 assert len(df.columns) == 11, f"Expected 11 columns, got {len(df.columns)}"
 
@@ -73,29 +70,36 @@ class TestEndToEndIntegration:
 
                     if fill_result:
                         # If filling succeeded, verify the gap was filled
-                        updated_df = pd.read_csv(csv_file, comment='#')
-                        assert len(updated_df) >= len(df), "Data should not decrease after gap filling"
+                        updated_df = pd.read_csv(csv_file, comment="#")
+                        assert len(updated_df) >= len(df), (
+                            "Data should not decrease after gap filling"
+                        )
 
                 # Phase 4: Final Validation
                 # Verify final dataset integrity
-                final_df = pd.read_csv(csv_file, comment='#')
+                final_df = pd.read_csv(csv_file, comment="#")
 
                 # Basic validation checks
                 assert len(final_df) > 0
-                assert 'date' in final_df.columns
-                assert 'open' in final_df.columns
-                assert 'high' in final_df.columns
-                assert 'low' in final_df.columns
-                assert 'close' in final_df.columns
-                assert 'volume' in final_df.columns
+                assert "date" in final_df.columns
+                assert "open" in final_df.columns
+                assert "high" in final_df.columns
+                assert "low" in final_df.columns
+                assert "close" in final_df.columns
+                assert "volume" in final_df.columns
 
                 # Verify OHLCV relationships
                 for _, row in final_df.iterrows():
-                    if pd.notna(row['open']) and pd.notna(row['high']) and pd.notna(row['low']) and pd.notna(row['close']):
-                        assert row['high'] >= row['open'], f"High should >= Open: {row}"
-                        assert row['high'] >= row['close'], f"High should >= Close: {row}"
-                        assert row['low'] <= row['open'], f"Low should <= Open: {row}"
-                        assert row['low'] <= row['close'], f"Low should <= Close: {row}"
+                    if (
+                        pd.notna(row["open"])
+                        and pd.notna(row["high"])
+                        and pd.notna(row["low"])
+                        and pd.notna(row["close"])
+                    ):
+                        assert row["high"] >= row["open"], f"High should >= Open: {row}"
+                        assert row["high"] >= row["close"], f"High should >= Close: {row}"
+                        assert row["low"] <= row["open"], f"Low should <= Open: {row}"
+                        assert row["low"] <= row["close"], f"Low should <= Close: {row}"
 
                 # Phase 5: Metadata Verification
                 metadata_files = list(output_dir.glob("*.metadata.json"))
@@ -105,14 +109,15 @@ class TestEndToEndIntegration:
 
                     # Verify metadata file is valid JSON
                     import json
-                    with open(metadata_file, 'r') as f:
+
+                    with open(metadata_file, "r") as f:
                         metadata = json.load(f)
 
                     # Verify essential metadata fields
-                    assert 'symbol' in metadata
-                    assert 'timeframe' in metadata
-                    assert 'data_integrity' in metadata
-                    assert 'gap_analysis' in metadata
+                    assert "symbol" in metadata
+                    assert "timeframe" in metadata
+                    assert "data_integrity" in metadata
+                    assert "gap_analysis" in metadata
 
                 print("✅ Integration test completed successfully")
                 print(f"   - Data collected: {len(final_df)} rows")
@@ -135,7 +140,7 @@ class TestEndToEndIntegration:
                 symbol="INVALIDSYMBOL",
                 start_date="2024-01-01",
                 end_date="2024-01-02",
-                output_dir=output_dir
+                output_dir=output_dir,
             )
 
             try:
@@ -153,7 +158,7 @@ class TestEndToEndIntegration:
                 symbol="BTCUSDT",
                 start_date="2024-01-01",
                 end_date="2024-01-02",
-                output_dir=output_dir
+                output_dir=output_dir,
             )
 
             try:
@@ -188,24 +193,26 @@ class TestEndToEndIntegration:
             output_dir = Path(temp_dir)
 
             # Create a test CSV file
-            test_df = pd.DataFrame({
-                'date': pd.date_range('2024-01-01', periods=24, freq='1h'),
-                'open': [100.0 + i for i in range(24)],
-                'high': [105.0 + i for i in range(24)],
-                'low': [95.0 + i for i in range(24)],
-                'close': [102.0 + i for i in range(24)],
-                'volume': [1000.0 + i * 10 for i in range(24)],
-                'close_time': [f'2024-01-01 {i:02d}:59:59' for i in range(24)],
-                'quote_asset_volume': [10000.0 + i * 100 for i in range(24)],
-                'number_of_trades': [50 + i for i in range(24)],
-                'taker_buy_base_asset_volume': [500.0 + i * 5 for i in range(24)],
-                'taker_buy_quote_asset_volume': [5000.0 + i * 50 for i in range(24)]
-            })
+            test_df = pd.DataFrame(
+                {
+                    "date": pd.date_range("2024-01-01", periods=24, freq="1h"),
+                    "open": [100.0 + i for i in range(24)],
+                    "high": [105.0 + i for i in range(24)],
+                    "low": [95.0 + i for i in range(24)],
+                    "close": [102.0 + i for i in range(24)],
+                    "volume": [1000.0 + i * 10 for i in range(24)],
+                    "close_time": [f"2024-01-01 {i:02d}:59:59" for i in range(24)],
+                    "quote_asset_volume": [10000.0 + i * 100 for i in range(24)],
+                    "number_of_trades": [50 + i for i in range(24)],
+                    "taker_buy_base_asset_volume": [500.0 + i * 5 for i in range(24)],
+                    "taker_buy_quote_asset_volume": [5000.0 + i * 50 for i in range(24)],
+                }
+            )
 
             csv_file = output_dir / "test_concurrent.csv"
 
             # Write initial CSV with headers
-            with open(csv_file, 'w') as f:
+            with open(csv_file, "w") as f:
                 f.write("# Test CSV for concurrent operations\n")
                 f.write("# Generated for testing\n")
                 test_df.to_csv(f, index=False)
@@ -249,14 +256,14 @@ class TestEndToEndIntegration:
 
             # Test atomic write
             modified_df = test_df.copy()
-            modified_df.loc[0, 'volume'] = 9999.0  # Modify one value
+            modified_df.loc[0, "volume"] = 9999.0  # Modify one value
 
             write_success = atomic_ops.write_dataframe_atomic(modified_df, headers)
             assert write_success is True
 
             # Verify the change was applied
-            final_df = pd.read_csv(csv_file, comment='#')
-            assert final_df.loc[0, 'volume'] == 9999.0
+            final_df = pd.read_csv(csv_file, comment="#")
+            assert final_df.loc[0, "volume"] == 9999.0
 
             # Cleanup
             atomic_ops.cleanup_backup()
@@ -271,35 +278,35 @@ class TestEndToEndIntegration:
 
             # Create test data with known issues for validation
             test_data = {
-                'date': [
-                    '2024-01-01 00:00:00',
-                    '2024-01-01 01:00:00',
-                    '2024-01-01 02:00:00',
-                    '2024-01-01 04:00:00',  # Gap at 03:00:00
-                    '2024-01-01 05:00:00'
+                "date": [
+                    "2024-01-01 00:00:00",
+                    "2024-01-01 01:00:00",
+                    "2024-01-01 02:00:00",
+                    "2024-01-01 04:00:00",  # Gap at 03:00:00
+                    "2024-01-01 05:00:00",
                 ],
-                'open': [100.0, 101.0, 102.0, 104.0, 105.0],
-                'high': [105.0, 106.0, 107.0, 109.0, 110.0],
-                'low': [95.0, 96.0, 97.0, 99.0, 100.0],
-                'close': [102.0, 103.0, 104.0, 106.0, 107.0],
-                'volume': [1000.0, 1100.0, 1200.0, 1400.0, 1500.0],
-                'close_time': [
-                    '2024-01-01 00:59:59',
-                    '2024-01-01 01:59:59',
-                    '2024-01-01 02:59:59',
-                    '2024-01-01 04:59:59',
-                    '2024-01-01 05:59:59'
+                "open": [100.0, 101.0, 102.0, 104.0, 105.0],
+                "high": [105.0, 106.0, 107.0, 109.0, 110.0],
+                "low": [95.0, 96.0, 97.0, 99.0, 100.0],
+                "close": [102.0, 103.0, 104.0, 106.0, 107.0],
+                "volume": [1000.0, 1100.0, 1200.0, 1400.0, 1500.0],
+                "close_time": [
+                    "2024-01-01 00:59:59",
+                    "2024-01-01 01:59:59",
+                    "2024-01-01 02:59:59",
+                    "2024-01-01 04:59:59",
+                    "2024-01-01 05:59:59",
                 ],
-                'quote_asset_volume': [10000.0, 11000.0, 12000.0, 14000.0, 15000.0],
-                'number_of_trades': [50, 55, 60, 70, 75],
-                'taker_buy_base_asset_volume': [500.0, 550.0, 600.0, 700.0, 750.0],
-                'taker_buy_quote_asset_volume': [5000.0, 5500.0, 6000.0, 7000.0, 7500.0]
+                "quote_asset_volume": [10000.0, 11000.0, 12000.0, 14000.0, 15000.0],
+                "number_of_trades": [50, 55, 60, 70, 75],
+                "taker_buy_base_asset_volume": [500.0, 550.0, 600.0, 700.0, 750.0],
+                "taker_buy_quote_asset_volume": [5000.0, 5500.0, 6000.0, 7000.0, 7500.0],
             }
 
             test_df = pd.DataFrame(test_data)
 
             # Write CSV with headers
-            with open(csv_file, 'w') as f:
+            with open(csv_file, "w") as f:
                 f.write("# Test CSV for validation pipeline\n")
                 f.write("# Contains intentional gap for testing\n")
                 test_df.to_csv(f, index=False)
@@ -311,7 +318,7 @@ class TestEndToEndIntegration:
             # Phase 1: CSV Structure Validation
             validation_results = collector._validate_csv_structure(test_df)
             assert isinstance(validation_results, dict)
-            assert validation_results.get('status') == 'VALID'  # Should have valid structure
+            assert validation_results.get("status") == "VALID"  # Should have valid structure
 
             # Phase 2: Datetime Sequence Validation
             datetime_results = collector._validate_datetime_sequence(test_df, "1h")
@@ -321,18 +328,18 @@ class TestEndToEndIntegration:
             # Phase 3: OHLCV Quality Validation
             ohlcv_results = collector._validate_ohlcv_quality(test_df)
             assert isinstance(ohlcv_results, dict)
-            assert ohlcv_results.get('status') == 'VALID'  # OHLCV relationships should be valid
+            assert ohlcv_results.get("status") == "VALID"  # OHLCV relationships should be valid
 
             # Phase 4: Coverage Validation
             coverage_results = collector._validate_expected_coverage(test_df, "1h")
             assert isinstance(coverage_results, dict)
-            assert 'coverage_percentage' in coverage_results
+            assert "coverage_percentage" in coverage_results
             # Should detect less than 100% coverage due to gap
 
             # Phase 5: Statistical Anomaly Detection
             anomaly_results = collector._validate_statistical_anomalies(test_df)
             assert isinstance(anomaly_results, dict)
-            assert 'suspicious_patterns' in anomaly_results
+            assert "suspicious_patterns" in anomaly_results
             # Should have few anomalies in this regular data
 
             # Phase 6: Gap Detection
@@ -359,26 +366,28 @@ class TestEndToEndIntegration:
         """Test handling of larger datasets for performance validation."""
 
         # Create a larger dataset (1000 rows = ~41 days of hourly data)
-        large_df = pd.DataFrame({
-            'date': pd.date_range('2024-01-01', periods=1000, freq='1h'),
-            'open': [100.0 + i * 0.01 for i in range(1000)],
-            'high': [105.0 + i * 0.01 for i in range(1000)],
-            'low': [95.0 + i * 0.01 for i in range(1000)],
-            'close': [102.0 + i * 0.01 for i in range(1000)],
-            'volume': [1000.0 + i for i in range(1000)],
-            'close_time': ['2024-01-01 00:59:59' for _ in range(1000)],
-            'quote_asset_volume': [10000.0 + i * 10 for i in range(1000)],
-            'number_of_trades': [50 + i // 10 for i in range(1000)],
-            'taker_buy_base_asset_volume': [500.0 + i * 0.5 for i in range(1000)],
-            'taker_buy_quote_asset_volume': [5000.0 + i * 5 for i in range(1000)]
-        })
+        large_df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=1000, freq="1h"),
+                "open": [100.0 + i * 0.01 for i in range(1000)],
+                "high": [105.0 + i * 0.01 for i in range(1000)],
+                "low": [95.0 + i * 0.01 for i in range(1000)],
+                "close": [102.0 + i * 0.01 for i in range(1000)],
+                "volume": [1000.0 + i for i in range(1000)],
+                "close_time": ["2024-01-01 00:59:59" for _ in range(1000)],
+                "quote_asset_volume": [10000.0 + i * 10 for i in range(1000)],
+                "number_of_trades": [50 + i // 10 for i in range(1000)],
+                "taker_buy_base_asset_volume": [500.0 + i * 0.5 for i in range(1000)],
+                "taker_buy_quote_asset_volume": [5000.0 + i * 5 for i in range(1000)],
+            }
+        )
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir)
             csv_file = output_dir / "large_dataset.csv"
 
             # Write large dataset
-            with open(csv_file, 'w') as f:
+            with open(csv_file, "w") as f:
                 f.write("# Large dataset for performance testing\n")
                 f.write(f"# Rows: {len(large_df)}\n")
                 large_df.to_csv(f, index=False)
@@ -402,8 +411,12 @@ class TestEndToEndIntegration:
             validation_time = datetime.now() - start_time
 
             # Performance assertions (should complete in reasonable time)
-            assert gap_detection_time.total_seconds() < 30, f"Gap detection took too long: {gap_detection_time}"
-            assert validation_time.total_seconds() < 10, f"Validation took too long: {validation_time}"
+            assert gap_detection_time.total_seconds() < 30, (
+                f"Gap detection took too long: {gap_detection_time}"
+            )
+            assert validation_time.total_seconds() < 10, (
+                f"Validation took too long: {validation_time}"
+            )
 
             # Results should still be valid
             assert isinstance(gaps, list)

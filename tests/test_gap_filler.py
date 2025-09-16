@@ -140,7 +140,9 @@ class TestUniversalGapFiller:
         for filename, expected_symbol in test_cases:
             csv_path = Path(filename)
             symbol = gap_filler.extract_symbol_from_filename(csv_path)
-            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            assert symbol == expected_symbol, (
+                f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            )
 
     def test_extract_symbol_from_filename_edge_cases(self):
         """Test symbol extraction from edge case filenames."""
@@ -152,11 +154,9 @@ class TestUniversalGapFiller:
             ("binance_spot_BTCUSDT-2h_20240101-20240131_1.0m.csv", "BTCUSDT"),
             ("binance_spot_ETHUSDT-3m_20240101-20240131_1.0m.csv", "ETHUSDT"),
             ("binance_spot_SOLUSDT-5m_20240101-20240131_1.0m.csv", "SOLUSDT"),
-
             # Different periods
             ("binance_spot_BTCUSDT-1h_20200101-20241231_5.0y.csv", "BTCUSDT"),
             ("binance_spot_ETHUSDT-1h_20240101-20240102_1.0d.csv", "ETHUSDT"),
-
             # Longer symbol names
             ("binance_spot_BTCTUSD-1h_20240101-20240131_1.0m.csv", "BTCTUSD"),
             ("binance_spot_SHIBUSDT-1h_20240101-20240131_1.0m.csv", "SHIBUSDT"),
@@ -165,7 +165,9 @@ class TestUniversalGapFiller:
         for filename, expected_symbol in test_cases:
             csv_path = Path(filename)
             symbol = gap_filler.extract_symbol_from_filename(csv_path)
-            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            assert symbol == expected_symbol, (
+                f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            )
 
     def test_extract_symbol_from_filename_invalid_formats(self):
         """Test symbol extraction from invalid filename formats."""
@@ -196,7 +198,9 @@ class TestUniversalGapFiller:
         for filename, expected_symbol in special_cases:
             csv_path = Path(filename)
             symbol = gap_filler.extract_symbol_from_filename(csv_path)
-            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            assert symbol == expected_symbol, (
+                f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            )
 
     def test_extract_symbol_from_filename_case_sensitivity(self):
         """Test symbol extraction with different case variations."""
@@ -213,7 +217,9 @@ class TestUniversalGapFiller:
         for filename, expected_symbol in test_cases:
             csv_path = Path(filename)
             symbol = gap_filler.extract_symbol_from_filename(csv_path)
-            assert symbol == expected_symbol, f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            assert symbol == expected_symbol, (
+                f"Failed for {filename}: expected {expected_symbol}, got {symbol}"
+            )
 
     def test_extract_symbol_from_filename_with_path(self):
         """Test symbol extraction from full file paths."""
@@ -224,13 +230,18 @@ class TestUniversalGapFiller:
             ("/data/crypto/binance_spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "BTCUSDT"),
             ("../output/binance_spot_ETHUSDT-4h_20240101-20240131_1.0m.csv", "ETHUSDT"),
             ("./sample_data/binance_spot_SOLUSDT-1m_20240101-20240131_1.0m.csv", "SOLUSDT"),
-            ("/Users/user/crypto_data/binance_spot_ADAUSDT-15m_20240101-20240131_1.0m.csv", "ADAUSDT"),
+            (
+                "/Users/user/crypto_data/binance_spot_ADAUSDT-15m_20240101-20240131_1.0m.csv",
+                "ADAUSDT",
+            ),
         ]
 
         for filepath, expected_symbol in test_cases:
             csv_path = Path(filepath)
             symbol = gap_filler.extract_symbol_from_filename(csv_path)
-            assert symbol == expected_symbol, f"Failed for {filepath}: expected {expected_symbol}, got {symbol}"
+            assert symbol == expected_symbol, (
+                f"Failed for {filepath}: expected {expected_symbol}, got {symbol}"
+            )
 
     def test_timeframe_detection(self):
         """Test automatic timeframe detection from data."""

@@ -82,7 +82,9 @@ class UniversalGapFiller:
                 return symbol
 
         # Default fallback (should not happen in practice)
-        logger.warning(f"⚠️  Could not extract symbol from filename {filename}, defaulting to BTCUSDT")
+        logger.warning(
+            f"⚠️  Could not extract symbol from filename {filename}, defaulting to BTCUSDT"
+        )
         return "BTCUSDT"
 
     def detect_all_gaps(self, csv_path: Path, timeframe: str) -> List[Dict]:
@@ -166,7 +168,9 @@ class UniversalGapFiller:
         logger.info(f"   📡 Binance API call: {api_request_params}")
 
         try:
-            http_response = requests.get(self.binance_base_url, params=api_request_params, timeout=30)
+            http_response = requests.get(
+                self.binance_base_url, params=api_request_params, timeout=30
+            )
             http_response.raise_for_status()
             binance_klines_data = http_response.json()
 
@@ -219,10 +223,16 @@ class UniversalGapFiller:
             return None
 
     def fill_gap(
-        self, timestamp_gap_info: Dict, csv_path: Path, trading_timeframe: str, metadata_path: Path = None
+        self,
+        timestamp_gap_info: Dict,
+        csv_path: Path,
+        trading_timeframe: str,
+        metadata_path: Path = None,
     ) -> bool:
         """Fill a single gap with authentic Binance data using API-first validation protocol"""
-        logger.info(f"🔧 Filling gap: {timestamp_gap_info['start_time']} → {timestamp_gap_info['end_time']}")
+        logger.info(
+            f"🔧 Filling gap: {timestamp_gap_info['start_time']} → {timestamp_gap_info['end_time']}"
+        )
         logger.info("   📋 Applying API-first validation protocol")
 
         # Load current CSV data to detect format
@@ -245,8 +255,12 @@ class UniversalGapFiller:
         ]
         legacy_columns = ["date", "open", "high", "low", "close", "volume"]
 
-        is_enhanced_format = all(column_name in existing_ohlcv_data.columns for column_name in enhanced_columns)
-        is_legacy_format = all(column_name in existing_ohlcv_data.columns for column_name in legacy_columns)
+        is_enhanced_format = all(
+            column_name in existing_ohlcv_data.columns for column_name in enhanced_columns
+        )
+        is_legacy_format = all(
+            column_name in existing_ohlcv_data.columns for column_name in legacy_columns
+        )
 
         if is_enhanced_format:
             logger.info("   🚀 Enhanced 11-column format detected")
@@ -275,7 +289,9 @@ class UniversalGapFiller:
         # Track gap filling details for metadata
         gap_fill_metadata = {
             "timestamp": timestamp_gap_info["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
-            "duration_hours": (timestamp_gap_info["end_time"] - timestamp_gap_info["start_time"]).total_seconds()
+            "duration_hours": (
+                timestamp_gap_info["end_time"] - timestamp_gap_info["start_time"]
+            ).total_seconds()
             / 3600,
             "fill_method": None,
             "data_source": None,
@@ -325,7 +341,9 @@ class UniversalGapFiller:
                     gap_fill_metadata["microstructure_data"] = {
                         "quote_asset_volume": first_candle_data["quote_asset_volume"],
                         "number_of_trades": first_candle_data["number_of_trades"],
-                        "taker_buy_base_asset_volume": first_candle_data["taker_buy_base_asset_volume"],
+                        "taker_buy_base_asset_volume": first_candle_data[
+                            "taker_buy_base_asset_volume"
+                        ],
                         "taker_buy_quote_asset_volume": first_candle_data[
                             "taker_buy_quote_asset_volume"
                         ],
@@ -352,14 +370,18 @@ class UniversalGapFiller:
             api_data_dataframe = api_data_dataframe[selected_columns]
         else:
             # For legacy format, only basic OHLCV columns
-            api_data_dataframe = api_data_dataframe[["date", "open", "high", "low", "close", "volume"]]
+            api_data_dataframe = api_data_dataframe[
+                ["date", "open", "high", "low", "close", "volume"]
+            ]
 
         # FIXED: Filter Binance data to only include timestamps within the gap period
         gap_start_time = pd.to_datetime(timestamp_gap_info["start_time"])
         gap_end_time = pd.to_datetime(timestamp_gap_info["end_time"])
 
         # Only include Binance data that falls within the gap period
-        gap_time_filter = (api_data_dataframe["date"] >= gap_start_time) & (api_data_dataframe["date"] < gap_end_time)
+        gap_time_filter = (api_data_dataframe["date"] >= gap_start_time) & (
+            api_data_dataframe["date"] < gap_end_time
+        )
         filtered_api_data = api_data_dataframe[gap_time_filter].copy()
 
         if len(filtered_api_data) == 0:
@@ -374,7 +396,9 @@ class UniversalGapFiller:
         combined_dataframe = pd.concat([existing_ohlcv_data, filtered_api_data], ignore_index=True)
 
         # Sort by date and remove any exact timestamp duplicates (keep first occurrence)
-        combined_dataframe = combined_dataframe.sort_values("date").drop_duplicates(subset=["date"], keep="first")
+        combined_dataframe = combined_dataframe.sort_values("date").drop_duplicates(
+            subset=["date"], keep="first"
+        )
 
         # Validate gap was actually filled
         gap_filled_dataframe = combined_dataframe.sort_values("date").reset_index(drop=True)
@@ -399,7 +423,9 @@ class UniversalGapFiller:
                     remaining_timestamp_gaps.append(f"{previous_timestamp} → {current_timestamp}")
 
         if remaining_timestamp_gaps:
-            logger.warning(f"   ⚠️ Gap partially filled - remaining gaps: {remaining_timestamp_gaps}")
+            logger.warning(
+                f"   ⚠️ Gap partially filled - remaining gaps: {remaining_timestamp_gaps}"
+            )
 
         # Save back to CSV with header comments preserved
         csv_header_comments = []
@@ -451,7 +477,9 @@ class UniversalGapFiller:
             if gap_index < len(detected_gaps):
                 time.sleep(1)
 
-        gap_fill_success_rate = (gaps_filled_count / len(detected_gaps)) * 100 if detected_gaps else 100.0
+        gap_fill_success_rate = (
+            (gaps_filled_count / len(detected_gaps)) * 100 if detected_gaps else 100.0
+        )
 
         processing_result = {
             "timeframe": trading_timeframe,
@@ -461,7 +489,9 @@ class UniversalGapFiller:
             "success_rate": gap_fill_success_rate,
         }
 
-        logger.info(f"   📊 Result: {gaps_filled_count}/{len(detected_gaps)} gaps filled ({gap_fill_success_rate:.1f}%)")
+        logger.info(
+            f"   📊 Result: {gaps_filled_count}/{len(detected_gaps)} gaps filled ({gap_fill_success_rate:.1f}%)"
+        )
         return processing_result
 
 
@@ -495,13 +525,19 @@ def main():
     logger.info("📊 UNIVERSAL GAP FILLING SUMMARY")
     logger.info("=" * 60)
 
-    total_gaps_detected_count = sum(result_data["gaps_detected"] for result_data in processing_results)
+    total_gaps_detected_count = sum(
+        result_data["gaps_detected"] for result_data in processing_results
+    )
     total_gaps_filled_count = sum(result_data["gaps_filled"] for result_data in processing_results)
     total_gaps_failed_count = sum(result_data["gaps_failed"] for result_data in processing_results)
 
     for timeframe_result in processing_results:
         status_icon = (
-            "✅" if timeframe_result["success_rate"] == 100.0 else "⚠️" if timeframe_result["success_rate"] > 0 else "❌"
+            "✅"
+            if timeframe_result["success_rate"] == 100.0
+            else "⚠️"
+            if timeframe_result["success_rate"] > 0
+            else "❌"
         )
         logger.info(
             f"{status_icon} {timeframe_result['timeframe']:>3}: {timeframe_result['gaps_filled']:>2}/{timeframe_result['gaps_detected']:>2} gaps filled ({timeframe_result['success_rate']:>5.1f}%)"
@@ -509,7 +545,9 @@ def main():
 
     logger.info("-" * 60)
     overall_success_rate = (
-        (total_gaps_filled_count / total_gaps_detected_count * 100) if total_gaps_detected_count > 0 else 100.0
+        (total_gaps_filled_count / total_gaps_detected_count * 100)
+        if total_gaps_detected_count > 0
+        else 100.0
     )
     logger.info(
         f"🎯 OVERALL: {total_gaps_filled_count}/{total_gaps_detected_count} gaps filled ({overall_success_rate:.1f}%)"

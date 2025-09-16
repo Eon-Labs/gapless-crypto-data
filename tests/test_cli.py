@@ -28,7 +28,7 @@ def test_cli_version_flag():
     result = subprocess.run(
         [sys.executable, "-m", "gapless_crypto_data.cli", "--version"],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     # If --version flag exists, it should return version info
@@ -67,9 +67,7 @@ def test_cli_invalid_args():
 def test_cli_help_mentions_multi_symbol():
     """Test that help text mentions comma-separated symbols capability."""
     result = subprocess.run(
-        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
 
@@ -89,16 +87,23 @@ def test_cli_single_symbol_backwards_compatibility():
         # Test single symbol (backwards compatible)
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
-                "--symbol", "BTCUSDT",
-                "--timeframes", "1h",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
+                "--symbol",
+                "BTCUSDT",
+                "--timeframes",
+                "1h",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
 
         # Should succeed and mention single symbol
@@ -119,16 +124,23 @@ def test_cli_multiple_symbols_parsing():
         # Test multiple symbols (new functionality)
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
-                "--symbol", "BTCUSDT,ETHUSDT",
-                "--timeframes", "1h",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
+                "--symbol",
+                "BTCUSDT,ETHUSDT",
+                "--timeframes",
+                "1h",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
         )
 
         # Should parse multiple symbols correctly
@@ -150,16 +162,23 @@ def test_cli_multiple_symbols_with_whitespace():
         # Test symbols with extra whitespace
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
-                "--symbol", " BTCUSDT , ETHUSDT , SOLUSDT ",
-                "--timeframes", "1h",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
+                "--symbol",
+                " BTCUSDT , ETHUSDT , SOLUSDT ",
+                "--timeframes",
+                "1h",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=180
+            timeout=180,
         )
 
         # Should strip whitespace and parse correctly
@@ -181,16 +200,23 @@ def test_cli_error_handling_with_invalid_symbols():
         # Test with mix of valid and invalid symbols
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
-                "--symbol", "BTCUSDT,INVALIDSYMBOL,ETHUSDT",
-                "--timeframes", "1h",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
+                "--symbol",
+                "BTCUSDT,INVALIDSYMBOL,ETHUSDT",
+                "--timeframes",
+                "1h",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=180
+            timeout=180,
         )
 
         # Should handle mixed valid/invalid gracefully
@@ -211,17 +237,24 @@ def test_cli_collect_subcommand_multi_symbol():
         # Test using explicit collect subcommand
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
                 "collect",
-                "--symbol", "BTCUSDT,ETHUSDT",
-                "--timeframes", "1h",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                "--symbol",
+                "BTCUSDT,ETHUSDT",
+                "--timeframes",
+                "1h",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
         )
 
         # Should work with explicit collect subcommand
@@ -237,7 +270,7 @@ def test_cli_list_timeframes_flag():
     result = subprocess.run(
         [sys.executable, "-m", "gapless_crypto_data.cli", "--list-timeframes"],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     assert result.returncode == 0
@@ -248,9 +281,22 @@ def test_cli_list_timeframes_flag():
 
     # Check that all 16 timeframes are present
     expected_timeframes = [
-        "1s", "1m", "3m", "5m", "15m", "30m",
-        "1h", "2h", "4h", "6h", "8h", "12h",
-        "1d", "3d", "1w", "1mo"
+        "1s",
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "6h",
+        "8h",
+        "12h",
+        "1d",
+        "3d",
+        "1w",
+        "1mo",
     ]
 
     for timeframe in expected_timeframes:
@@ -264,9 +310,7 @@ def test_cli_list_timeframes_flag():
 def test_cli_help_mentions_list_timeframes():
     """Test that help text mentions --list-timeframes option."""
     result = subprocess.run(
-        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"], capture_output=True, text=True
     )
 
     assert result.returncode == 0
@@ -287,16 +331,23 @@ def test_cli_invalid_timeframe_shows_available():
     with tempfile.TemporaryDirectory() as temp_dir:
         result = subprocess.run(
             [
-                sys.executable, "-m", "gapless_crypto_data.cli",
-                "--symbol", "BTCUSDT",
-                "--timeframes", "invalid_timeframe",
-                "--start", "2024-01-01",
-                "--end", "2024-01-01",
-                "--output-dir", temp_dir
+                sys.executable,
+                "-m",
+                "gapless_crypto_data.cli",
+                "--symbol",
+                "BTCUSDT",
+                "--timeframes",
+                "invalid_timeframe",
+                "--start",
+                "2024-01-01",
+                "--end",
+                "2024-01-01",
+                "--output-dir",
+                temp_dir,
             ],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
 
         # Should show error message with available timeframes
@@ -316,16 +367,14 @@ def test_cli_timeframe_discoverability_integration():
     list_result = subprocess.run(
         [sys.executable, "-m", "gapless_crypto_data.cli", "--list-timeframes"],
         capture_output=True,
-        text=True
+        text=True,
     )
     assert list_result.returncode == 0
     assert "1mo" in list_result.stdout  # Check that longest timeframe is shown
 
     # Test 2: Help mentions list-timeframes
     help_result = subprocess.run(
-        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"], capture_output=True, text=True
     )
     assert help_result.returncode == 0
     assert "--list-timeframes" in help_result.stdout
@@ -334,7 +383,7 @@ def test_cli_timeframe_discoverability_integration():
     collect_help_result = subprocess.run(
         [sys.executable, "-m", "gapless_crypto_data.cli", "collect", "--help"],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if collect_help_result.returncode == 0:

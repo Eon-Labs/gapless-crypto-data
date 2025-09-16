@@ -39,7 +39,9 @@ from ..gap_filling.universal_gap_filler import UniversalGapFiller
 class BinancePublicDataCollector:
     """Ultra-fast spot data collection using Binance's public data repository."""
 
-    def __init__(self, symbol="SOLUSDT", start_date="2020-08-15", end_date="2025-03-20", output_dir=None):
+    def __init__(
+        self, symbol="SOLUSDT", start_date="2020-08-15", end_date="2025-03-20", output_dir=None
+    ):
         """Initialize collector with date range and optional output directory."""
         self.symbol = symbol
         self.start_date = datetime.strptime(start_date, "%Y-%m-%d")
@@ -148,7 +150,9 @@ class BinancePublicDataCollector:
 
             # Move to next month
             if current_month_date.month == 12:
-                current_month_date = current_month_date.replace(year=current_month_date.year + 1, month=1)
+                current_month_date = current_month_date.replace(
+                    year=current_month_date.year + 1, month=1
+                )
             else:
                 current_month_date = current_month_date.replace(month=current_month_date.month + 1)
 
@@ -203,7 +207,9 @@ class BinancePublicDataCollector:
             # Milliseconds: 1000000000000 (2001) to 9999999999999 (2286)
             # Microseconds: 1000000000000000 (2001) to 9999999999999999 (2286)
             is_valid_millisecond_timestamp = 1000000000000 <= first_field_value <= 9999999999999
-            is_valid_microsecond_timestamp = 1000000000000000 <= first_field_value <= 9999999999999999
+            is_valid_microsecond_timestamp = (
+                1000000000000000 <= first_field_value <= 9999999999999999
+            )
 
             if is_valid_millisecond_timestamp or is_valid_microsecond_timestamp:
                 # Test if other fields are numeric (prices/volumes)
@@ -257,22 +263,29 @@ class BinancePublicDataCollector:
 
         format_transition_logged = False
 
-        for csv_row_index, csv_row_data in enumerate(raw_csv_data[data_start_row_index:], start=data_start_row_index):
+        for csv_row_index, csv_row_data in enumerate(
+            raw_csv_data[data_start_row_index:], start=data_start_row_index
+        ):
             if len(csv_row_data) >= 6:  # Binance format has 12 columns but we need first 6
                 try:
                     # Binance format: [timestamp, open, high, low, close, volume, close_time, quote_volume, count, taker_buy_volume, taker_buy_quote_volume, ignore]
                     raw_timestamp_value = int(csv_row_data[0])
 
                     # Comprehensive format detection with transition tracking
-                    detected_timestamp_format, converted_timestamp_seconds, format_validation_result = (
-                        self._analyze_timestamp_format(raw_timestamp_value, csv_row_index)
-                    )
+                    (
+                        detected_timestamp_format,
+                        converted_timestamp_seconds,
+                        format_validation_result,
+                    ) = self._analyze_timestamp_format(raw_timestamp_value, csv_row_index)
 
                     # Track format transitions
                     if self.current_format is None:
                         self.current_format = detected_timestamp_format
                         print(f"    🎯 Initial timestamp format: {detected_timestamp_format}")
-                    elif self.current_format != detected_timestamp_format and detected_timestamp_format != "unknown":
+                    elif (
+                        self.current_format != detected_timestamp_format
+                        and detected_timestamp_format != "unknown"
+                    ):
                         self.format_transitions.append(
                             {
                                 "row_index": csv_row_index,
@@ -296,7 +309,9 @@ class BinancePublicDataCollector:
 
                     # Store sample values (first 3 per format)
                     if len(self.format_stats[detected_timestamp_format]["sample_values"]) < 3:
-                        self.format_stats[detected_timestamp_format]["sample_values"].append(raw_timestamp_value)
+                        self.format_stats[detected_timestamp_format]["sample_values"].append(
+                            raw_timestamp_value
+                        )
 
                     # Skip if validation failed
                     if not format_validation_result["valid"]:
@@ -318,7 +333,8 @@ class BinancePublicDataCollector:
                         float(csv_row_data[5]),  # volume (base asset volume)
                         # Additional microstructure columns for professional analysis
                         datetime.utcfromtimestamp(
-                            int(csv_row_data[6]) / (1000000 if len(str(int(csv_row_data[6]))) >= 16 else 1000)
+                            int(csv_row_data[6])
+                            / (1000000 if len(str(int(csv_row_data[6]))) >= 16 else 1000)
                         ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
                         float(csv_row_data[7]),  # quote_asset_volume
                         int(csv_row_data[8]),  # number_of_trades
@@ -491,7 +507,9 @@ class BinancePublicDataCollector:
         if combined_candle_data:
             # Sort by timestamp to ensure chronological order
             combined_candle_data.sort(key=lambda candle_row: candle_row[0])
-            print(f"  Pre-filtering range: {combined_candle_data[0][0]} to {combined_candle_data[-1][0]}")
+            print(
+                f"  Pre-filtering range: {combined_candle_data[0][0]} to {combined_candle_data[-1][0]}"
+            )
 
             # ✅ BOUNDARY FIX: Apply final date range filtering after combining all monthly data
             # This preserves month boundaries while respecting the requested date range
@@ -509,7 +527,9 @@ class BinancePublicDataCollector:
 
         return combined_candle_data
 
-    def generate_metadata(self, trading_timeframe, candle_data, collection_performance_stats, gap_analysis_result=None):
+    def generate_metadata(
+        self, trading_timeframe, candle_data, collection_performance_stats, gap_analysis_result=None
+    ):
         """Generate comprehensive metadata for 11-column microstructure format."""
         if not candle_data:
             return {}
@@ -593,7 +613,8 @@ class BinancePublicDataCollector:
                 "professional_features": True,
                 "api_format_compatibility": True,
             },
-            "gap_analysis": gap_analysis_result or {
+            "gap_analysis": gap_analysis_result
+            or {
                 "analysis_performed": False,
                 "total_gaps_detected": 0,
                 "gaps_filled": 0,
@@ -601,7 +622,7 @@ class BinancePublicDataCollector:
                 "gap_details": [],
                 "gap_filling_method": "authentic_binance_api",
                 "data_completeness_score": 1.0,
-                "note": "Gap analysis can be performed using UniversalGapFiller.detect_all_gaps()"
+                "note": "Gap analysis can be performed using UniversalGapFiller.detect_all_gaps()",
             },
             "compliance": {
                 "zero_magic_numbers": True,
@@ -626,13 +647,20 @@ class BinancePublicDataCollector:
                 "gap_details": [],
                 "gap_filling_method": "authentic_binance_api",
                 "data_completeness_score": 1.0,
-                "note": "Insufficient data for gap analysis (< 2 rows)"
+                "note": "Insufficient data for gap analysis (< 2 rows)",
             }
 
         # Calculate expected interval in minutes
         timeframe_minutes = {
-            "1m": 1, "3m": 3, "5m": 5, "15m": 15, "30m": 30,
-            "1h": 60, "2h": 120, "4h": 240, "1d": 1440
+            "1m": 1,
+            "3m": 3,
+            "5m": 5,
+            "15m": 15,
+            "30m": 30,
+            "1h": 60,
+            "2h": 120,
+            "4h": 240,
+            "1d": 1440,
         }
 
         interval_minutes = timeframe_minutes.get(timeframe, 60)
@@ -644,25 +672,29 @@ class BinancePublicDataCollector:
 
         for i in range(1, len(data)):
             current_time = datetime.strptime(data[i][0], "%Y-%m-%d %H:%M:%S")
-            previous_time = datetime.strptime(data[i-1][0], "%Y-%m-%d %H:%M:%S")
+            previous_time = datetime.strptime(data[i - 1][0], "%Y-%m-%d %H:%M:%S")
 
             actual_gap_minutes = (current_time - previous_time).total_seconds() / 60
 
             if actual_gap_minutes > expected_gap_minutes * 1.5:  # Allow 50% tolerance
                 missing_bars = int(actual_gap_minutes / expected_gap_minutes) - 1
                 if missing_bars > 0:
-                    gaps_detected.append({
-                        "gap_start": data[i-1][0],
-                        "gap_end": data[i][0],
-                        "missing_bars": missing_bars,
-                        "duration_minutes": actual_gap_minutes - expected_gap_minutes
-                    })
+                    gaps_detected.append(
+                        {
+                            "gap_start": data[i - 1][0],
+                            "gap_end": data[i][0],
+                            "missing_bars": missing_bars,
+                            "duration_minutes": actual_gap_minutes - expected_gap_minutes,
+                        }
+                    )
                     total_bars_expected += missing_bars
 
         # Calculate completeness score
         total_bars_collected = len(data)
         total_bars_should_exist = total_bars_collected + total_bars_expected
-        completeness_score = total_bars_collected / total_bars_should_exist if total_bars_should_exist > 0 else 1.0
+        completeness_score = (
+            total_bars_collected / total_bars_should_exist if total_bars_should_exist > 0 else 1.0
+        )
 
         return {
             "analysis_performed": True,
@@ -677,8 +709,8 @@ class BinancePublicDataCollector:
             "analysis_parameters": {
                 "timeframe": timeframe,
                 "expected_interval_minutes": expected_gap_minutes,
-                "tolerance_factor": 1.5
-            }
+                "tolerance_factor": 1.5,
+            },
         }
 
     def _calculate_data_hash(self, data):
@@ -782,17 +814,18 @@ class BinancePublicDataCollector:
             TaskProgressColumn(),
             TimeElapsedColumn(),
             console=self.console,
-            expand=True
+            expand=True,
         ) as progress:
-
             main_task = progress.add_task(
-                f"[bold green]Collecting {len(timeframes)} timeframes",
-                total=len(timeframes)
+                f"[bold green]Collecting {len(timeframes)} timeframes", total=len(timeframes)
             )
 
             for i, timeframe in enumerate(timeframes):
                 # Update main progress
-                progress.update(main_task, description=f"[bold green]Processing {timeframe} ({i+1}/{len(timeframes)})")
+                progress.update(
+                    main_task,
+                    description=f"[bold green]Processing {timeframe} ({i + 1}/{len(timeframes)})",
+                )
 
                 tf_start = datetime.now()
                 data = self.collect_timeframe_data(timeframe)
@@ -809,7 +842,9 @@ class BinancePublicDataCollector:
                     if filepath:
                         results[timeframe] = filepath
                         file_size_mb = filepath.stat().st_size / (1024 * 1024)
-                        self.console.print(f"✅ [green]{timeframe}[/green]: {filepath.name} ([cyan]{file_size_mb:.1f} MB[/cyan])")
+                        self.console.print(
+                            f"✅ [green]{timeframe}[/green]: {filepath.name} ([cyan]{file_size_mb:.1f} MB[/cyan])"
+                        )
                 else:
                     self.console.print(f"❌ [red]Failed to collect {timeframe} data[/red]")
 
@@ -820,7 +855,9 @@ class BinancePublicDataCollector:
 
         self.console.print("\n" + "=" * 80)
         self.console.print("🎉 [bold green]ULTRA-FAST COLLECTION COMPLETE[/bold green]")
-        self.console.print(f"⏱️  [yellow]Total time:[/yellow] {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)")
+        self.console.print(
+            f"⏱️  [yellow]Total time:[/yellow] {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)"
+        )
         self.console.print(f"📊 [yellow]Generated {len(results)} files[/yellow]")
 
         return results
