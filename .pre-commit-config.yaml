@@ -1,0 +1,63 @@
+# Pre-commit hooks for gapless-crypto-data
+# Ensures code quality and prevents broken code from being committed
+# Uses local tools only to avoid external repository authentication issues
+
+repos:
+  # All hooks use local project dependencies via uv
+  - repo: local
+    hooks:
+      # Ruff linter
+      - id: ruff-check
+        name: Ruff Linter
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi]
+        require_serial: false
+
+      # Ruff formatter
+      - id: ruff-format
+        name: Ruff Formatter
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+        require_serial: false
+
+      # Python AST validation
+      - id: check-ast
+        name: Check Python AST
+        entry: uv run python -m py_compile
+        language: system
+        types: [python]
+
+      # File encoding validation
+      - id: validate-file-encoding
+        name: Validate file encoding (UTF-8/ASCII only)
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            echo "🔍 Checking file encoding..."
+            files=$(find src/ tests/ examples/ -name "*.py" -o -name "*.md" -o -name "*.txt" -o -name "*.toml" -o -name "*.yml" -o -name "*.yaml" 2>/dev/null || true)
+            if [ -n "$files" ]; then
+              non_utf8=$(echo "$files" | xargs file --mime-encoding | grep -v -E "(utf-8|us-ascii)" || true)
+              if [ -n "$non_utf8" ]; then
+                echo "❌ Non-UTF-8/ASCII files found:"
+                echo "$non_utf8"
+                echo "All text files must be UTF-8 or ASCII encoded."
+                exit 1
+              else
+                echo "✅ All project files are properly encoded (UTF-8/ASCII)"
+              fi
+            else
+              echo "✅ No text files found to check"
+            fi
+        files: \.(py|md|txt|toml|yml|yaml)$
+        require_serial: true
+
+# Pre-commit configuration
+default_install_hook_types: [pre-commit]
+default_stages: [pre-commit]
+
+# Performance settings
+minimum_pre_commit_version: "3.0.0"

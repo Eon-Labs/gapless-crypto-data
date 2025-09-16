@@ -196,6 +196,8 @@ gap_filler.fill_gaps(
 
 ### Development Installation Workflow
 
+**IMPORTANT**: This project uses **mandatory pre-commit hooks** to prevent broken code from being committed. All commits are automatically validated for formatting, linting, and basic quality checks.
+
 #### Step 1: Clone Repository
 ```bash
 git clone https://github.com/Eon-Labs/gapless-crypto-data.git
@@ -227,7 +229,16 @@ uv run pytest
 uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2024-01-01 --end 2024-01-01 --output-dir ./test_data
 ```
 
-#### Step 4: Development Tools
+#### Step 4: Set Up Pre-Commit Hooks (Mandatory)
+```bash
+# Install pre-commit hooks (prevents broken code from being committed)
+uv run pre-commit install
+
+# Test pre-commit hooks
+uv run pre-commit run --all-files
+```
+
+#### Step 5: Development Tools
 ```bash
 # Code formatting
 uv run ruff format .
@@ -240,6 +251,9 @@ uv run mypy src/
 
 # Run specific tests
 uv run pytest tests/test_binance_collector.py -v
+
+# Manual pre-commit validation
+uv run pre-commit run --all-files
 ```
 
 ### Development Commands Reference
@@ -247,6 +261,7 @@ uv run pytest tests/test_binance_collector.py -v
 | Task | Command |
 |------|---------|
 | Install dependencies | `uv sync --dev` |
+| Setup pre-commit hooks | `uv run pre-commit install` |
 | Add new dependency | `uv add package-name` |
 | Add dev dependency | `uv add --dev package-name` |
 | Run CLI | `uv run gapless-crypto-data [args]` |
@@ -254,6 +269,7 @@ uv run pytest tests/test_binance_collector.py -v
 | Format code | `uv run ruff format .` |
 | Lint code | `uv run ruff check --fix .` |
 | Type check | `uv run mypy src/` |
+| Validate pre-commit | `uv run pre-commit run --all-files` |
 | Build package | `uv build` |
 
 ### Project Structure for Development
