@@ -41,6 +41,65 @@ from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.universal_gap_filler import UniversalGapFiller
 
 
+def list_timeframes() -> int:
+    """Display all available timeframes with descriptions."""
+    print("📊 Available Timeframes")
+    print("=" * 50)
+    print()
+
+    # Get available timeframes from the collector
+    collector = BinancePublicDataCollector()
+    timeframes = collector.available_timeframes
+
+    # Timeframe descriptions
+    descriptions = {
+        "1s": "1 second intervals (ultra high-frequency, very large datasets)",
+        "1m": "1 minute intervals (high-frequency trading, large datasets)",
+        "3m": "3 minute intervals (high-frequency analysis)",
+        "5m": "5 minute intervals (short-term trading signals)",
+        "15m": "15 minute intervals (intraday analysis)",
+        "30m": "30 minute intervals (short-term trends)",
+        "1h": "1 hour intervals (medium-term analysis, recommended)",
+        "2h": "2 hour intervals (trend analysis)",
+        "4h": "4 hour intervals (swing trading, popular for backtesting)",
+        "6h": "6 hour intervals (broader trend analysis)",
+        "8h": "8 hour intervals (daily cycle analysis)",
+        "12h": "12 hour intervals (half-daily patterns)",
+        "1d": "1 day intervals (daily trading, long-term trends)",
+        "3d": "3 day intervals (weekly pattern analysis)",
+        "1w": "1 week intervals (long-term trend analysis)",
+        "1mo": "1 month intervals (macro trend analysis, small datasets)"
+    }
+
+    print("Timeframe | Description")
+    print("-" * 75)
+
+    for tf in timeframes:
+        desc = descriptions.get(tf, "Standard trading interval")
+        print(f"{tf:9} | {desc}")
+
+    print()
+    print("💡 Usage Examples:")
+    print("   # Single timeframe")
+    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h")
+    print()
+    print("   # Multiple timeframes")
+    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1m,1h,1d")
+    print()
+    print("   # High-frequency data")
+    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1s,1m")
+    print()
+    print("   # Long-term analysis")
+    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1d,1w,1mo")
+    print()
+    print("📈 Performance Notes:")
+    print("   • Shorter intervals = larger datasets, longer collection time")
+    print("   • Recommended for most use cases: 1h, 4h, 1d")
+    print("   • Ultra high-frequency (1s, 1m): Use with short date ranges")
+
+    return 0
+
+
 def collect_data(command_line_args: Any) -> int:
     """Main data collection workflow"""
     # Parse symbols and timeframes
@@ -194,7 +253,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
     collect_parser.add_argument(
         "--timeframes",
         default="1m,3m,5m,15m,30m,1h,2h,4h",
-        help="Comma-separated timeframes (default: 1m,3m,5m,15m,30m,1h,2h,4h)",
+        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
     )
     collect_parser.add_argument(
         "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
@@ -219,7 +278,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
     parser.add_argument(
         "--timeframes",
         default="1m,3m,5m,15m,30m,1h,2h,4h",
-        help="Comma-separated timeframes (default: 1m,3m,5m,15m,30m,1h,2h,4h)",
+        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
     )
     parser.add_argument(
         "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
@@ -230,12 +289,15 @@ Performance: 22x faster than API calls via Binance public data repository with a
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
     parser.add_argument("--output-dir", help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)")
+    parser.add_argument("--list-timeframes", action="store_true", help="List all available timeframes with descriptions")
     parser.add_argument("--version", action="version", version=f"gapless-crypto-data {__version__}")
 
     parsed_arguments = parser.parse_args()
 
     # Route to appropriate function
-    if parsed_arguments.command == "fill-gaps" or parsed_arguments.fill_gaps:
+    if parsed_arguments.list_timeframes:
+        return list_timeframes()
+    elif parsed_arguments.command == "fill-gaps" or parsed_arguments.fill_gaps:
         return fill_gaps(parsed_arguments)
     elif parsed_arguments.command == "collect" or parsed_arguments.command is None:
         return collect_data(parsed_arguments)

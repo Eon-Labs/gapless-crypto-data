@@ -32,7 +32,7 @@ CLI Usage:
     uv run gapless-crypto-data --fill-gaps --directory ./data
 """
 
-__version__ = "2.0.4"
+__version__ = "2.1.1"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 

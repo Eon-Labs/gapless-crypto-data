@@ -231,3 +231,112 @@ def test_cli_collect_subcommand_multi_symbol():
         else:
             # Network failure is acceptable for this test
             pass
+
+
+def test_cli_list_timeframes_flag():
+    """Test that --list-timeframes flag works and shows all 16 timeframes."""
+    result = subprocess.run(
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--list-timeframes"],
+        capture_output=True,
+        text=True
+    )
+
+    assert result.returncode == 0
+
+    # Check that the output contains timeframe listing header
+    assert "📊 Available Timeframes" in result.stdout
+    assert "Timeframe | Description" in result.stdout
+
+    # Check that all 16 timeframes are present
+    expected_timeframes = [
+        "1s", "1m", "3m", "5m", "15m", "30m",
+        "1h", "2h", "4h", "6h", "8h", "12h",
+        "1d", "3d", "1w", "1mo"
+    ]
+
+    for timeframe in expected_timeframes:
+        assert timeframe in result.stdout
+
+    # Check for usage examples
+    assert "💡 Usage Examples:" in result.stdout
+    assert "📈 Performance Notes:" in result.stdout
+
+
+def test_cli_help_mentions_list_timeframes():
+    """Test that help text mentions --list-timeframes option."""
+    result = subprocess.run(
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"],
+        capture_output=True,
+        text=True
+    )
+
+    assert result.returncode == 0
+
+    # Check that help mentions --list-timeframes
+    assert "--list-timeframes" in result.stdout
+    assert "List all available timeframes with descriptions" in result.stdout
+
+    # Check that timeframes help mentions 16 available options
+    assert "from 16 available options" in result.stdout
+    assert "Use --list-timeframes to see all available timeframes" in result.stdout
+
+
+def test_cli_invalid_timeframe_shows_available():
+    """Test that invalid timeframe shows available options."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        result = subprocess.run(
+            [
+                sys.executable, "-m", "gapless_crypto_data.cli",
+                "--symbol", "BTCUSDT",
+                "--timeframes", "invalid_timeframe",
+                "--start", "2024-01-01",
+                "--end", "2024-01-01",
+                "--output-dir", temp_dir
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        # Should show error message with available timeframes
+        assert "❌ Timeframe 'invalid_timeframe' not available" in result.stdout
+        assert "📊 Available timeframes:" in result.stdout
+        assert "💡 Use 'gapless-crypto-data --list-timeframes'" in result.stdout
+
+        # Should list some of the actual available timeframes
+        assert "1m" in result.stdout
+        assert "1h" in result.stdout
+        assert "1d" in result.stdout
+
+
+def test_cli_timeframe_discoverability_integration():
+    """Test complete timeframe discoverability workflow."""
+    # Test 1: List timeframes
+    list_result = subprocess.run(
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--list-timeframes"],
+        capture_output=True,
+        text=True
+    )
+    assert list_result.returncode == 0
+    assert "1mo" in list_result.stdout  # Check that longest timeframe is shown
+
+    # Test 2: Help mentions list-timeframes
+    help_result = subprocess.run(
+        [sys.executable, "-m", "gapless_crypto_data.cli", "--help"],
+        capture_output=True,
+        text=True
+    )
+    assert help_result.returncode == 0
+    assert "--list-timeframes" in help_result.stdout
+
+    # Test 3: Both regular and collect subcommand help mention discoverability
+    collect_help_result = subprocess.run(
+        [sys.executable, "-m", "gapless_crypto_data.cli", "collect", "--help"],
+        capture_output=True,
+        text=True
+    )
+
+    if collect_help_result.returncode == 0:
+        assert "Use --list-timeframes" in collect_help_result.stdout
