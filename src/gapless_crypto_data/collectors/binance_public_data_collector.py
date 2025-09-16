@@ -523,9 +523,109 @@ class BinancePublicDataCollector:
             if date_filtered_data:
                 print(f"  Final range: {date_filtered_data[0][0]} to {date_filtered_data[-1][0]}")
 
-            return date_filtered_data
+            # Save to CSV and return DataFrame for seamless Python integration
+            if date_filtered_data:
+                # Calculate collection stats for metadata
+                collection_stats = {
+                    "method": "direct_download",
+                    "duration": 0.0,  # Minimal for single timeframe
+                    "bars_per_second": 0,
+                    "total_bars": len(date_filtered_data),
+                }
 
-        return combined_candle_data
+                # Save to CSV file (addresses the output_dir bug)
+                filepath = self.save_to_csv(trading_timeframe, date_filtered_data, collection_stats)
+
+                # Convert to DataFrame for Python API users
+                columns = [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "close_time",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+                df = pd.DataFrame(date_filtered_data, columns=columns)
+
+                # Convert numeric columns
+                numeric_cols = [
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+                for col in numeric_cols:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+                # Convert date columns to datetime
+                df["date"] = pd.to_datetime(df["date"])
+                df["close_time"] = pd.to_datetime(df["close_time"])
+
+                return {"dataframe": df, "filepath": filepath, "stats": collection_stats}
+
+            return {"dataframe": pd.DataFrame(), "filepath": None, "stats": {}}
+
+        # Save to CSV and return DataFrame for unfiltered data
+        if combined_candle_data:
+            # Calculate collection stats for metadata
+            collection_stats = {
+                "method": "direct_download",
+                "duration": 0.0,  # Minimal for single timeframe
+                "bars_per_second": 0,
+                "total_bars": len(combined_candle_data),
+            }
+
+            # Save to CSV file (addresses the output_dir bug)
+            filepath = self.save_to_csv(trading_timeframe, combined_candle_data, collection_stats)
+
+            # Convert to DataFrame for Python API users
+            columns = [
+                "date",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "close_time",
+                "quote_asset_volume",
+                "number_of_trades",
+                "taker_buy_base_asset_volume",
+                "taker_buy_quote_asset_volume",
+            ]
+            df = pd.DataFrame(combined_candle_data, columns=columns)
+
+            # Convert numeric columns
+            numeric_cols = [
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "quote_asset_volume",
+                "number_of_trades",
+                "taker_buy_base_asset_volume",
+                "taker_buy_quote_asset_volume",
+            ]
+            for col in numeric_cols:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            # Convert date columns to datetime
+            df["date"] = pd.to_datetime(df["date"])
+            df["close_time"] = pd.to_datetime(df["close_time"])
+
+            return {"dataframe": df, "filepath": filepath, "stats": collection_stats}
+
+        return {"dataframe": pd.DataFrame(), "filepath": None, "stats": {}}
 
     def generate_metadata(
         self, trading_timeframe, candle_data, collection_performance_stats, gap_analysis_result=None
