@@ -84,7 +84,6 @@ def test_cli_help_mentions_multi_symbol():
 def test_cli_single_symbol_backwards_compatibility():
     """Test backwards compatibility with single symbol usage."""
     import tempfile
-    from pathlib import Path
 
     with tempfile.TemporaryDirectory() as temp_dir:
         # Test single symbol (backwards compatible)

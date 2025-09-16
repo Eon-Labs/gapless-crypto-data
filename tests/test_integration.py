@@ -1,7 +1,7 @@
 """Integration tests for complete gapless crypto data workflows."""
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -114,7 +114,7 @@ class TestEndToEndIntegration:
                     assert 'data_integrity' in metadata
                     assert 'gap_analysis' in metadata
 
-                print(f"✅ Integration test completed successfully")
+                print("✅ Integration test completed successfully")
                 print(f"   - Data collected: {len(final_df)} rows")
                 print(f"   - Gaps detected: {len(detected_gaps)}")
                 print(f"   - Files created: {len(csv_files)} CSV, {len(metadata_files)} metadata")
@@ -215,7 +215,7 @@ class TestEndToEndIntegration:
 
             # Multiple gap detection calls (simulating concurrent reads)
             results = []
-            for i in range(3):
+            for _i in range(3):
                 try:
                     gaps = gap_filler.detect_all_gaps(csv_file, "1h")
                     results.append(gaps)
@@ -346,7 +346,7 @@ class TestEndToEndIntegration:
             assert isinstance(symbol, str)
             assert len(symbol) > 0
 
-            print(f"✅ Validation pipeline completed successfully")
+            print("✅ Validation pipeline completed successfully")
             print(f"   - Structure validation: {validation_results.get('status')}")
             print(f"   - OHLCV validation: {ohlcv_results.get('status')}")
             print(f"   - Coverage: {coverage_results.get('coverage_percentage', 0):.1f}%")
@@ -366,7 +366,7 @@ class TestEndToEndIntegration:
             'low': [95.0 + i * 0.01 for i in range(1000)],
             'close': [102.0 + i * 0.01 for i in range(1000)],
             'volume': [1000.0 + i for i in range(1000)],
-            'close_time': [f'2024-01-01 00:59:59' for _ in range(1000)],
+            'close_time': ['2024-01-01 00:59:59' for _ in range(1000)],
             'quote_asset_volume': [10000.0 + i * 10 for i in range(1000)],
             'number_of_trades': [50 + i // 10 for i in range(1000)],
             'taker_buy_base_asset_volume': [500.0 + i * 0.5 for i in range(1000)],
@@ -410,7 +410,7 @@ class TestEndToEndIntegration:
             assert isinstance(validation_results, dict)
             assert isinstance(ohlcv_results, dict)
 
-            print(f"✅ Large dataset test completed successfully")
+            print("✅ Large dataset test completed successfully")
             print(f"   - Dataset size: {len(large_df)} rows")
             print(f"   - Gap detection time: {gap_detection_time.total_seconds():.2f}s")
             print(f"   - Validation time: {validation_time.total_seconds():.2f}s")
