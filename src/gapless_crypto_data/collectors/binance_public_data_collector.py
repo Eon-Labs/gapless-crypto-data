@@ -128,80 +128,80 @@ class BinancePublicDataCollector:
                 f"If requests fail with 404 errors, check symbol availability on Binance."
             )
 
-    def generate_monthly_urls(self, timeframe):
+    def generate_monthly_urls(self, trading_timeframe):
         """Generate list of monthly ZIP file URLs to download."""
-        urls = []
-        current_date = self.start_date.replace(day=1)  # Start of month
+        monthly_zip_urls = []
+        current_month_date = self.start_date.replace(day=1)  # Start of month
 
-        while current_date <= self.end_date:
-            year_month = current_date.strftime("%Y-%m")
-            filename = f"{self.symbol}-{timeframe}-{year_month}.zip"
-            url = f"{self.base_url}/{self.symbol}/{timeframe}/{filename}"
-            urls.append((url, year_month, filename))
+        while current_month_date <= self.end_date:
+            year_month_string = current_month_date.strftime("%Y-%m")
+            zip_filename = f"{self.symbol}-{trading_timeframe}-{year_month_string}.zip"
+            binance_zip_url = f"{self.base_url}/{self.symbol}/{trading_timeframe}/{zip_filename}"
+            monthly_zip_urls.append((binance_zip_url, year_month_string, zip_filename))
 
             # Move to next month
-            if current_date.month == 12:
-                current_date = current_date.replace(year=current_date.year + 1, month=1)
+            if current_month_date.month == 12:
+                current_month_date = current_month_date.replace(year=current_month_date.year + 1, month=1)
             else:
-                current_date = current_date.replace(month=current_date.month + 1)
+                current_month_date = current_month_date.replace(month=current_month_date.month + 1)
 
-        return urls
+        return monthly_zip_urls
 
-    def download_and_extract_month(self, url, filename):
+    def download_and_extract_month(self, binance_zip_url, zip_filename):
         """Download and extract a single monthly ZIP file."""
-        print(f"  Downloading {filename}...")
+        print(f"  Downloading {zip_filename}...")
 
         try:
-            with tempfile.NamedTemporaryFile() as temp_zip:
+            with tempfile.NamedTemporaryFile() as temporary_zip_file:
                 # Download ZIP file
-                with urllib.request.urlopen(url, timeout=60) as response:
-                    if response.status == 200:
-                        shutil.copyfileobj(response, temp_zip)
-                        temp_zip.flush()
+                with urllib.request.urlopen(binance_zip_url, timeout=60) as http_response:
+                    if http_response.status == 200:
+                        shutil.copyfileobj(http_response, temporary_zip_file)
+                        temporary_zip_file.flush()
                     else:
-                        print(f"    ⚠️  HTTP {response.status} - {filename} not available")
+                        print(f"    ⚠️  HTTP {http_response.status} - {zip_filename} not available")
                         return []
 
                 # Extract CSV data
-                with zipfile.ZipFile(temp_zip.name, "r") as zf:
-                    csv_filename = filename.replace(".zip", ".csv")
-                    if csv_filename in zf.namelist():
-                        with zf.open(csv_filename) as csv_file:
-                            csv_content = csv_file.read().decode("utf-8")
-                            return list(csv.reader(csv_content.strip().split("\n")))
+                with zipfile.ZipFile(temporary_zip_file.name, "r") as zip_file_handle:
+                    expected_csv_filename = zip_filename.replace(".zip", ".csv")
+                    if expected_csv_filename in zip_file_handle.namelist():
+                        with zip_file_handle.open(expected_csv_filename) as extracted_csv_file:
+                            csv_file_content = extracted_csv_file.read().decode("utf-8")
+                            return list(csv.reader(csv_file_content.strip().split("\n")))
                     else:
-                        print(f"    ⚠️  CSV file not found in {filename}")
+                        print(f"    ⚠️  CSV file not found in {zip_filename}")
                         return []
 
-        except Exception as e:
-            print(f"    ❌ Error downloading {filename}: {e}")
+        except Exception as download_exception:
+            print(f"    ❌ Error downloading {zip_filename}: {download_exception}")
             return []
 
-    def _detect_header_intelligent(self, raw_data):
+    def _detect_header_intelligent(self, raw_csv_data):
         """Intelligent header detection - determine if first row is data or header."""
-        if not raw_data:
+        if not raw_csv_data:
             return False
 
-        first_row = raw_data[0]
-        if len(first_row) < 6:
+        first_csv_row = raw_csv_data[0]
+        if len(first_csv_row) < 6:
             return False
 
         # Header detection heuristics
         try:
             # Test if first field is numeric timestamp
-            timestamp_val = int(first_row[0])
+            first_field_value = int(first_csv_row[0])
 
             # ✅ BOUNDARY FIX: Support both milliseconds (13-digit) AND microseconds (16-digit) formats
             # Valid timestamp ranges:
             # Milliseconds: 1000000000000 (2001) to 9999999999999 (2286)
             # Microseconds: 1000000000000000 (2001) to 9999999999999999 (2286)
-            is_valid_milliseconds = 1000000000000 <= timestamp_val <= 9999999999999
-            is_valid_microseconds = 1000000000000000 <= timestamp_val <= 9999999999999999
+            is_valid_millisecond_timestamp = 1000000000000 <= first_field_value <= 9999999999999
+            is_valid_microsecond_timestamp = 1000000000000000 <= first_field_value <= 9999999999999999
 
-            if is_valid_milliseconds or is_valid_microseconds:
+            if is_valid_millisecond_timestamp or is_valid_microsecond_timestamp:
                 # Test if other fields are numeric (prices/volumes)
-                for i in [1, 2, 3, 4, 5]:  # OHLCV fields
-                    float(first_row[i])
+                for ohlcv_field_index in [1, 2, 3, 4, 5]:  # OHLCV fields
+                    float(first_csv_row[ohlcv_field_index])
                 return False  # All numeric = data row
             else:
                 return True  # Invalid timestamp = likely header
@@ -210,9 +210,9 @@ class BinancePublicDataCollector:
             # Non-numeric first field = header
             return True
 
-    def process_raw_data(self, raw_data):
+    def process_raw_data(self, raw_csv_data):
         """Convert raw Binance CSV data with comprehensive timestamp format tracking and transition detection."""
-        processed_data = []
+        processed_candle_data = []
         self.corruption_log = getattr(self, "corruption_log", [])
 
         # Initialize comprehensive format tracking
@@ -235,171 +235,171 @@ class BinancePublicDataCollector:
         self.current_format = None
 
         # Intelligent header detection
-        has_header = self._detect_header_intelligent(raw_data)
-        start_row = 1 if has_header else 0
+        csv_has_header = self._detect_header_intelligent(raw_csv_data)
+        data_start_row_index = 1 if csv_has_header else 0
 
         # Store header detection results for metadata
-        self._header_detected = has_header
-        self._header_content = raw_data[0][:6] if has_header else None
-        self._data_start_row = start_row
+        self._header_detected = csv_has_header
+        self._header_content = raw_csv_data[0][:6] if csv_has_header else None
+        self._data_start_row = data_start_row_index
 
-        if has_header:
-            print(f"    📋 Header detected: {raw_data[0][:6]}")
+        if csv_has_header:
+            print(f"    📋 Header detected: {raw_csv_data[0][:6]}")
         else:
             print("    📊 Pure data format detected (no header)")
 
-        format_change_logged = False
+        format_transition_logged = False
 
-        for row_idx, row in enumerate(raw_data[start_row:], start=start_row):
-            if len(row) >= 6:  # Binance format has 12 columns but we need first 6
+        for csv_row_index, csv_row_data in enumerate(raw_csv_data[data_start_row_index:], start=data_start_row_index):
+            if len(csv_row_data) >= 6:  # Binance format has 12 columns but we need first 6
                 try:
                     # Binance format: [timestamp, open, high, low, close, volume, close_time, quote_volume, count, taker_buy_volume, taker_buy_quote_volume, ignore]
-                    timestamp_raw = int(row[0])
+                    raw_timestamp_value = int(csv_row_data[0])
 
                     # Comprehensive format detection with transition tracking
-                    detected_format, timestamp_seconds, validation_result = (
-                        self._analyze_timestamp_format(timestamp_raw, row_idx)
+                    detected_timestamp_format, converted_timestamp_seconds, format_validation_result = (
+                        self._analyze_timestamp_format(raw_timestamp_value, csv_row_index)
                     )
 
                     # Track format transitions
                     if self.current_format is None:
-                        self.current_format = detected_format
-                        print(f"    🎯 Initial timestamp format: {detected_format}")
-                    elif self.current_format != detected_format and detected_format != "unknown":
+                        self.current_format = detected_timestamp_format
+                        print(f"    🎯 Initial timestamp format: {detected_timestamp_format}")
+                    elif self.current_format != detected_timestamp_format and detected_timestamp_format != "unknown":
                         self.format_transitions.append(
                             {
-                                "row_index": row_idx,
+                                "row_index": csv_row_index,
                                 "from_format": self.current_format,
-                                "to_format": detected_format,
-                                "timestamp_value": timestamp_raw,
+                                "to_format": detected_timestamp_format,
+                                "timestamp_value": raw_timestamp_value,
                             }
                         )
-                        self.current_format = detected_format
-                        if not format_change_logged:
+                        self.current_format = detected_timestamp_format
+                        if not format_transition_logged:
                             print(
-                                f"    🔄 Format transition detected: {self.format_transitions[-1]['from_format']} → {detected_format}"
+                                f"    🔄 Format transition detected: {self.format_transitions[-1]['from_format']} → {detected_timestamp_format}"
                             )
-                            format_change_logged = True
+                            format_transition_logged = True
 
                     # Update format statistics
-                    self.format_stats[detected_format]["count"] += 1
-                    if self.format_stats[detected_format]["first_seen"] is None:
-                        self.format_stats[detected_format]["first_seen"] = row_idx
-                    self.format_stats[detected_format]["last_seen"] = row_idx
+                    self.format_stats[detected_timestamp_format]["count"] += 1
+                    if self.format_stats[detected_timestamp_format]["first_seen"] is None:
+                        self.format_stats[detected_timestamp_format]["first_seen"] = csv_row_index
+                    self.format_stats[detected_timestamp_format]["last_seen"] = csv_row_index
 
                     # Store sample values (first 3 per format)
-                    if len(self.format_stats[detected_format]["sample_values"]) < 3:
-                        self.format_stats[detected_format]["sample_values"].append(timestamp_raw)
+                    if len(self.format_stats[detected_timestamp_format]["sample_values"]) < 3:
+                        self.format_stats[detected_timestamp_format]["sample_values"].append(raw_timestamp_value)
 
                     # Skip if validation failed
-                    if not validation_result["valid"]:
-                        self.corruption_log.append(validation_result["error_details"])
+                    if not format_validation_result["valid"]:
+                        self.corruption_log.append(format_validation_result["error_details"])
                         continue
 
                     # ✅ CRITICAL FIX: Use UTC to match Binance's native timezone
                     # Eliminates artificial DST gaps caused by local timezone conversion
-                    dt = datetime.utcfromtimestamp(timestamp_seconds)
+                    utc_datetime = datetime.utcfromtimestamp(converted_timestamp_seconds)
 
                     # ✅ BOUNDARY FIX: Don't filter per-monthly-file to preserve month boundaries
                     # Enhanced processing: capture all 11 essential Binance columns for complete microstructure analysis
-                    processed_row = [
-                        dt.strftime("%Y-%m-%d %H:%M:%S"),  # date (from open_time)
-                        float(row[1]),  # open
-                        float(row[2]),  # high
-                        float(row[3]),  # low
-                        float(row[4]),  # close
-                        float(row[5]),  # volume (base asset volume)
+                    processed_candle_row = [
+                        utc_datetime.strftime("%Y-%m-%d %H:%M:%S"),  # date (from open_time)
+                        float(csv_row_data[1]),  # open
+                        float(csv_row_data[2]),  # high
+                        float(csv_row_data[3]),  # low
+                        float(csv_row_data[4]),  # close
+                        float(csv_row_data[5]),  # volume (base asset volume)
                         # Additional microstructure columns for professional analysis
                         datetime.utcfromtimestamp(
-                            int(row[6]) / (1000000 if len(str(int(row[6]))) >= 16 else 1000)
+                            int(csv_row_data[6]) / (1000000 if len(str(int(csv_row_data[6]))) >= 16 else 1000)
                         ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
-                        float(row[7]),  # quote_asset_volume
-                        int(row[8]),  # number_of_trades
-                        float(row[9]),  # taker_buy_base_asset_volume
-                        float(row[10]),  # taker_buy_quote_asset_volume
+                        float(csv_row_data[7]),  # quote_asset_volume
+                        int(csv_row_data[8]),  # number_of_trades
+                        float(csv_row_data[9]),  # taker_buy_base_asset_volume
+                        float(csv_row_data[10]),  # taker_buy_quote_asset_volume
                     ]
-                    processed_data.append(processed_row)
+                    processed_candle_data.append(processed_candle_row)
 
-                except (ValueError, OSError, OverflowError) as e:
+                except (ValueError, OSError, OverflowError) as parsing_exception:
                     self.format_stats["unknown"]["count"] += 1
-                    error_details = {
-                        "row_index": row_idx,
+                    error_record = {
+                        "row_index": csv_row_index,
                         "error_type": "timestamp_parse_error",
-                        "error_message": str(e),
-                        "raw_row": row[:10] if len(row) > 10 else row,
+                        "error_message": str(parsing_exception),
+                        "raw_row": csv_row_data[:10] if len(csv_row_data) > 10 else csv_row_data,
                     }
-                    self.corruption_log.append(error_details)
-                    self.format_stats["unknown"]["errors"].append(error_details)
+                    self.corruption_log.append(error_record)
+                    self.format_stats["unknown"]["errors"].append(error_record)
                     continue
             else:
                 # Record insufficient columns
                 self.corruption_log.append(
                     {
-                        "row_index": row_idx,
+                        "row_index": csv_row_index,
                         "error_type": "insufficient_columns",
-                        "column_count": len(row),
-                        "raw_row": row,
+                        "column_count": len(csv_row_data),
+                        "raw_row": csv_row_data,
                     }
                 )
 
         # Report comprehensive format analysis
         self._report_format_analysis()
 
-        return processed_data
+        return processed_candle_data
 
-    def _analyze_timestamp_format(self, timestamp_raw, row_idx):
+    def _analyze_timestamp_format(self, raw_timestamp_value, csv_row_index):
         """Comprehensive timestamp format analysis with validation."""
-        digit_count = len(str(timestamp_raw))
+        timestamp_digit_count = len(str(raw_timestamp_value))
 
         # Enhanced format detection logic
-        if digit_count >= 16:  # Microseconds (16+ digits) - 2025+ format
-            format_type = "microseconds"
-            timestamp_seconds = timestamp_raw / 1000000
-            min_bound = 1262304000000000  # 2010-01-01 00:00:00 (microseconds)
-            max_bound = 1893456000000000  # 2030-01-01 00:00:00 (microseconds)
+        if timestamp_digit_count >= 16:  # Microseconds (16+ digits) - 2025+ format
+            detected_format_type = "microseconds"
+            converted_seconds = raw_timestamp_value / 1000000
+            timestamp_min_bound = 1262304000000000  # 2010-01-01 00:00:00 (microseconds)
+            timestamp_max_bound = 1893456000000000  # 2030-01-01 00:00:00 (microseconds)
 
-        elif digit_count >= 10:  # Milliseconds (10-15 digits) - Legacy format
-            format_type = "milliseconds"
-            timestamp_seconds = timestamp_raw / 1000
-            min_bound = 1262304000000  # 2010-01-01 00:00:00 (milliseconds)
-            max_bound = 1893456000000  # 2030-01-01 00:00:00 (milliseconds)
+        elif timestamp_digit_count >= 10:  # Milliseconds (10-15 digits) - Legacy format
+            detected_format_type = "milliseconds"
+            converted_seconds = raw_timestamp_value / 1000
+            timestamp_min_bound = 1262304000000  # 2010-01-01 00:00:00 (milliseconds)
+            timestamp_max_bound = 1893456000000  # 2030-01-01 00:00:00 (milliseconds)
 
         else:  # Unknown format (less than 10 digits)
-            format_type = "unknown"
-            timestamp_seconds = None
-            min_bound = max_bound = None
+            detected_format_type = "unknown"
+            converted_seconds = None
+            timestamp_min_bound = timestamp_max_bound = None
 
         # Enhanced validation with detailed error reporting
-        if format_type == "unknown":
-            validation_result = {
+        if detected_format_type == "unknown":
+            timestamp_validation_result = {
                 "valid": False,
                 "error_details": {
-                    "row_index": row_idx,
+                    "row_index": csv_row_index,
                     "error_type": "unknown_timestamp_format",
-                    "timestamp_value": timestamp_raw,
-                    "digit_count": digit_count,
+                    "timestamp_value": raw_timestamp_value,
+                    "digit_count": timestamp_digit_count,
                     "expected_formats": "milliseconds (10-15 digits) or microseconds (16+ digits)",
-                    "raw_row": f"Timestamp too short: {digit_count} digits",
+                    "raw_row": f"Timestamp too short: {timestamp_digit_count} digits",
                 },
             }
-        elif timestamp_raw < min_bound or timestamp_raw > max_bound:
-            validation_result = {
+        elif raw_timestamp_value < timestamp_min_bound or raw_timestamp_value > timestamp_max_bound:
+            timestamp_validation_result = {
                 "valid": False,
                 "error_details": {
-                    "row_index": row_idx,
+                    "row_index": csv_row_index,
                     "error_type": "invalid_timestamp_range",
-                    "timestamp_value": timestamp_raw,
-                    "timestamp_format": format_type,
-                    "digit_count": digit_count,
-                    "valid_range": f"{min_bound} to {max_bound}",
+                    "timestamp_value": raw_timestamp_value,
+                    "timestamp_format": detected_format_type,
+                    "digit_count": timestamp_digit_count,
+                    "valid_range": f"{timestamp_min_bound} to {timestamp_max_bound}",
                     "parsed_date": "out_of_range",
-                    "raw_row": f"Out of valid {format_type} range (2010-2030)",
+                    "raw_row": f"Out of valid {detected_format_type} range (2010-2030)",
                 },
             }
         else:
-            validation_result = {"valid": True}
+            timestamp_validation_result = {"valid": True}
 
-        return format_type, timestamp_seconds, validation_result
+        return detected_format_type, converted_seconds, timestamp_validation_result
 
     def _report_format_analysis(self):
         """Report comprehensive format analysis with transition detection."""
@@ -447,70 +447,70 @@ class BinancePublicDataCollector:
             "format_consistency": len(self.format_transitions) == 0,
         }
 
-    def collect_timeframe_data(self, timeframe):
+    def collect_timeframe_data(self, trading_timeframe):
         """Collect complete historical data for a single timeframe with full 11-column microstructure format."""
         print(f"\n{'=' * 60}")
-        print(f"COLLECTING {timeframe.upper()} DATA FROM BINANCE PUBLIC REPOSITORY")
+        print(f"COLLECTING {trading_timeframe.upper()} DATA FROM BINANCE PUBLIC REPOSITORY")
         print(f"{'=' * 60}")
 
-        if timeframe not in self.available_timeframes:
-            print(f"❌ Timeframe {timeframe} not available")
+        if trading_timeframe not in self.available_timeframes:
+            print(f"❌ Timeframe {trading_timeframe} not available")
             return None
 
         # Generate monthly URLs
-        monthly_urls = self.generate_monthly_urls(timeframe)
-        print(f"Monthly files to download: {len(monthly_urls)}")
+        monthly_zip_urls = self.generate_monthly_urls(trading_timeframe)
+        print(f"Monthly files to download: {len(monthly_zip_urls)}")
 
         # Collect data from all months
-        all_data = []
-        successful_downloads = 0
+        combined_candle_data = []
+        successful_download_count = 0
 
-        for url, year_month, filename in monthly_urls:
-            raw_month_data = self.download_and_extract_month(url, filename)
-            if raw_month_data:
-                processed_data = self.process_raw_data(raw_month_data)
-                all_data.extend(processed_data)
-                successful_downloads += 1
-                print(f"    ✅ {len(processed_data):,} bars from {year_month}")
+        for binance_zip_url, year_month_string, zip_filename in monthly_zip_urls:
+            raw_monthly_csv_data = self.download_and_extract_month(binance_zip_url, zip_filename)
+            if raw_monthly_csv_data:
+                processed_monthly_data = self.process_raw_data(raw_monthly_csv_data)
+                combined_candle_data.extend(processed_monthly_data)
+                successful_download_count += 1
+                print(f"    ✅ {len(processed_monthly_data):,} bars from {year_month_string}")
             else:
-                print(f"    ⚠️  No data from {year_month}")
+                print(f"    ⚠️  No data from {year_month_string}")
 
         print("\nCollection Summary:")
-        print(f"  Successful downloads: {successful_downloads}/{len(monthly_urls)}")
-        print(f"  Total bars collected: {len(all_data):,}")
+        print(f"  Successful downloads: {successful_download_count}/{len(monthly_zip_urls)}")
+        print(f"  Total bars collected: {len(combined_candle_data):,}")
 
-        if all_data:
+        if combined_candle_data:
             # Sort by timestamp to ensure chronological order
-            all_data.sort(key=lambda x: x[0])
-            print(f"  Pre-filtering range: {all_data[0][0]} to {all_data[-1][0]}")
+            combined_candle_data.sort(key=lambda candle_row: candle_row[0])
+            print(f"  Pre-filtering range: {combined_candle_data[0][0]} to {combined_candle_data[-1][0]}")
 
             # ✅ BOUNDARY FIX: Apply final date range filtering after combining all monthly data
             # This preserves month boundaries while respecting the requested date range
-            filtered_data = []
-            for row in all_data:
-                row_dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-                if self.start_date <= row_dt <= self.end_date:
-                    filtered_data.append(row)
+            date_filtered_data = []
+            for candle_row in combined_candle_data:
+                candle_datetime = datetime.strptime(candle_row[0], "%Y-%m-%d %H:%M:%S")
+                if self.start_date <= candle_datetime <= self.end_date:
+                    date_filtered_data.append(candle_row)
 
-            print(f"  Post-filtering: {len(filtered_data):,} bars in requested range")
-            if filtered_data:
-                print(f"  Final range: {filtered_data[0][0]} to {filtered_data[-1][0]}")
+            print(f"  Post-filtering: {len(date_filtered_data):,} bars in requested range")
+            if date_filtered_data:
+                print(f"  Final range: {date_filtered_data[0][0]} to {date_filtered_data[-1][0]}")
 
-            return filtered_data
+            return date_filtered_data
 
-        return all_data
+        return combined_candle_data
 
-    def generate_metadata(self, timeframe, data, collection_stats, gap_analysis=None):
+    def generate_metadata(self, trading_timeframe, candle_data, collection_performance_stats, gap_analysis_result=None):
         """Generate comprehensive metadata for 11-column microstructure format."""
-        if not data:
+        if not candle_data:
             return {}
 
         # Calculate statistics
-        prices = []
-        volumes = []
-        for row in data:
-            prices.extend([row[2], row[3]])  # high, low
-            volumes.append(row[5])
+        price_values = []
+        volume_values = []
+        for candle_row in candle_data:
+            price_values.extend([candle_row[2], candle_row[3]])  # high, low
+            volume_values.append(candle_row[5])
 
         return {
             "version": "4.0.0",
@@ -520,28 +520,28 @@ class BinancePublicDataCollector:
             "data_source_url": self.base_url,
             "market_type": "spot",
             "symbol": self.symbol,
-            "timeframe": timeframe,
+            "timeframe": trading_timeframe,
             "collection_method": "direct_download",
             "target_period": {
                 "start": self.start_date.isoformat(),
                 "end": self.end_date.isoformat(),
                 "total_days": (self.end_date - self.start_date).days,
             },
-            "actual_bars": len(data),
+            "actual_bars": len(candle_data),
             "date_range": {
-                "start": data[0][0] if data else None,
-                "end": data[-1][0] if data else None,
+                "start": candle_data[0][0] if candle_data else None,
+                "end": candle_data[-1][0] if candle_data else None,
             },
             "statistics": {
-                "price_min": min(prices) if prices else 0,
-                "price_max": max(prices) if prices else 0,
-                "volume_total": sum(volumes) if volumes else 0,
-                "volume_mean": sum(volumes) / len(volumes) if volumes else 0,
+                "price_min": min(price_values) if price_values else 0,
+                "price_max": max(price_values) if price_values else 0,
+                "volume_total": sum(volume_values) if volume_values else 0,
+                "volume_mean": sum(volume_values) / len(volume_values) if volume_values else 0,
             },
-            "collection_performance": collection_stats,
+            "collection_performance": collection_performance_stats,
             "data_integrity": {
                 "chronological_order": True,
-                "data_hash": self._calculate_data_hash(data),
+                "data_hash": self._calculate_data_hash(candle_data),
                 "corruption_detected": len(getattr(self, "corruption_log", [])) > 0,
                 "corrupted_rows_count": len(getattr(self, "corruption_log", [])),
                 "corruption_details": getattr(self, "corruption_log", []),
@@ -566,7 +566,7 @@ class BinancePublicDataCollector:
             ),
             "enhanced_microstructure_format": {
                 "format_version": "4.0.0",
-                "total_columns": len(data[0]) if data else 11,
+                "total_columns": len(candle_data[0]) if candle_data else 11,
                 "enhanced_features": [
                     "quote_asset_volume",
                     "number_of_trades",
@@ -584,7 +584,7 @@ class BinancePublicDataCollector:
                 "professional_features": True,
                 "api_format_compatibility": True,
             },
-            "gap_analysis": gap_analysis or {
+            "gap_analysis": gap_analysis_result or {
                 "analysis_performed": False,
                 "total_gaps_detected": 0,
                 "gaps_filled": 0,
