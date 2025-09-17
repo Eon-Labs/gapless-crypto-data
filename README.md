@@ -353,6 +353,190 @@ gapless-crypto-data/
 8. Push to branch (`git push origin feature/amazing-feature`)
 9. Open a Pull Request
 
+## 📚 API Reference
+
+### BinancePublicDataCollector
+
+Ultra-fast cryptocurrency spot data collection from Binance's public data repository. Provides 10-100x faster data collection compared to API calls by downloading pre-generated monthly ZIP files.
+
+#### Key Methods
+
+**`__init__(symbol, start_date, end_date, output_dir)`**
+
+Initialize the collector with trading pair and date range.
+
+```python
+collector = BinancePublicDataCollector(
+    symbol="BTCUSDT",           # USDT spot pair
+    start_date="2023-01-01",    # Start date (YYYY-MM-DD)
+    end_date="2023-12-31",      # End date (YYYY-MM-DD)
+    output_dir="./crypto_data"  # Output directory (optional)
+)
+```
+
+**`collect_timeframe_data(trading_timeframe) -> Dict[str, Any]`**
+
+Collect complete historical data for a single timeframe with full 11-column microstructure format.
+
+```python
+result = collector.collect_timeframe_data("1h")
+df = result["dataframe"]              # pandas DataFrame with OHLCV + microstructure
+filepath = result["filepath"]         # Path to saved CSV file
+stats = result["stats"]               # Collection statistics
+
+# Access microstructure data
+total_trades = df["number_of_trades"].sum()
+taker_buy_ratio = df["taker_buy_base_asset_volume"].sum() / df["volume"].sum()
+```
+
+**`collect_multiple_timeframes(timeframes) -> Dict[str, Dict[str, Any]]`**
+
+Collect data for multiple timeframes with comprehensive progress tracking.
+
+```python
+results = collector.collect_multiple_timeframes(["1h", "4h"])
+for timeframe, result in results.items():
+    df = result["dataframe"]
+    print(f"{timeframe}: {len(df):,} bars")
+```
+
+### UniversalGapFiller
+
+Universal gap detection and filling for all timeframes with authentic 11-column microstructure format. Uses only authentic Binance API data - never synthetic data.
+
+#### Key Methods
+
+**`detect_all_gaps(csv_file) -> List[Dict]`**
+
+Automatically detect timestamp gaps in CSV files.
+
+```python
+gap_filler = UniversalGapFiller()
+gaps = gap_filler.detect_all_gaps("BTCUSDT_1h_data.csv")
+print(f"Found {len(gaps)} gaps to fill")
+```
+
+**`fill_gap(csv_file, gap_info) -> bool`**
+
+Fill a specific gap with authentic Binance API data.
+
+```python
+# Fill first detected gap
+success = gap_filler.fill_gap("BTCUSDT_1h_data.csv", gaps[0])
+print(f"Gap filled successfully: {success}")
+```
+
+**`process_file(directory) -> Dict[str, Dict]`**
+
+Batch process all CSV files in a directory for gap detection and filling.
+
+```python
+results = gap_filler.process_file("./crypto_data/")
+for filename, result in results.items():
+    print(f"{filename}: {result['gaps_filled']} gaps filled")
+```
+
+### AtomicCSVOperations
+
+Safe atomic operations for CSV files with header preservation and corruption prevention. Uses temporary files and atomic rename operations to ensure data integrity.
+
+#### Key Methods
+
+**`create_backup() -> Path`**
+
+Create timestamped backup of original file before modifications.
+
+```python
+from pathlib import Path
+atomic_ops = AtomicCSVOperations(Path("data.csv"))
+backup_path = atomic_ops.create_backup()
+```
+
+**`write_dataframe_atomic(df) -> bool`**
+
+Atomically write DataFrame to CSV with integrity validation.
+
+```python
+success = atomic_ops.write_dataframe_atomic(df)
+if not success:
+    atomic_ops.rollback_from_backup()
+```
+
+### SafeCSVMerger
+
+Safe CSV data merging with gap filling capabilities and data integrity validation. Handles temporal data insertion while maintaining chronological order.
+
+#### Key Methods
+
+**`merge_gap_data_safe(gap_data, gap_start, gap_end) -> bool`**
+
+Safely merge gap data into existing CSV using atomic operations.
+
+```python
+from datetime import datetime
+merger = SafeCSVMerger(Path("eth_data.csv"))
+success = merger.merge_gap_data_safe(
+    gap_data,                    # DataFrame with gap data
+    datetime(2024, 1, 1, 12),   # Gap start time
+    datetime(2024, 1, 1, 15)    # Gap end time
+)
+```
+
+### Data Format
+
+All classes work with the standardized 11-column microstructure format:
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| `date` | Open timestamp | `2024-01-01 12:00:00` |
+| `open` | Opening price | `42150.50` |
+| `high` | Highest price | `42200.00` |
+| `low` | Lowest price | `42100.25` |
+| `close` | Closing price | `42175.75` |
+| `volume` | Base asset volume | `15.250000` |
+| `close_time` | Close timestamp | `2024-01-01 12:59:59` |
+| `quote_asset_volume` | Quote asset volume | `643238.125` |
+| `number_of_trades` | Trade count | `1547` |
+| `taker_buy_base_asset_volume` | Taker buy base volume | `7.825000` |
+| `taker_buy_quote_asset_volume` | Taker buy quote volume | `329891.750` |
+
+### Error Handling
+
+All classes implement robust error handling with meaningful exceptions:
+
+```python
+try:
+    collector = BinancePublicDataCollector(symbol="INVALIDPAIR")
+    result = collector.collect_timeframe_data("1h")
+except ValueError as e:
+    print(f"Invalid symbol format: {e}")
+except ConnectionError as e:
+    print(f"Network error: {e}")
+except FileNotFoundError as e:
+    print(f"Output directory error: {e}")
+```
+
+### Type Hints
+
+All public APIs include comprehensive type hints for better IDE support:
+
+```python
+from typing import Dict, List, Optional, Any
+from pathlib import Path
+import pandas as pd
+
+def collect_timeframe_data(self, trading_timeframe: str) -> Dict[str, Any]:
+    # Returns dict with 'dataframe', 'filepath', and 'stats' keys
+    pass
+
+def collect_multiple_timeframes(
+    self,
+    timeframes: Optional[List[str]] = None
+) -> Dict[str, Dict[str, Any]]:
+    # Returns nested dict by timeframe
+    pass
+```
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

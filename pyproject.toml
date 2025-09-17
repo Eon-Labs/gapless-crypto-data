@@ -1,6 +1,6 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.2.0"
+version = "2.5.0"
 description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format"
 readme = "README.md"
 authors = [
@@ -33,7 +33,12 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+    "evidently>=0.7.14",
+    "joblib>=1.5.2",
     "pandas>=2.0.0",
+    "polars>=1.33.1",
+    "pyarrow>=21.0.0",
+    "pyod>=2.0.5",
     "requests>=2.25.0",
     "rich>=14.1.0",
 ]
@@ -59,12 +64,6 @@ dev = [
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-]
-docs = [
-    "jinja2>=3.1.0",
-    "pyyaml>=6.0",
-    "toml>=0.10.2; python_version < '3.11'",
-    "tomli>=1.2.0; python_version < '3.11'",
 ]
 
 [build-system]
@@ -153,85 +152,3 @@ dev = [
     "types-requests>=2.32.4.20250913",
     "yamllint>=1.37.1",
 ]
-
-[tool.ultrathink]
-# Ultrathink Documentation Automation Configuration
-enabled = true
-package_name = "gapless_crypto_data"
-source_directory = "src/gapless_crypto_data"
-
-[tool.ultrathink.introspection]
-enabled = true
-include_private = false
-include_internal = false
-follow_imports = true
-extract_signatures = true
-extract_docstrings = true
-extract_type_hints = true
-
-exclude_patterns = [
-    "*.sample_data.*",
-    "*.__pycache__.*",
-    "*.test*"
-]
-
-[tool.ultrathink.diffing]
-enabled = true
-track_breaking_changes = true
-track_deprecations = true
-track_additions = true
-track_modifications = true
-
-signature_changes = "strict"
-docstring_changes = "moderate"
-type_hint_changes = "strict"
-
-snapshot_retention_days = 365
-compress_snapshots = true
-
-[tool.ultrathink.generation]
-enabled = true
-auto_generate_stubs = true
-update_existing_docs = false
-template_style = "numpy"
-
-formats = ["markdown"]
-markdown_output = "docs/ultrathink/storage/generated_docs/markdown"
-
-include_examples = true
-include_see_also = true
-
-[tool.ultrathink.validation]
-enabled = true
-validate_doctests = true
-validate_help_snapshots = true
-check_completeness = true
-check_consistency = true
-
-doctest_mode = "strict"
-help_snapshot_mode = "strict"
-completeness_threshold = 0.95
-
-cache_validation_results = true
-cache_ttl_hours = 24
-
-[tool.ultrathink.ci]
-enabled = true
-pre_commit_validation = true
-github_actions_integration = true
-gate_on_incomplete_docs = true
-gate_on_failed_doctests = true
-
-allow_draft_prs = false
-require_maintainer_override = true
-notification_channels = ["github_pr_comments"]
-
-[tool.ultrathink.output]
-base_output_dir = "docs/ultrathink/storage/generated_docs"
-api_reference_dir = "api"
-changelog_dir = "changes"
-reports_dir = "reports"
-
-use_module_hierarchy = true
-flatten_structure = false
-include_version_in_filename = false

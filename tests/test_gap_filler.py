@@ -130,11 +130,11 @@ class TestUniversalGapFiller:
 
         # Test standard Binance format
         test_cases = [
-            ("binance_spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "BTCUSDT"),
-            ("binance_spot_ETHUSDT-4h_20230101-20231231_1.0y.csv", "ETHUSDT"),
-            ("binance_spot_SOLUSDT-1m_20220815-20250320_4.1y.csv", "SOLUSDT"),
-            ("binance_spot_ADAUSDT-15m_20240601-20240630_1.0m.csv", "ADAUSDT"),
-            ("binance_spot_DOGEUSDT-30m_20240101-20240701_6.0m.csv", "DOGEUSDT"),
+            ("binance_spot_BTCUSDT-1h_20240101-20240131_v2.5.0.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-4h_20230101-20231231_v2.5.0.csv", "ETHUSDT"),
+            ("binance_spot_SOLUSDT-1m_20220815-20250320_v2.5.0.csv", "SOLUSDT"),
+            ("binance_spot_ADAUSDT-15m_20240601-20240630_v2.5.0.csv", "ADAUSDT"),
+            ("binance_spot_DOGEUSDT-30m_20240101-20240701_v2.5.0.csv", "DOGEUSDT"),
         ]
 
         for filename, expected_symbol in test_cases:
@@ -151,15 +151,15 @@ class TestUniversalGapFiller:
         # Test edge cases
         test_cases = [
             # Different timeframes
-            ("binance_spot_BTCUSDT-2h_20240101-20240131_1.0m.csv", "BTCUSDT"),
-            ("binance_spot_ETHUSDT-3m_20240101-20240131_1.0m.csv", "ETHUSDT"),
-            ("binance_spot_SOLUSDT-5m_20240101-20240131_1.0m.csv", "SOLUSDT"),
+            ("binance_spot_BTCUSDT-2h_20240101-20240131_v2.5.0.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-3m_20240101-20240131_v2.5.0.csv", "ETHUSDT"),
+            ("binance_spot_SOLUSDT-5m_20240101-20240131_v2.5.0.csv", "SOLUSDT"),
             # Different periods
-            ("binance_spot_BTCUSDT-1h_20200101-20241231_5.0y.csv", "BTCUSDT"),
-            ("binance_spot_ETHUSDT-1h_20240101-20240102_1.0d.csv", "ETHUSDT"),
+            ("binance_spot_BTCUSDT-1h_20200101-20241231_v2.5.0.csv", "BTCUSDT"),
+            ("binance_spot_ETHUSDT-1h_20240101-20240102_v2.5.0.csv", "ETHUSDT"),
             # Longer symbol names
-            ("binance_spot_BTCTUSD-1h_20240101-20240131_1.0m.csv", "BTCTUSD"),
-            ("binance_spot_SHIBUSDT-1h_20240101-20240131_1.0m.csv", "SHIBUSDT"),
+            ("binance_spot_BTCTUSD-1h_20240101-20240131_v2.5.0.csv", "BTCTUSD"),
+            ("binance_spot_SHIBUSDT-1h_20240101-20240131_v2.5.0.csv", "SHIBUSDT"),
         ]
 
         for filename, expected_symbol in test_cases:
@@ -192,7 +192,7 @@ class TestUniversalGapFiller:
         # Test cases with specific behavior
         special_cases = [
             ("spot_BTCUSDT-1h.csv", "spot_BTCUSDT"),  # Valid symbol ending with USDT
-            ("binance_spot_-1h_20240101-20240131_1.0m.csv", ""),  # Empty symbol part
+            ("binance_spot_-1h_20240101-20240131_v2.5.0.csv", ""),  # Empty symbol part
         ]
 
         for filename, expected_symbol in special_cases:
@@ -208,10 +208,10 @@ class TestUniversalGapFiller:
 
         # Test case variations - symbols preserve original case and format
         test_cases = [
-            ("binance_spot_btcusdt-1h_20240101-20240131_1.0m.csv", "btcusdt"),
-            ("binance_spot_BtcUsdt-1h_20240101-20240131_1.0m.csv", "BtcUsdt"),
-            ("Binance_Spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "Binance_Spot_BTCUSDT"),
-            ("BINANCE_SPOT_BTCUSDT-1H_20240101-20240131_1.0M.CSV", "BINANCE_SPOT_BTCUSDT"),
+            ("binance_spot_btcusdt-1h_20240101-20240131_v2.5.0.csv", "btcusdt"),
+            ("binance_spot_BtcUsdt-1h_20240101-20240131_v2.5.0.csv", "BtcUsdt"),
+            ("Binance_Spot_BTCUSDT-1h_20240101-20240131_v2.5.0.csv", "Binance_Spot_BTCUSDT"),
+            ("BINANCE_SPOT_BTCUSDT-1H_20240101-20240131_v2.5.0.CSV", "BINANCE_SPOT_BTCUSDT"),
         ]
 
         for filename, expected_symbol in test_cases:
@@ -227,11 +227,11 @@ class TestUniversalGapFiller:
 
         # Test with full paths
         test_cases = [
-            ("/data/crypto/binance_spot_BTCUSDT-1h_20240101-20240131_1.0m.csv", "BTCUSDT"),
-            ("../output/binance_spot_ETHUSDT-4h_20240101-20240131_1.0m.csv", "ETHUSDT"),
-            ("./sample_data/binance_spot_SOLUSDT-1m_20240101-20240131_1.0m.csv", "SOLUSDT"),
+            ("/data/crypto/binance_spot_BTCUSDT-1h_20240101-20240131_v2.5.0.csv", "BTCUSDT"),
+            ("../output/binance_spot_ETHUSDT-4h_20240101-20240131_v2.5.0.csv", "ETHUSDT"),
+            ("./sample_data/binance_spot_SOLUSDT-1m_20240101-20240131_v2.5.0.csv", "SOLUSDT"),
             (
-                "/Users/user/crypto_data/binance_spot_ADAUSDT-15m_20240101-20240131_1.0m.csv",
+                "/Users/user/crypto_data/binance_spot_ADAUSDT-15m_20240101-20240131_v2.5.0.csv",
                 "ADAUSDT",
             ),
         ]

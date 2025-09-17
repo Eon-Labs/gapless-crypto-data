@@ -123,10 +123,10 @@ When you run the examples, you'll see:
 
 ### Sample Output Structure
 ```
-├── binance_spot_BTCUSDT-1h_20240101-20240131_1.0y.csv
-├── binance_spot_BTCUSDT-1h_20240101-20240131_1.0y.metadata.json
-├── binance_spot_ETHUSDT-4h_20240101-20240131_1.0y.csv
-└── binance_spot_ETHUSDT-4h_20240101-20240131_1.0y.metadata.json
+├── binance_spot_BTCUSDT-1h_20240101-20240131_v2.5.0.csv
+├── binance_spot_BTCUSDT-1h_20240101-20240131_v2.5.0.metadata.json
+├── binance_spot_ETHUSDT-4h_20240101-20240131_v2.5.0.csv
+└── binance_spot_ETHUSDT-4h_20240101-20240131_v2.5.0.metadata.json
 ```
 
 ## 🔧 Customization

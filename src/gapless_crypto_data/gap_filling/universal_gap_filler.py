@@ -32,7 +32,67 @@ logger = logging.getLogger(__name__)
 
 
 class UniversalGapFiller:
-    """Universal gap detection and filling for all timeframes with authentic 11-column microstructure format"""
+    """Universal gap detection and filling for all timeframes with authentic 11-column microstructure format.
+
+    Automatically detects and fills timestamp gaps in OHLCV CSV files using authentic
+    Binance API data. Provides complete gap detection across all timeframes with
+    professional-grade microstructure data including order flow metrics.
+
+    Unlike synthetic data generators, this gap filler exclusively uses authentic
+    Binance market data, ensuring all filled gaps contain real order flow metrics,
+    trade counts, and taker volume statistics essential for quantitative analysis.
+
+    Features:
+        - Universal gap detection for any timeframe (1m to 4h)
+        - Authentic Binance API data for gap filling (never synthetic)
+        - Complete 11-column microstructure format preservation
+        - Chronological processing for data integrity
+        - Automatic symbol extraction from filenames
+        - Batch processing for multiple files
+        - Safe atomic operations with backup/rollback
+
+    Supported Timeframes:
+        - 1m, 3m, 5m, 15m, 30m: Minute-based intervals
+        - 1h, 2h, 4h: Hour-based intervals
+
+    Data Quality:
+        All gap-filled data maintains the same structure as original Binance data:
+        - OHLCV: Open, High, Low, Close, Volume (base asset)
+        - Timestamps: Open time, Close time
+        - Order Flow: Quote asset volume, Number of trades
+        - Taker Metrics: Taker buy base volume, Taker buy quote volume
+
+    Examples:
+        Single file gap detection and filling:
+
+        >>> gap_filler = UniversalGapFiller()
+        >>> gaps = gap_filler.detect_all_gaps("BTCUSDT_1h_2024-01-01_to_2024-12-31.csv")
+        >>> print(f"Found {len(gaps)} gaps")
+        >>> success = gap_filler.fill_gap("BTCUSDT_1h_2024-01-01_to_2024-12-31.csv", gaps[0])
+        >>> print(f"Gap filled: {success}")
+        Found 3 gaps
+        Gap filled: True
+
+        Batch processing for directory:
+
+        >>> gap_filler = UniversalGapFiller()
+        >>> results = gap_filler.process_file("./crypto_data/")
+        >>> for file, result in results.items():
+        ...     print(f"{file}: {result['gaps_filled']} gaps filled")
+        BTCUSDT_1h.csv: 2 gaps filled
+        ETHUSDT_4h.csv: 1 gaps filled
+
+        Custom symbol processing:
+
+        >>> symbol = gap_filler.extract_symbol_from_filename("SOLUSDT_15m_data.csv")
+        >>> print(f"Extracted symbol: {symbol}")
+        Extracted symbol: SOLUSDT
+
+    Note:
+        This gap filler requires internet connectivity to fetch authentic data
+        from Binance's public API. Rate limiting is automatically handled to
+        respect API limits during gap filling operations.
+    """
 
     def __init__(self):
         self.binance_base_url = "https://api.binance.com/api/v3/klines"
@@ -51,7 +111,7 @@ class UniversalGapFiller:
         """Extract symbol from CSV filename
 
         Supports formats like:
-        - binance_spot_BTCUSDT-1h_20240101-20240101_0.0y.csv
+        - binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.csv
         - BTCUSDT_1h_data.csv
         - ETHUSDT-4h.csv
         """

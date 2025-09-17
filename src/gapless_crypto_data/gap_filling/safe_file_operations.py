@@ -25,7 +25,55 @@ logger = logging.getLogger(__name__)
 
 
 class AtomicCSVOperations:
-    """Safe atomic operations for CSV files with header preservation"""
+    """Safe atomic operations for CSV files with header preservation and corruption prevention.
+
+    Provides atomic file operations to prevent data corruption during CSV modifications.
+    Uses temporary files and atomic rename operations to ensure data integrity,
+    even if the process is interrupted during file operations.
+
+    Features:
+        - Atomic write operations (temp file + rename)
+        - Header comment preservation for metadata
+        - Automatic backup creation with timestamps
+        - DataFrame validation before writing
+        - Rollback capability on failure
+        - Progress tracking and validation
+
+    The atomic operation sequence:
+        1. Create timestamped backup of original file
+        2. Write new data to temporary file
+        3. Validate temporary file integrity
+        4. Atomically rename temp file to replace original
+        5. Clean up temporary files on success
+
+    Examples:
+        Basic atomic CSV write:
+
+        >>> from pathlib import Path
+        >>> csv_path = Path("data.csv")
+        >>> atomic_ops = AtomicCSVOperations(csv_path)
+        >>> df = pd.DataFrame({"price": [100, 101, 102], "volume": [1000, 1100, 900]})
+        >>> backup_path = atomic_ops.create_backup()
+        >>> success = atomic_ops.write_dataframe_atomic(df)
+        >>> if success:
+        ...     print("Data written safely")
+        ... else:
+        ...     atomic_ops.rollback_from_backup()
+        Data written safely
+
+        With header preservation:
+
+        >>> # Original file has metadata comments
+        >>> atomic_ops = AtomicCSVOperations(Path("btc_data.csv"))
+        >>> headers = atomic_ops.read_header_comments()
+        >>> print(f"Found {len(headers)} header lines")
+        >>> # Headers are automatically preserved during atomic writes
+        Found 8 header lines
+
+    Note:
+        Always call create_backup() before performing write operations
+        to enable rollback capability in case of errors.
+    """
 
     def __init__(self, csv_path: Path):
         self.csv_path = Path(csv_path)
@@ -177,16 +225,115 @@ class AtomicCSVOperations:
 
 
 class SafeCSVMerger:
-    """Safe CSV data merging with gap filling capabilities"""
+    """Safe CSV data merging with gap filling capabilities and data integrity validation.
+
+    Provides safe merging of gap-filling data into existing CSV files using atomic operations.
+    Handles temporal data insertion, duplicate detection, and maintains chronological order
+    while preserving data integrity through comprehensive validation.
+
+    Features:
+        - Atomic merge operations with backup/rollback
+        - Chronological data insertion and sorting
+        - Duplicate detection and handling
+        - Data validation before and after merge
+        - Gap boundary validation
+        - Maintains CSV header comments and metadata
+
+    The merge process:
+        1. Create backup of original CSV file
+        2. Load existing data and gap data
+        3. Validate gap boundaries and data format
+        4. Remove any overlapping data in gap range
+        5. Insert new gap data chronologically
+        6. Validate merged dataset integrity
+        7. Atomically write merged data
+
+    Examples:
+        Basic gap filling:
+
+        >>> from datetime import datetime
+        >>> import pandas as pd
+        >>> from pathlib import Path
+        >>>
+        >>> # Create gap data to fill missing period
+        >>> gap_data = pd.DataFrame({
+        ...     "date": ["2024-01-01 12:00:00", "2024-01-01 13:00:00"],
+        ...     "open": [100.0, 101.0],
+        ...     "high": [102.0, 103.0],
+        ...     "low": [99.0, 100.0],
+        ...     "close": [101.0, 102.0],
+        ...     "volume": [1000, 1100]
+        ... })
+        >>>
+        >>> merger = SafeCSVMerger(Path("btc_1h.csv"))
+        >>> success = merger.merge_gap_data_safe(
+        ...     gap_data,
+        ...     datetime(2024, 1, 1, 12),
+        ...     datetime(2024, 1, 1, 13)
+        ... )
+        >>> if success:
+        ...     print("Gap filled successfully")
+        Gap filled successfully
+
+    Note:
+        The merge operation is atomic - either all data is merged successfully
+        or the original file remains unchanged. Always validate gap boundaries
+        to ensure data consistency.
+    """
 
     def __init__(self, csv_path: Path):
+        """Initialize SafeCSVMerger for the specified CSV file.
+
+        Args:
+            csv_path (Path): Path to the CSV file for gap filling operations.
+        """
         self.csv_path = Path(csv_path)
         self.atomic_ops = AtomicCSVOperations(csv_path)
 
     def merge_gap_data_safe(
         self, gap_data: pd.DataFrame, gap_start: datetime, gap_end: datetime
     ) -> bool:
-        """Safely merge gap data into existing CSV using atomic operations"""
+        """Safely merge gap data into existing CSV using atomic operations.
+
+        Inserts gap-filling data into the existing CSV file while maintaining
+        chronological order and data integrity. Uses atomic operations to
+        ensure the merge is completed safely or not at all.
+
+        Args:
+            gap_data (pd.DataFrame): DataFrame containing gap data to merge.
+                Must have columns matching the existing CSV structure.
+                Timestamp column must be named 'date'.
+            gap_start (datetime): Start timestamp of the gap being filled.
+                Used for validation and boundary checking.
+            gap_end (datetime): End timestamp of the gap being filled.
+                Used for validation and boundary checking.
+
+        Returns:
+            bool: True if merge completed successfully, False if merge failed.
+                On failure, original file is preserved via automatic rollback.
+
+        Raises:
+            ValueError: If gap_data format doesn't match existing CSV structure.
+            FileNotFoundError: If the target CSV file doesn't exist.
+
+        Examples:
+            >>> merger = SafeCSVMerger(Path("eth_data.csv"))
+            >>> gap_df = pd.DataFrame({...})  # Gap data
+            >>> success = merger.merge_gap_data_safe(
+            ...     gap_df,
+            ...     datetime(2024, 1, 1, 12),
+            ...     datetime(2024, 1, 1, 15)
+            ... )
+            >>> print(f"Merge success: {success}")
+            Merge success: True
+
+        Note:
+            This method automatically handles:
+            - Backup creation before modification
+            - Data validation and format checking
+            - Chronological sorting after merge
+            - Rollback on any failure
+        """
 
         logger.info(f"🎯 SAFE GAP MERGE: {gap_start} → {gap_end}")
         logger.info(f"📊 Gap data: {len(gap_data)} rows")
@@ -262,7 +409,7 @@ def main():
     logger.info("🧪 TESTING ATOMIC FILE OPERATIONS")
 
     # Test with sample data
-    test_csv = Path("../sample_data/binance_spot_SOLUSDT-1h_20210806-20250831_4.1y.csv")
+    test_csv = Path("../sample_data/binance_spot_SOLUSDT-1h_20210806-20250831_v2.5.0.csv")
 
     if not test_csv.exists():
         logger.error(f"Test file not found: {test_csv}")

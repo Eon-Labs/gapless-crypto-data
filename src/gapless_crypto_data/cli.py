@@ -32,13 +32,97 @@ Examples:
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from . import __version__
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.universal_gap_filler import UniversalGapFiller
+from .resume import IntelligentCheckpointManager
+from .streaming import StreamingDataProcessor, StreamingGapFiller
+from .utils import (
+    get_standard_logger,
+    handle_operation_error,
+    DataCollectionError,
+    format_user_error,
+)
+
+
+def parse_filename_metadata(filename: str) -> Optional[dict]:
+    """
+    Parse standardized filename to extract symbol and timeframe.
+
+    Expected format: binance_spot_{SYMBOL}-{TIMEFRAME}_{START}-{END}_{VERSION}.csv
+    Example: binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.csv
+
+    Returns:
+        dict with 'symbol' and 'timeframe' keys, or None if parsing fails
+    """
+    pattern = r'binance_spot_([A-Z]+)-([0-9]+[mhd])_\d{8}-\d{8}_v[\d.]+\.csv$'
+    match = re.match(pattern, filename)
+
+    if match:
+        symbol, timeframe = match.groups()
+        return {'symbol': symbol, 'timeframe': timeframe}
+
+    return None
+
+
+def add_collection_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add standard collection arguments to a parser. Eliminates argument duplication."""
+    parser.add_argument(
+        "--symbol",
+        default="SOLUSDT",
+        help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)",
+    )
+    parser.add_argument(
+        "--timeframes",
+        default="1m,3m,5m,15m,30m,1h,2h,4h",
+        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
+    )
+    parser.add_argument(
+        "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
+    )
+    parser.add_argument(
+        "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
+    )
+    parser.add_argument(
+        "--output-dir",
+        help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Enable intelligent resume from last checkpoint (default: True for large collections)",
+    )
+    parser.add_argument(
+        "--checkpoint-dir",
+        help="Directory for checkpoint files (default: ./.gapless_checkpoints)",
+    )
+    parser.add_argument(
+        "--clear-checkpoints",
+        action="store_true",
+        help="Clear existing checkpoints and start fresh",
+    )
+    parser.add_argument(
+        "--streaming",
+        action="store_true",
+        help="Enable memory-streaming mode for unlimited dataset sizes",
+    )
+    parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=10000,
+        help="Chunk size for streaming operations (default: 10000 rows)",
+    )
+    parser.add_argument(
+        "--memory-limit",
+        type=int,
+        default=100,
+        help="Memory limit in MB for streaming operations (default: 100MB)",
+    )
 
 
 def list_timeframes() -> int:
@@ -101,26 +185,91 @@ def list_timeframes() -> int:
 
 
 def collect_data(command_line_args: Any) -> int:
-    """Main data collection workflow"""
+    """Main data collection workflow with intelligent resume capabilities"""
     # Parse symbols and timeframes
     requested_symbols = [symbol.strip() for symbol in command_line_args.symbol.split(",")]
     requested_timeframes = [
         timeframe.strip() for timeframe in command_line_args.timeframes.split(",")
     ]
 
-    print("🚀 Gapless Crypto Data Collection")
+    # Collection parameters for checkpoint compatibility
+    collection_params = {
+        "start_date": command_line_args.start,
+        "end_date": command_line_args.end,
+        "output_dir": command_line_args.output_dir,
+        "timeframes": requested_timeframes
+    }
+
+    # Initialize checkpoint manager
+    enable_resume = command_line_args.resume or len(requested_symbols) > 1 or len(requested_timeframes) > 4
+    checkpoint_manager = None
+
+    if enable_resume:
+        checkpoint_manager = IntelligentCheckpointManager(
+            cache_dir=command_line_args.checkpoint_dir,
+            verbose=1 if len(requested_symbols) > 3 else 0
+        )
+
+        if command_line_args.clear_checkpoints:
+            checkpoint_manager.clear_checkpoint()
+            print("🗑️  Checkpoints cleared - starting fresh")
+
+        # Get resume plan
+        resume_plan = checkpoint_manager.get_resume_plan(
+            requested_symbols, requested_timeframes, collection_params
+        )
+
+        print("🚀 Gapless Crypto Data Collection with Intelligent Resume")
+        print(f"📋 Checkpoint Manager: {'Enabled' if enable_resume else 'Disabled'}")
+        if resume_plan["resume_required"]:
+            print(f"🔄 Resuming from checkpoint: {resume_plan['message']}")
+            print(f"✅ Already completed: {len(resume_plan['completed_symbols'])} symbols")
+            print(f"📊 Progress: {resume_plan['total_progress']:.1f}%")
+        else:
+            print("🆕 Starting fresh collection")
+
+        # Update symbols list based on resume plan
+        symbols_to_process = resume_plan["remaining_symbols"]
+        symbols_in_progress = resume_plan.get("symbols_in_progress", {})
+
+        # Save collection parameters to checkpoint
+        checkpoint_manager.save_checkpoint({"collection_parameters": collection_params})
+    else:
+        symbols_to_process = requested_symbols
+        symbols_in_progress = {}
+        print("🚀 Gapless Crypto Data Collection")
+
     print(f"Symbols: {requested_symbols}")
     print(f"Timeframes: {requested_timeframes}")
     print(f"Date Range: {command_line_args.start} to {command_line_args.end}")
+    if command_line_args.streaming:
+        print(f"🌊 Streaming Mode: Enabled (chunk_size={command_line_args.chunk_size}, memory_limit={command_line_args.memory_limit}MB)")
+    if enable_resume and symbols_to_process != requested_symbols:
+        print(f"Remaining symbols: {symbols_to_process}")
     print("=" * 60)
 
     all_results = {}
     total_datasets = 0
     failed_symbols = []
 
+    # Initialize streaming components if enabled
+    streaming_processor = None
+    streaming_gap_filler = None
+    if command_line_args.streaming:
+        streaming_processor = StreamingDataProcessor(
+            chunk_size=command_line_args.chunk_size,
+            memory_limit_mb=command_line_args.memory_limit
+        )
+        streaming_gap_filler = StreamingGapFiller(
+            chunk_size=command_line_args.chunk_size
+        )
+
     # Process each symbol
-    for symbol_index, symbol in enumerate(requested_symbols, 1):
-        print(f"\nProcessing {symbol} ({symbol_index}/{len(requested_symbols)})...")
+    for symbol_index, symbol in enumerate(symbols_to_process, 1):
+        print(f"\nProcessing {symbol} ({symbol_index}/{len(symbols_to_process)})...")
+
+        if checkpoint_manager:
+            checkpoint_manager.mark_symbol_start(symbol, requested_timeframes)
 
         try:
             # Initialize ultra-fast collector for this symbol
@@ -138,26 +287,67 @@ def collect_data(command_line_args: Any) -> int:
                 all_results[symbol] = collection_results
                 total_datasets += len(collection_results)
 
-                # Show results for this symbol
+                # Show results for this symbol and update checkpoints
                 for trading_timeframe, csv_file_path in collection_results.items():
                     file_size_mb = csv_file_path.stat().st_size / (1024 * 1024)
                     print(f"  ✅ {trading_timeframe}: {csv_file_path.name} ({file_size_mb:.1f} MB)")
+
+                    if checkpoint_manager:
+                        checkpoint_manager.mark_timeframe_complete(
+                            symbol, trading_timeframe, csv_file_path, file_size_mb
+                        )
+
+                # Mark symbol as completed
+                if checkpoint_manager:
+                    checkpoint_manager.mark_symbol_complete(symbol)
             else:
                 failed_symbols.append(symbol)
                 print(f"  ❌ Failed to collect {symbol} data")
 
+                if checkpoint_manager:
+                    checkpoint_manager.mark_symbol_failed(symbol, "Collection returned no results")
+
         except Exception as e:
             failed_symbols.append(symbol)
-            print(f"  ❌ Error collecting {symbol}: {e}")
+            logger = get_standard_logger("cli")
+            error_msg = handle_operation_error(
+                operation_name=f"Data collection for {symbol}",
+                exception=e,
+                context={"symbol": symbol, "timeframes": command_line_args.timeframes},
+                logger=logger,
+                reraise=False
+            )
+
+            if checkpoint_manager:
+                checkpoint_manager.mark_symbol_failed(symbol, str(e))
+
+    # Calculate total including resumed progress
+    if checkpoint_manager:
+        progress_summary = checkpoint_manager.get_progress_summary()
+        total_datasets = progress_summary["total_datasets"]
+
+        # Export progress report for analysis
+        report_file = checkpoint_manager.export_progress_report()
+        print(f"\n📊 Progress report: {report_file}")
 
     # Final summary
     print("\n" + "=" * 60)
     if total_datasets > 0:
-        print(
-            f"🚀 ULTRA-FAST SUCCESS: Generated {total_datasets} datasets across {len(all_results)} symbols"
-        )
+        completion_msg = f"🚀 ULTRA-FAST SUCCESS: Generated {total_datasets} datasets"
+        if checkpoint_manager:
+            completed_symbols = len(checkpoint_manager.progress_data.get("symbols_completed", []))
+            completion_msg += f" across {completed_symbols} completed symbols"
+        else:
+            completion_msg += f" across {len(all_results)} symbols"
+
+        print(completion_msg)
+
         if failed_symbols:
             print(f"⚠️  Failed symbols: {', '.join(failed_symbols)}")
+
+        if checkpoint_manager and symbols_to_process:
+            print("💾 Progress saved to checkpoint - safe to resume if interrupted")
+
         return 0
     else:
         print("❌ FAILED: No datasets generated")
@@ -181,30 +371,32 @@ def fill_gaps(command_line_args: Any) -> int:
     )
     discovered_csv_files = list(target_directory.glob("*.csv"))
 
+    total_gaps_detected = 0
     gaps_filled_count = 0
     for csv_file_path in discovered_csv_files:
-        # Try to determine timeframe from filename (basic heuristic)
-        detected_timeframe = "1h"  # Default timeframe
-        if "1m" in csv_file_path.name:
-            detected_timeframe = "1m"
-        elif "5m" in csv_file_path.name:
-            detected_timeframe = "5m"
-        elif "15m" in csv_file_path.name:
-            detected_timeframe = "15m"
-        elif "30m" in csv_file_path.name:
-            detected_timeframe = "30m"
-        elif "4h" in csv_file_path.name:
-            detected_timeframe = "4h"
+        # Parse filename to extract symbol and timeframe
+        file_metadata = parse_filename_metadata(csv_file_path.name)
+
+        if file_metadata is None:
+            print(f"⚠️  Skipping {csv_file_path.name}: Non-standard filename format")
+            continue
+
+        detected_timeframe = file_metadata['timeframe']
+        detected_symbol = file_metadata['symbol']
+
+        print(f"🔍 Processing {detected_symbol} {detected_timeframe} data from {csv_file_path.name}")
 
         # Detect gaps
         detected_gaps = gap_filler_instance.detect_all_gaps(csv_file_path, detected_timeframe)
+        total_gaps_detected += len(detected_gaps)
 
         # Fill each gap
         for timestamp_gap in detected_gaps:
             if gap_filler_instance.fill_gap(timestamp_gap, csv_file_path, detected_timeframe):
                 gaps_filled_count += 1
 
-    gap_filling_successful = gaps_filled_count > 0
+    # Success if no gaps detected, or if all detected gaps were filled
+    gap_filling_successful = total_gaps_detected == 0 or gaps_filled_count == total_gaps_detected
 
     if gap_filling_successful:
         print("\n✅ GAP FILLING SUCCESS: All gaps filled")
@@ -253,26 +445,7 @@ Performance: 22x faster than API calls via Binance public data repository with a
 
     # Data collection command (default)
     collect_parser = subparsers.add_parser("collect", help="Collect cryptocurrency data")
-    collect_parser.add_argument(
-        "--symbol",
-        default="SOLUSDT",
-        help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)",
-    )
-    collect_parser.add_argument(
-        "--timeframes",
-        default="1m,3m,5m,15m,30m,1h,2h,4h",
-        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
-    )
-    collect_parser.add_argument(
-        "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
-    )
-    collect_parser.add_argument(
-        "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
-    )
-    collect_parser.add_argument(
-        "--output-dir",
-        help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)",
-    )
+    add_collection_arguments(collect_parser)
 
     # Gap filling command
     gaps_parser = subparsers.add_parser("fill-gaps", help="Fill gaps in existing data")
@@ -281,28 +454,9 @@ Performance: 22x faster than API calls via Binance public data repository with a
     )
 
     # Legacy support: direct flags for backwards compatibility
-    parser.add_argument(
-        "--symbol",
-        default="SOLUSDT",
-        help="Trading pair symbol(s) - single symbol or comma-separated list (default: SOLUSDT)",
-    )
-    parser.add_argument(
-        "--timeframes",
-        default="1m,3m,5m,15m,30m,1h,2h,4h",
-        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
-    )
-    parser.add_argument(
-        "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
-    )
-    parser.add_argument(
-        "--end", default="2025-08-31", help="End date YYYY-MM-DD (default: 2025-08-31)"
-    )
+    add_collection_arguments(parser)
     parser.add_argument("--fill-gaps", action="store_true", help="Fill gaps in existing data")
     parser.add_argument("--directory", help="Directory containing CSV files (default: current)")
-    parser.add_argument(
-        "--output-dir",
-        help="Output directory for CSV files (created automatically if doesn't exist, default: src/gapless_crypto_data/sample_data/)",
-    )
     parser.add_argument(
         "--list-timeframes",
         action="store_true",
