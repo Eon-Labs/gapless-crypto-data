@@ -1,0 +1,57 @@
+name: Documentation Release
+'on':
+  release:
+    types:
+    - published
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to build documentation for
+        required: true
+        type: string
+env:
+  UV_SYSTEM_PYTHON: 1
+jobs:
+  update-documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    - name: Install UV
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    - name: Add UV to PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Install dependencies
+      run: uv venv && source .venv/bin/activate && uv sync --dev
+    - name: Determine version
+      id: version
+      run: "\n                                if [ \"${{ github.event_name }}\" =\
+        \ \"release\" ]; then\n                                  VERSION=\"${{ github.event.release.tag_name\
+        \ }}\"\n                                else\n                           \
+        \       VERSION=\"${{ github.event.inputs.version }}\"\n                 \
+        \               fi\n                                echo \"version=${VERSION}\"\
+        \ >> $GITHUB_OUTPUT\n                            "
+    - name: Generate complete documentation
+      run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli build
+        --package gapless_crypto_data --version ${ steps.version.outputs.version }
+        --complete
+    - name: Create API snapshot
+      run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli snapshot
+        --package gapless_crypto_data --version ${ steps.version.outputs.version }
+    - name: Update documentation index
+      run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli update-index
+        --package gapless_crypto_data
+    - name: Commit documentation updates
+      run: "\n                                git config --global user.name 'github-actions[bot]'\n\
+        \                                git config --global user.email 'github-actions[bot]@users.noreply.github.com'\n\
+        \                                git add docs/ultrathink/storage/\n      \
+        \                          if git diff --staged --quiet; then\n          \
+        \                        echo \"No documentation changes to commit\"\n   \
+        \                             else\n                                  git\
+        \ commit -m \"\U0001F4DA Update documentation for version ${{ steps.version.outputs.version\
+        \ }}\"\n                                  git push\n                     \
+        \           fi\n                            "

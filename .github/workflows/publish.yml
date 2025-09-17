@@ -1,118 +1,105 @@
----
 name: Build and Publish to PyPI
-
-on:
+true:
   push:
-    branches: [main]
-  workflow_dispatch:
-
+    branches:
+    - main
+  workflow_dispatch: null
 env:
   UV_SYSTEM_PYTHON: 1
-
 jobs:
   build:
     name: Build distribution packages
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install UV
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    - name: Add UV to PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Install dependencies
+      run: 'uv venv
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        source .venv/bin/activate
 
-      - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uv sync --dev
 
-      - name: Add UV to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        '
+    - name: Validate file encoding
+      run: "echo \"Checking file encoding (UTF-8/ASCII required)...\"\nfind src/ tests/\
+        \ examples/ -name \"*.py\" -o -name \"*.md\" \\\n  -o -name \"*.txt\" -o -name\
+        \ \"*.toml\" -o -name \"*.yml\" \\\n  -o -name \"*.yaml\" 2>/dev/null | \\\
+        \nxargs file --mime-encoding | grep -v -E \"(utf-8|us-ascii)\" && {\n  echo\
+        \ \"\u274C Non-UTF-8/ASCII files found!\"\n  exit 1\n} || {\n  echo \"\u2705\
+        \ All project text files are properly encoded\"\n}\n"
+    - name: Lint with ruff
+      run: 'source .venv/bin/activate
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          source .venv/bin/activate
-          uv sync --dev
+        uv run ruff check .
 
-      - name: Validate file encoding
-        run: |
-          echo "Checking file encoding (UTF-8/ASCII required)..."
-          find src/ tests/ examples/ -name "*.py" -o -name "*.md" \
-            -o -name "*.txt" -o -name "*.toml" -o -name "*.yml" \
-            -o -name "*.yaml" 2>/dev/null | \
-          xargs file --mime-encoding | grep -v -E "(utf-8|us-ascii)" && {
-            echo "❌ Non-UTF-8/ASCII files found!"
-            exit 1
-          } || {
-            echo "✅ All project text files are properly encoded"
-          }
+        uv run ruff format --check .
 
-      - name: Lint with ruff
-        run: |
-          source .venv/bin/activate
-          uv run ruff check .
-          uv run ruff format --check .
+        '
+    - name: Run tests
+      run: 'source .venv/bin/activate
 
-      - name: Run tests
-        run: |
-          source .venv/bin/activate
-          uv run pytest tests/ -v --tb=short
+        uv run pytest tests/ -v --tb=short
 
-      - name: Test CLI entry point
-        run: |
-          source .venv/bin/activate
-          uv run gapless-crypto-data --help
+        '
+    - name: Test CLI entry point
+      run: 'source .venv/bin/activate
 
-      - name: Build package
-        run: |
-          source .venv/bin/activate
-          uv build
+        uv run gapless-crypto-data --help
 
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
+        '
+    - name: Build package
+      run: 'source .venv/bin/activate
 
+        uv build
+
+        '
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Validate documentation
+      run: uv run python -m docs.ultrathink.cli validate --package gapless_crypto_data
   publish-to-pypi:
     name: Publish to PyPI
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name
+      == 'workflow_dispatch'
     needs:
-      - build
+    - build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-      - name: Publish distribution packages to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution packages to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        verbose: true
+        password: ${{ secrets.PYPI_API_TOKEN }}
   sign-artifacts:
     name: Sign artifacts with Sigstore
     needs:
-      - publish-to-pypi
+    - publish-to-pypi
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write  # IMPORTANT: mandatory for sigstore
-
+      id-token: write
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-      - name: Sign the dists with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.0.1
-        with:
-          inputs: >-
-            ./dist/*.tar.gz
-            ./dist/*.whl
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Sign the dists with Sigstore
+      uses: sigstore/gh-action-sigstore-python@v3.0.1
+      with:
+        inputs: ./dist/*.tar.gz ./dist/*.whl

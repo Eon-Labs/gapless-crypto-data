@@ -1,111 +1,114 @@
 name: CI/CD Pipeline
-
-on:
+true:
   push:
-    branches: [ main, develop ]
+    branches:
+    - main
+    - develop
   pull_request:
-    branches: [ main ]
+    branches:
+    - main
   release:
-    types: [ published ]
-
+    types:
+    - published
 env:
   UV_SYSTEM_PYTHON: 1
-
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-
+        python-version:
+        - '3.9'
+        - '3.10'
+        - '3.11'
+        - '3.12'
     steps:
     - uses: actions/checkout@v4
-    
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    
     - name: Install UV
       run: curl -LsSf https://astral.sh/uv/install.sh | sh
-    
     - name: Add UV to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
     - name: Install dependencies
-      run: |
-        uv venv
-        source .venv/bin/activate
-        uv sync --dev
-    
-    - name: Validate file encoding
-      run: |
-        echo "Checking file encoding (UTF-8/ASCII required)..."
-        # Only check files in src/, tests/, and examples/ directories
-        find src/ tests/ examples/ -name "*.py" -o -name "*.md" -o -name "*.txt" -o -name "*.toml" -o -name "*.yml" -o -name "*.yaml" 2>/dev/null | \
-        xargs file --mime-encoding | grep -v -E "(utf-8|us-ascii)" && {
-          echo "❌ Non-UTF-8/ASCII files found! All text files must be UTF-8 or ASCII encoded."
-          exit 1
-        } || {
-          echo "✅ All project text files are properly encoded"
-        }
+      run: 'uv venv
 
+        source .venv/bin/activate
+
+        uv sync --dev
+
+        '
+    - name: Validate file encoding
+      run: "echo \"Checking file encoding (UTF-8/ASCII required)...\"\n# Only check\
+        \ files in src/, tests/, and examples/ directories\nfind src/ tests/ examples/\
+        \ -name \"*.py\" -o -name \"*.md\" -o -name \"*.txt\" -o -name \"*.toml\"\
+        \ -o -name \"*.yml\" -o -name \"*.yaml\" 2>/dev/null | \\\nxargs file --mime-encoding\
+        \ | grep -v -E \"(utf-8|us-ascii)\" && {\n  echo \"\u274C Non-UTF-8/ASCII\
+        \ files found! All text files must be UTF-8 or ASCII encoded.\"\n  exit 1\n\
+        } || {\n  echo \"\u2705 All project text files are properly encoded\"\n}\n"
     - name: Lint with ruff
-      run: |
-        source .venv/bin/activate
+      run: 'source .venv/bin/activate
+
         uv run ruff check .
+
         uv run ruff format --check .
-    
+
+        '
     - name: Run tests
-      run: |
-        source .venv/bin/activate
+      run: 'source .venv/bin/activate
+
         uv run pytest tests/ -v --tb=short
 
+        '
     - name: Test CLI entry point
-      run: |
-        source .venv/bin/activate
+      run: 'source .venv/bin/activate
+
         uv run gapless-crypto-data --help
 
+        '
     - name: Test package build
-      run: |
-        source .venv/bin/activate
+      run: 'source .venv/bin/activate
+
         uv build
+
         ls -la dist/
 
+        '
+    - name: Validate documentation
+      run: uv run python -m docs.ultrathink.cli validate --package gapless_crypto_data
   publish:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
-    
     permissions:
       id-token: write
       contents: read
-
     steps:
     - uses: actions/checkout@v4
-    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: "3.12"
-    
+        python-version: '3.12'
     - name: Install UV
       run: curl -LsSf https://astral.sh/uv/install.sh | sh
-    
     - name: Add UV to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
     - name: Install dependencies
-      run: |
-        uv venv
+      run: 'uv venv
+
         source .venv/bin/activate
+
         uv sync
-    
+
+        '
     - name: Build package
-      run: |
-        source .venv/bin/activate
+      run: 'source .venv/bin/activate
+
         uv build
-    
+
+        '
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:

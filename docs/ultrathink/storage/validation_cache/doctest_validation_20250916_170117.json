@@ -1,0 +1,69 @@
+{
+  "documentation_results": {},
+  "error_tests": 9,
+  "errors": [
+    "Doctest validation failed: 'success_rate'"
+  ],
+  "failed_tests": 0,
+  "module_results": {
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/__init__.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/cli.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/collectors/__init__.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/collectors/binance_public_data_collector.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/exchanges/__init__.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/__init__.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/safe_file_operations.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/universal_gap_filler.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    },
+    "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/utils/__init__.py": {
+      "error": "DocTestRunner.__init__() got an unexpected keyword argument 'out'",
+      "failed": 0,
+      "passed": 0,
+      "total": 0
+    }
+  },
+  "package_name": "gapless_crypto_data",
+  "passed_tests": 0,
+  "summary": {},
+  "total_tests": 0,
+  "validation_timestamp": "2025-09-16T17:01:17.365916"
+}

@@ -1,5 +1,11 @@
 """
-Gapless Crypto Data - Ultra-fast cryptocurrency data collection with zero gaps guarantee
+Gapless Crypto Data - Ultra-fast USDT spot market data collection with zero gaps guarantee
+
+Market Compatibility:
+- 🎯 USDT SPOT PAIRS ONLY (BTCUSDT, ETHUSDT, SOLUSDT, etc.)
+- ❌ NO futures, perpetuals, or derivatives support
+- ❌ NO non-USDT pairs (BTC/ETH, etc.)
+- ❌ NO margin trading data
 
 Core Features:
 - 🚀 22x faster than API calls via Binance public data repository
@@ -11,28 +17,37 @@ Core Features:
 - 🔧 Gap detection and filling with authentic data only
 - 📈 Production-grade data collection for quantitative trading
 
+Data Source:
+    Binance Spot Market: https://data.binance.vision/data/spot/monthly/klines/
+    Market Type: SPOT only (no futures/derivatives)
+    Supported Pairs: USDT-quoted spot pairs exclusively
+
 Usage:
     from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
 
-    # Collect data
+    # Collect USDT spot data only
     collector = BinancePublicDataCollector()
     collector.collect_data(
-        symbol="SOLUSDT",
+        symbol="SOLUSDT",  # USDT spot pairs only
         timeframes=["1m", "5m", "1h"],
         start_date="2023-01-01",
         end_date="2023-12-31"
     )
 
-    # Fill gaps
+    # Fill gaps with authentic spot data
     gap_filler = UniversalGapFiller()
     gap_filler.fill_gaps(directory="./data")
 
 CLI Usage:
     uv run gapless-crypto-data --symbol SOLUSDT --timeframes 1m,3m,5m
     uv run gapless-crypto-data --fill-gaps --directory ./data
+
+Supported Symbols (USDT Spot Only):
+    BTCUSDT, ETHUSDT, SOLUSDT, ADAUSDT, DOTUSDT, LINKUSDT, MATICUSDT,
+    AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 

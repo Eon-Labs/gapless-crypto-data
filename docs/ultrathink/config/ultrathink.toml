@@ -1,0 +1,129 @@
+# Ultrathink Documentation Automation Configuration
+
+[system]
+version = "1.0.0"
+enabled = true
+package_name = "gapless_crypto_data"
+source_directory = "src/gapless_crypto_data"
+
+[introspection]
+# API introspection settings
+enabled = true
+include_private = false
+include_internal = false
+follow_imports = true
+extract_signatures = true
+extract_docstrings = true
+extract_type_hints = true
+
+# Modules to introspect (empty = all public modules)
+modules = []
+
+# Exclude patterns
+exclude_patterns = [
+    "*.sample_data.*",
+    "*.__pycache__.*",
+    "*.test*"
+]
+
+[diffing]
+# API change detection settings
+enabled = true
+track_breaking_changes = true
+track_deprecations = true
+track_additions = true
+track_modifications = true
+
+# Sensitivity levels
+signature_changes = "strict"    # strict, moderate, relaxed
+docstring_changes = "moderate"
+type_hint_changes = "strict"
+
+# Storage
+snapshot_retention_days = 365
+compress_snapshots = true
+
+[generation]
+# Documentation generation settings
+enabled = true
+auto_generate_stubs = true
+update_existing_docs = false  # Only create stubs, don't overwrite
+template_style = "numpy"      # numpy, google, sphinx
+
+# Output formats
+formats = ["markdown", "rst"]
+markdown_output = "storage/generated_docs/markdown"
+rst_output = "storage/generated_docs/rst"
+
+# Stub generation
+stub_templates = "config/templates"
+include_examples = true
+include_see_also = true
+
+[validation]
+# Documentation validation settings
+enabled = true
+validate_doctests = true
+validate_help_snapshots = true
+check_completeness = true
+check_consistency = true
+
+# Validation strictness
+doctest_mode = "strict"        # strict, lenient
+help_snapshot_mode = "strict"
+completeness_threshold = 0.95  # 95% completeness required
+
+# Cache settings
+cache_validation_results = true
+cache_ttl_hours = 24
+
+[ci]
+# CI/CD integration settings
+enabled = true
+pre_commit_validation = true
+github_actions_integration = true
+gate_on_incomplete_docs = true
+gate_on_failed_doctests = true
+
+# Gating behavior
+allow_draft_prs = false
+require_maintainer_override = true
+notification_channels = ["github_pr_comments"]
+
+[templates]
+# Documentation templates
+function_template = "function.md.j2"
+class_template = "class.md.j2"
+module_template = "module.md.j2"
+method_template = "method.md.j2"
+
+# Template variables
+project_name = "Gapless Crypto Data"
+project_description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee"
+author_name = "Eon Labs"
+license = "MIT"
+
+[output]
+# Output configuration
+base_output_dir = "storage/generated_docs"
+api_reference_dir = "api"
+changelog_dir = "changes"
+reports_dir = "reports"
+
+# File naming
+use_module_hierarchy = true
+flatten_structure = false
+include_version_in_filename = false
+
+[logging]
+level = "INFO"
+file = "storage/ultrathink.log"
+max_file_size_mb = 10
+backup_count = 5
+
+# Log categories
+introspection_logging = true
+diffing_logging = true
+generation_logging = true
+validation_logging = true
+ci_logging = true
