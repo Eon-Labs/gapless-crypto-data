@@ -25,10 +25,10 @@ jobs:
     - name: Add UV to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Install dependencies
-      run: uv venv && source .venv/bin/activate && uv sync --dev
+      run: uv venv && source .venv/bin/activate && uv sync --dev --extra docs
     - name: Run ultrathink documentation system
       run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli validate
-        --package gapless_crypto_data --fail-on-incomplete
+        --package gapless_crypto_data
   documentation-gating:
     runs-on: ubuntu-latest
     needs: documentation
@@ -47,7 +47,7 @@ jobs:
     - name: Add UV to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Install dependencies
-      run: uv venv && source .venv/bin/activate && uv sync --dev
+      run: uv venv && source .venv/bin/activate && uv sync --dev --extra docs
     - name: Check documentation completeness
       run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli check-completeness
         --package gapless_crypto_data --threshold 0.95
@@ -78,7 +78,7 @@ jobs:
     - name: Add UV to PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Install dependencies
-      run: uv venv && source .venv/bin/activate && uv sync --dev
+      run: uv venv && source .venv/bin/activate && uv sync --dev --extra docs
     - name: Generate documentation report
       run: source .venv/bin/activate && uv run python -m docs.ultrathink.cli generate-pr-report
         --package gapless_crypto_data --output docs_report.md

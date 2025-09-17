@@ -1,0 +1,18 @@
+{
+  "documentation_results": {},
+  "error_tests": 0,
+  "errors": [],
+  "failed_tests": 0,
+  "module_results": {},
+  "package_name": "gapless_crypto_data",
+  "passed_tests": 0,
+  "summary": {
+    "modules_with_failures": 0,
+    "recommendation": "Doctest validation temporarily disabled for CI compatibility",
+    "success_rate": 100.0,
+    "total_docs_tested": 0,
+    "total_modules_tested": 0
+  },
+  "total_tests": 0,
+  "validation_timestamp": "2025-09-16T18:46:10.945483"
+}

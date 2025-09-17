@@ -1,0 +1,234 @@
+{
+  "documentation_results": {
+    "api_reference/AtomicCSVOperations_class.md": {
+      "code_blocks": 8,
+      "failed": 6,
+      "failures": [
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_1",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_2",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_3",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_4",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_5",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md:block_6",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        }
+      ],
+      "file_path": "docs/ultrathink/storage/generated_docs/api_reference/AtomicCSVOperations_class.md",
+      "passed": 0,
+      "total": 6
+    },
+    "api_reference/BinancePublicDataCollector_class.md": {
+      "code_blocks": 12,
+      "failed": 10,
+      "failures": [
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_1",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_2",
+          "error": "invalid syntax. Maybe you meant '==' or ':=' instead of '='? (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_3",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_4",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_5",
+          "error": "invalid syntax. Maybe you meant '==' or ':=' instead of '='? (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_6",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_7",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_8",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_9",
+          "error": "name 'self' is not defined",
+          "error_type": "NameError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md:block_10",
+          "error": "invalid syntax. Maybe you meant '==' or ':=' instead of '='? (<string>, line 1)",
+          "error_type": "SyntaxError"
+        }
+      ],
+      "file_path": "docs/ultrathink/storage/generated_docs/api_reference/BinancePublicDataCollector_class.md",
+      "passed": 0,
+      "total": 10
+    },
+    "api_reference/SafeCSVMerger_class.md": {
+      "code_blocks": 3,
+      "failed": 1,
+      "failures": [
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/SafeCSVMerger_class.md:block_1",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        }
+      ],
+      "file_path": "docs/ultrathink/storage/generated_docs/api_reference/SafeCSVMerger_class.md",
+      "passed": 0,
+      "total": 1
+    },
+    "api_reference/UniversalGapFiller_class.md": {
+      "code_blocks": 7,
+      "failed": 5,
+      "failures": [
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md:block_1",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md:block_2",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md:block_3",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md:block_4",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        },
+        {
+          "block_id": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md:block_5",
+          "error": "invalid syntax (<string>, line 1)",
+          "error_type": "SyntaxError"
+        }
+      ],
+      "file_path": "docs/ultrathink/storage/generated_docs/api_reference/UniversalGapFiller_class.md",
+      "passed": 0,
+      "total": 5
+    }
+  },
+  "error_tests": 0,
+  "errors": [
+    "Doctest validation failed: 'success_rate'"
+  ],
+  "failed_tests": 22,
+  "module_results": {
+    "gapless_crypto_data.__init__": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/__init__.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.cli": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/cli.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.collectors.__init__": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/collectors/__init__.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.collectors.binance_public_data_collector": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/collectors/binance_public_data_collector.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.exchanges.__init__": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/exchanges/__init__.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.gap_filling.__init__": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/__init__.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.gap_filling.safe_file_operations": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/safe_file_operations.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.gap_filling.universal_gap_filler": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/gap_filling/universal_gap_filler.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    },
+    "gapless_crypto_data.utils.__init__": {
+      "failed": 0,
+      "failures": [],
+      "file_path": "/Users/terryli/eon/gapless-crypto-data/src/gapless_crypto_data/utils/__init__.py",
+      "output": "",
+      "passed": 0,
+      "total": 0
+    }
+  },
+  "package_name": "gapless_crypto_data",
+  "passed_tests": 0,
+  "summary": {},
+  "total_tests": 22,
+  "validation_timestamp": "2025-09-16T18:45:15.225487"
+}
