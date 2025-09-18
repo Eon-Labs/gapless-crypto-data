@@ -76,6 +76,7 @@ jobs:
     environment: pypi
     permissions:
       id-token: write
+      contents: read
     steps:
     - name: Download all the dists
       uses: actions/download-artifact@v4
@@ -93,6 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      contents: read
     steps:
     - name: Download all the dists
       uses: actions/download-artifact@v4
