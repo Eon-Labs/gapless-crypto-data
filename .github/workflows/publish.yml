@@ -84,8 +84,11 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+        repository-url: https://upload.pypi.org/legacy/
         verbose: true
         attestations: false
+      env:
+        TWINE_NON_INTERACTIVE: 1
   sign-artifacts:
     name: Sign artifacts with Sigstore
     needs:
