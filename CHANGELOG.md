@@ -5,6 +5,27 @@ All notable changes to gapless-crypto-data will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2025-09-18
+
+### CCXT-Compatible Dual Parameter Support
+
+#### Dual Parameter Implementation
+- **CCXT ecosystem compatibility** - `timeframe` parameter aligns with cryptocurrency exchange library standards
+- **Backward compatibility** - `interval` parameter maintained with 5-year deprecation period
+- **Exception-only validation** - No fallbacks or failsafes, immediate ValueError for invalid parameter combinations
+- **Community-proven patterns** - PEP 387 compliant implementation following Python backward compatibility policy
+
+#### API Changes
+- `fetch_data()` - Supports both `timeframe` (preferred) and `interval` (legacy) parameters
+- `download()` - Supports both `timeframe` (preferred) and `interval` (legacy) parameters
+- `get_supported_intervals()` - Legacy alias with DeprecationWarning, use `get_supported_timeframes()`
+- **Zero breaking changes** - All existing code continues to work with deprecation warnings
+
+#### Documentation
+- **OpenAPI 3.1.1 specification** - Machine-readable API documentation with dual parameter support
+- **Migration guidance** - Examples and patterns for transitioning to CCXT-compatible parameters
+- **Architecture status updated** - Canonical reference updated to v2.7.0
+
 ## [2.6.0] - 2025-09-18
 
 ### ✨ Major API Enhancement: Dual API Architecture

@@ -1,21 +1,22 @@
 """
-Gapless Crypto Data - Ultra-fast USDT spot market data collection with zero gaps guarantee
+Gapless Crypto Data - USDT spot market data collection with zero gaps guarantee
 
 Market Compatibility:
-- 🎯 USDT SPOT PAIRS ONLY (BTCUSDT, ETHUSDT, SOLUSDT, etc.)
-- ❌ NO futures, perpetuals, or derivatives support
-- ❌ NO non-USDT pairs (BTC/ETH, etc.)
-- ❌ NO margin trading data
+- USDT SPOT PAIRS ONLY (BTCUSDT, ETHUSDT, SOLUSDT, etc.)
+- NO futures, perpetuals, or derivatives support
+- NO non-USDT pairs (BTC/ETH, etc.)
+- NO margin trading data
 
 Core Features:
-- 🚀 22x faster than API calls via Binance public data repository
-- 📊 Full 11-column microstructure format with order flow and liquidity metrics
-- 🔒 Zero gaps guarantee through authentic API-first validation
-- ⚡ UV-first modern Python tooling
-- 🛡️ Corruption-proof atomic file operations
-- 📊 Multi-timeframe support (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
-- 🔧 Gap detection and filling with authentic data only
-- 📈 Production-grade data collection for quantitative trading
+- Data collection via Binance public data repository (22x performance vs API calls)
+- Full 11-column microstructure format with order flow and liquidity metrics
+- Zero gaps guarantee through authentic API-first validation
+- UV-based Python tooling
+- Atomic file operations
+- Multi-timeframe support (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- Gap detection and filling with authentic data only
+- CCXT-compatible dual parameter support (timeframe/interval)
+- Backward compatibility with 5-year deprecation period
 
 Data Source:
     Binance Spot Market: https://data.binance.vision/data/spot/monthly/klines/
@@ -23,14 +24,17 @@ Data Source:
     Supported Pairs: USDT-quoted spot pairs exclusively
 
 Usage:
-    # Simple function-based API (recommended for most users)
+    # Function-based API
     import gapless_crypto_data as gcd
 
-    # Fetch recent data
-    df = gcd.fetch_data("BTCUSDT", "1h", limit=1000)
+    # Fetch recent data (CCXT-compatible timeframe parameter)
+    df = gcd.fetch_data("BTCUSDT", timeframe="1h", limit=1000)
+
+    # Backward compatibility (legacy interval parameter)
+    df = gcd.fetch_data("BTCUSDT", interval="1h", limit=1000)  # DeprecationWarning
 
     # Download with date range
-    df = gcd.download("ETHUSDT", "4h", start="2024-01-01", end="2024-06-30")
+    df = gcd.download("ETHUSDT", timeframe="4h", start="2024-01-01", end="2024-06-30")
 
     # Get available symbols and timeframes
     symbols = gcd.get_supported_symbols()
@@ -39,7 +43,7 @@ Usage:
     # Fill gaps in existing data
     results = gcd.fill_gaps("./data")
 
-    # Advanced class-based API (for complex workflows)
+    # Class-based API (for complex workflows)
     from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
 
     collector = BinancePublicDataCollector()
@@ -55,7 +59,7 @@ Supported Symbols (USDT Spot Only):
     AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.7.0"
+__version__ = "2.8.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.com"
 

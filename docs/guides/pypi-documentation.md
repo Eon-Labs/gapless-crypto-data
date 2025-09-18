@@ -1,6 +1,6 @@
 # gapless-crypto-data: Complete API Documentation
 
-Ultra-fast cryptocurrency data collection with intuitive function-based API, zero gaps guarantee, and full 11-column microstructure format.
+Cryptocurrency data collection with function-based API and 11-column microstructure format. Includes gap detection and filling capabilities.
 
 ## Quick Start
 

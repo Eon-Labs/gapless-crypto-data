@@ -5,25 +5,25 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![UV Managed](https://img.shields.io/badge/uv-managed-blue.svg)](https://github.com/astral-sh/uv)
 
-Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format - **22x faster** than API calls via Binance public data repository.
+Cryptocurrency data collection with gap detection and filling capabilities. Provides 11-column microstructure format through Binance public data repository.
 
-## ⚡ Features
+## Features
 
-- 🚀 **22x faster** than API calls via Binance public data repository
-- 📊 **Full 11-column microstructure format** with order flow and liquidity metrics
-- 🔒 **Zero gaps guarantee** through authentic API-first validation
-- ⚡ **UV-first** modern Python tooling
-- 🛡️ **Corruption-proof** atomic file operations
-- 📊 **Multi-symbol & multi-timeframe support** (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
-- 🔧 **Gap detection and filling** with authentic data only
-- 📈 **Production-grade** data collection for quantitative trading
+- Data collection via Binance public data repository
+- 11-column microstructure format with order flow and liquidity metrics
+- Gap detection and filling with API validation
+- UV-based Python tooling
+- Atomic file operations
+- Multi-symbol & multi-timeframe support (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- CCXT-compatible dual parameter support (timeframe/interval)
+- Backward compatibility with 5-year deprecation period
 
-## 🚀 Quick Start
+## Quick Start
 
-### Installation (UV - Recommended)
+### Installation (UV)
 
 ```bash
-# Install via UV (fastest)
+# Install via UV
 uv add gapless-crypto-data
 
 # Or install globally
@@ -60,16 +60,19 @@ gapless-crypto-data --help
 
 ### Python API
 
-#### Simple API (Recommended)
+#### Function-based API
 
 ```python
 import gapless_crypto_data as gcd
 
-# Fetch recent data with date range
-df = gcd.download("BTCUSDT", "1h", start="2024-01-01", end="2024-06-30")
+# Fetch recent data with date range (CCXT-compatible timeframe parameter)
+df = gcd.download("BTCUSDT", timeframe="1h", start="2024-01-01", end="2024-06-30")
 
 # Or with limit
-df = gcd.fetch_data("ETHUSDT", "4h", limit=1000)
+df = gcd.fetch_data("ETHUSDT", timeframe="4h", limit=1000)
+
+# Backward compatibility (legacy interval parameter)
+df = gcd.fetch_data("ETHUSDT", interval="4h", limit=1000)  # DeprecationWarning
 
 # Get available symbols and timeframes
 symbols = gcd.get_supported_symbols()
@@ -79,7 +82,7 @@ timeframes = gcd.get_supported_timeframes()
 results = gcd.fill_gaps("./data")
 ```
 
-#### Advanced API (Power Users)
+#### Class-based API
 
 ```python
 from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
@@ -99,7 +102,7 @@ gap_filler = UniversalGapFiller()
 gaps = gap_filler.detect_all_gaps(csv_file, "1h")
 ```
 
-## 🎯 Data Structure
+## Data Structure
 
 All functions return pandas DataFrames with complete microstructure data:
 
@@ -107,7 +110,7 @@ All functions return pandas DataFrames with complete microstructure data:
 import gapless_crypto_data as gcd
 
 # Fetch data
-df = gcd.download("BTCUSDT", "1h", start="2024-01-01", end="2024-06-30")
+df = gcd.download("BTCUSDT", timeframe="1h", start="2024-01-01", end="2024-06-30")
 
 # DataFrame columns (11-column microstructure format)
 print(df.columns.tolist())
@@ -125,19 +128,17 @@ print(f"Average trade size: {avg_trade_size:.4f} BTC")
 print(f"Market impact volatility: {market_impact:.3f}")
 ```
 
-## 📊 Performance Comparison
+## Data Sources
 
-| Method | Collection Speed | Microstructure Data | Gap Handling | Data Integrity |
-|--------|-----------------|-------------------|--------------|----------------|
-| **Gapless Crypto Data** | **22x faster** | ✅ Full 11-column format | ✅ Authentic API-first | ✅ Atomic operations |
-| Traditional APIs | 1x baseline | ⚠️ Basic OHLCV only | ❌ Manual handling | ⚠️ Corruption risk |
-| Other downloaders | 2-5x faster | ❌ Limited format | ❌ Limited coverage | ⚠️ Basic validation |
+The package supports two data collection methods:
+- **Binance Public Repository**: Pre-generated monthly ZIP files for historical data
+- **Binance API**: Real-time data for gap filling and recent data collection
 
 ## 🏗️ Architecture
 
 ### Core Components
 
-- **BinancePublicDataCollector**: Ultra-fast data collection with full 11-column microstructure format
+- **BinancePublicDataCollector**: Data collection with full 11-column microstructure format
 - **UniversalGapFiller**: Intelligent gap detection and filling with authentic API-first validation
 - **AtomicCSVOperations**: Corruption-proof file operations with atomic writes
 - **SafeCSVMerger**: Safe merging of data files with integrity validation
@@ -187,7 +188,7 @@ Options:
 #### CLI Multi-Symbol (Recommended)
 
 ```bash
-# Native multi-symbol support (fastest approach)
+# Native multi-symbol support
 gapless-crypto-data --symbol BTCUSDT,ETHUSDT,SOLUSDT,ADAUSDT --timeframes 1m,5m,15m,1h,4h --start 2023-01-01 --end 2023-12-31
 
 # Alternative: Multiple separate commands for different settings
@@ -271,7 +272,7 @@ result = gap_filler.process_file("BTCUSDT_1h.csv", "1h")
 
 ### Prerequisites
 
-- **UV Package Manager** (recommended) - [Install UV](https://docs.astral.sh/uv/getting-started/installation/)
+- **UV Package Manager** - [Install UV](https://docs.astral.sh/uv/getting-started/installation/)
 - **Python 3.9+** - UV will manage Python versions automatically
 - **Git** - For repository cloning and version control
 
@@ -438,7 +439,7 @@ gapless-crypto-data/
 
 ### BinancePublicDataCollector
 
-Ultra-fast cryptocurrency spot data collection from Binance's public data repository. Provides 10-100x faster data collection compared to API calls by downloading pre-generated monthly ZIP files.
+Cryptocurrency spot data collection from Binance's public data repository using pre-generated monthly ZIP files.
 
 #### Key Methods
 
@@ -483,7 +484,7 @@ for timeframe, result in results.items():
 
 ### UniversalGapFiller
 
-Universal gap detection and filling for all timeframes with authentic 11-column microstructure format. Uses only authentic Binance API data - never synthetic data.
+Gap detection and filling for various timeframes with 11-column microstructure format using Binance API data.
 
 #### Key Methods
 
@@ -628,7 +629,6 @@ Gapless Crypto Data is developed by [Eon Labs](https://github.com/Eon-Labs), spe
 
 ---
 
-**⚡ Powered by UV** - Modern Python dependency management
-**🚀 22x Faster** - Than traditional API-based collection
-**📊 11-Column Format** - Full microstructure data with order flow metrics
-**🔒 Zero Gaps** - Guaranteed complete datasets with authentic data only
+**UV-based** - Python dependency management
+**📊 11-Column Format** - Microstructure data with order flow metrics
+**🔒 Gap Detection** - Data completeness validation and filling

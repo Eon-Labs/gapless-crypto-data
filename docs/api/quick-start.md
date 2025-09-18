@@ -1,6 +1,6 @@
 # Quick Start Guide - gapless-crypto-data
 
-Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format.
+Cryptocurrency data collection with gap detection and filling capabilities. Provides 11-column microstructure format.
 
 ## Installation
 

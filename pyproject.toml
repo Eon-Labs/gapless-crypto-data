@@ -1,8 +1,8 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.7.0"
-description = "Ultra-fast cryptocurrency data collection with intuitive function-based API, zero gaps guarantee, and full 11-column microstructure format. Both simple function-based and advanced class-based APIs available."
-readme = "README.md"
+version = "2.8.0"
+description = "Cryptocurrency data collection with gap detection and filling capabilities. Provides 11-column microstructure format with dual parameter support (timeframe/interval) for CCXT compatibility."
+readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
     { name = "Eon Labs", email = "terry@eonlabs.com" }
 ]
@@ -14,7 +14,8 @@ keywords = [
     "cryptocurrency", "crypto", "binance", "data", "collection",
     "trading", "OHLCV", "gap-filling", "financial-data", "time-series",
     "microstructure", "order-flow", "liquidity", "taker-volume", "authentic-data",
-    "api", "pandas", "download", "fetch-data", "simple-api", "function-based"
+    "api", "pandas", "download", "fetch-data", "function-based", "ccxt",
+    "timeframe", "interval", "dual-parameter", "backward-compatibility"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -63,6 +64,7 @@ dev = [
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
 ]
 
 [build-system]
@@ -140,6 +142,7 @@ testpaths = [
 ]
 markers = [
     "integration: marks tests as integration tests (may require network access)",
+    "asyncio: marks tests as async tests using asyncio",
 ]
 
 [dependency-groups]
@@ -149,6 +152,7 @@ dev = [
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    "pytest-asyncio>=0.21.0",
     "ruff>=0.13.0",
     "types-requests>=2.32.4.20250913",
     "yamllint>=1.37.1",
