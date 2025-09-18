@@ -15,19 +15,18 @@ Architecture:
 
 import hashlib
 import json
-import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
-import joblib
 from joblib import Memory
 
-from ..utils import get_standard_logger, GaplessCryptoError
+from ..utils import GaplessCryptoError, get_standard_logger
 
 
 class CheckpointError(GaplessCryptoError):
     """Checkpoint-specific errors"""
+
     pass
 
 
@@ -43,7 +42,7 @@ class IntelligentCheckpointManager:
         self,
         cache_dir: Optional[Union[str, Path]] = None,
         verbose: int = 1,
-        compress: Union[bool, int] = True
+        compress: Union[bool, int] = True,
     ):
         """
         Initialize checkpoint manager with SOTA joblib configuration.
@@ -58,9 +57,7 @@ class IntelligentCheckpointManager:
 
         # Initialize SOTA joblib Memory with optimized configuration
         self.memory = Memory(
-            location=str(self.cache_dir / "joblib_cache"),
-            verbose=verbose,
-            compress=compress
+            location=str(self.cache_dir / "joblib_cache"), verbose=verbose, compress=compress
         )
 
         self.logger = get_standard_logger("checkpoint_manager")
@@ -76,7 +73,7 @@ class IntelligentCheckpointManager:
             "symbols_in_progress": {},
             "total_datasets_collected": 0,
             "collection_parameters": {},
-            "errors": []
+            "errors": [],
         }
 
         self.logger.info(f"🔄 Checkpoint manager initialized: {self.cache_dir}")
@@ -101,14 +98,16 @@ class IntelligentCheckpointManager:
             self.progress_data["last_updated"] = datetime.now().isoformat()
 
             # Atomic write to prevent corruption
-            temp_file = self.checkpoint_file.with_suffix('.tmp')
-            with open(temp_file, 'w') as f:
+            temp_file = self.checkpoint_file.with_suffix(".tmp")
+            with open(temp_file, "w") as f:
                 json.dump(self.progress_data, f, indent=2, default=str)
 
             # Atomic rename for consistency
             temp_file.replace(self.checkpoint_file)
 
-            self.logger.debug(f"💾 Checkpoint saved: {checkpoint_data.get('current_symbol', 'unknown')}")
+            self.logger.debug(
+                f"💾 Checkpoint saved: {checkpoint_data.get('current_symbol', 'unknown')}"
+            )
 
         except Exception as e:
             raise CheckpointError(f"Failed to save checkpoint: {e}")
@@ -125,7 +124,7 @@ class IntelligentCheckpointManager:
                 self.logger.info("📂 No existing checkpoint found")
                 return None
 
-            with open(self.checkpoint_file, 'r') as f:
+            with open(self.checkpoint_file, "r") as f:
                 checkpoint_data = json.load(f)
 
             # Validate checkpoint integrity
@@ -135,7 +134,9 @@ class IntelligentCheckpointManager:
 
             self.progress_data = checkpoint_data
             self.logger.info(f"📋 Loaded checkpoint: Session {checkpoint_data.get('session_id')}")
-            self.logger.info(f"✅ Completed symbols: {len(checkpoint_data.get('symbols_completed', []))}")
+            self.logger.info(
+                f"✅ Completed symbols: {len(checkpoint_data.get('symbols_completed', []))}"
+            )
 
             return checkpoint_data
 
@@ -146,8 +147,11 @@ class IntelligentCheckpointManager:
     def _validate_checkpoint(self, checkpoint_data: Dict[str, Any]) -> bool:
         """Validate checkpoint data integrity and completeness."""
         required_fields = [
-            "session_id", "created_at", "symbols_completed",
-            "symbols_in_progress", "collection_parameters"
+            "session_id",
+            "created_at",
+            "symbols_completed",
+            "symbols_in_progress",
+            "collection_parameters",
         ]
 
         for field in required_fields:
@@ -161,7 +165,7 @@ class IntelligentCheckpointManager:
         self,
         requested_symbols: List[str],
         requested_timeframes: List[str],
-        collection_params: Dict[str, Any]
+        collection_params: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Generate intelligent resume plan based on checkpoint state.
@@ -184,7 +188,7 @@ class IntelligentCheckpointManager:
                 "completed_symbols": [],
                 "symbols_in_progress": {},
                 "total_progress": 0.0,
-                "message": "Starting fresh collection"
+                "message": "Starting fresh collection",
             }
 
         # Validate parameters match checkpoint
@@ -198,7 +202,7 @@ class IntelligentCheckpointManager:
                 "completed_symbols": [],
                 "symbols_in_progress": {},
                 "total_progress": 0.0,
-                "message": "Parameters changed - starting fresh"
+                "message": "Parameters changed - starting fresh",
             }
 
         # Calculate remaining work
@@ -223,7 +227,7 @@ class IntelligentCheckpointManager:
             "symbols_in_progress": symbols_in_progress,
             "total_progress": progress_percentage,
             "completed_datasets": checkpoint.get("total_datasets_collected", 0),
-            "message": f"Resuming from {progress_percentage:.1f}% complete"
+            "message": f"Resuming from {progress_percentage:.1f}% complete",
         }
 
         if resume_plan["resume_required"]:
@@ -234,7 +238,9 @@ class IntelligentCheckpointManager:
 
         return resume_plan
 
-    def _params_compatible(self, checkpoint_params: Dict[str, Any], current_params: Dict[str, Any]) -> bool:
+    def _params_compatible(
+        self, checkpoint_params: Dict[str, Any], current_params: Dict[str, Any]
+    ) -> bool:
         """Check if collection parameters are compatible for resume."""
         critical_params = ["start_date", "end_date", "output_dir"]
 
@@ -243,7 +249,9 @@ class IntelligentCheckpointManager:
             current_val = current_params.get(param)
 
             if checkpoint_val != current_val:
-                self.logger.debug(f"Parameter mismatch: {param} changed from {checkpoint_val} to {current_val}")
+                self.logger.debug(
+                    f"Parameter mismatch: {param} changed from {checkpoint_val} to {current_val}"
+                )
                 return False
 
         return True
@@ -254,20 +262,24 @@ class IntelligentCheckpointManager:
             "started_at": datetime.now().isoformat(),
             "timeframes": timeframes,
             "completed_timeframes": [],
-            "failed_timeframes": []
+            "failed_timeframes": [],
         }
         self.save_checkpoint({"current_symbol": symbol})
 
-    def mark_timeframe_complete(self, symbol: str, timeframe: str, filepath: Path, file_size_mb: float) -> None:
+    def mark_timeframe_complete(
+        self, symbol: str, timeframe: str, filepath: Path, file_size_mb: float
+    ) -> None:
         """Mark timeframe collection as completed."""
         if symbol in self.progress_data["symbols_in_progress"]:
             symbol_progress = self.progress_data["symbols_in_progress"][symbol]
-            symbol_progress["completed_timeframes"].append({
-                "timeframe": timeframe,
-                "completed_at": datetime.now().isoformat(),
-                "filepath": str(filepath),
-                "file_size_mb": file_size_mb
-            })
+            symbol_progress["completed_timeframes"].append(
+                {
+                    "timeframe": timeframe,
+                    "completed_at": datetime.now().isoformat(),
+                    "filepath": str(filepath),
+                    "file_size_mb": file_size_mb,
+                }
+            )
 
             self.progress_data["total_datasets_collected"] += 1
             self.save_checkpoint({})
@@ -284,11 +296,9 @@ class IntelligentCheckpointManager:
 
     def mark_symbol_failed(self, symbol: str, error: str) -> None:
         """Mark symbol collection as failed."""
-        self.progress_data["errors"].append({
-            "symbol": symbol,
-            "error": error,
-            "timestamp": datetime.now().isoformat()
-        })
+        self.progress_data["errors"].append(
+            {"symbol": symbol, "error": error, "timestamp": datetime.now().isoformat()}
+        )
 
         if symbol in self.progress_data["symbols_in_progress"]:
             del self.progress_data["symbols_in_progress"][symbol]
@@ -342,7 +352,7 @@ class IntelligentCheckpointManager:
             "symbols_in_progress": len(self.progress_data.get("symbols_in_progress", {})),
             "total_datasets": self.progress_data.get("total_datasets_collected", 0),
             "last_updated": self.progress_data.get("last_updated"),
-            "errors": len(self.progress_data.get("errors", []))
+            "errors": len(self.progress_data.get("errors", [])),
         }
 
     def export_progress_report(self, output_file: Optional[Path] = None) -> Path:
@@ -357,11 +367,12 @@ class IntelligentCheckpointManager:
                 "cache_dir": str(self.cache_dir),
                 "cache_size_mb": sum(
                     f.stat().st_size for f in self.cache_dir.rglob("*") if f.is_file()
-                ) / (1024 * 1024)
-            }
+                )
+                / (1024 * 1024),
+            },
         }
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         self.logger.info(f"📊 Progress report exported: {output_file}")

@@ -1,0 +1,36 @@
+{
+  "progress_summary": {
+    "session_id": "20250917_183846_8c1e44b4",
+    "completed_symbols": 2,
+    "symbols_in_progress": 0,
+    "total_datasets": 2,
+    "last_updated": "2025-09-17T18:38:46.513086",
+    "errors": 0
+  },
+  "detailed_progress": {
+    "session_id": "20250917_183846_8c1e44b4",
+    "created_at": "2025-09-17T18:38:46.008075",
+    "last_updated": "2025-09-17T18:38:46.513086",
+    "symbols_completed": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "symbols_in_progress": {},
+    "total_datasets_collected": 2,
+    "collection_parameters": {
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-01",
+      "output_dir": "/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T/tmp4pbbeeor",
+      "timeframes": [
+        "1h"
+      ]
+    },
+    "errors": [],
+    "current_symbol": "ETHUSDT",
+    "completed_symbol": "ETHUSDT"
+  },
+  "cache_info": {
+    "cache_dir": "/Users/terryli/eon/gapless-crypto-data/.gapless_checkpoints",
+    "cache_size_mb": 0.017989158630371094
+  }
+}

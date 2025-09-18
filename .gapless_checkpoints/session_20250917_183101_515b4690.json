@@ -1,0 +1,29 @@
+{
+  "session_id": "20250917_183101_515b4690",
+  "created_at": "2025-09-17T18:31:01.561043",
+  "last_updated": "2025-09-17T18:31:02.655981",
+  "symbols_completed": [
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "symbols_in_progress": {},
+  "total_datasets_collected": 2,
+  "collection_parameters": {
+    "start_date": "2024-01-01",
+    "end_date": "2024-01-01",
+    "output_dir": "/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T/tmpkg7d0jy5",
+    "timeframes": [
+      "1h"
+    ]
+  },
+  "errors": [
+    {
+      "symbol": "INVALIDSYMBOL",
+      "error": "Collection returned no results",
+      "timestamp": "2025-09-17T18:31:02.267390"
+    }
+  ],
+  "current_symbol": "ETHUSDT",
+  "completed_symbol": "ETHUSDT",
+  "failed_symbol": "INVALIDSYMBOL"
+}

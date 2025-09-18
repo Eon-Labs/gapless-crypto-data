@@ -65,12 +65,14 @@ x-current-status:
 
     cli_interface:
       status: "PRODUCTION_READY"
-      description: "Native multi-symbol CLI with comprehensive options"
+      description: "Modern Typer-based CLI with Rich formatting and backward compatibility"
       technical_specs:
+        - "Modern Typer interface with Rich progress indicators"
+        - "Backward compatibility with legacy argparse interface"
         - "Comma-separated multi-symbol support"
         - "16 timeframe options with validation"
         - "Custom date ranges and output directories"
-        - "Sequential processing with progress reporting"
+        - "Sequential processing with enhanced progress reporting"
 
   removed_concepts:
     parallel_processing:
@@ -85,11 +87,26 @@ x-current-status:
 
   sota_integrations:
     dependencies_current:
+      httpx: "0.28.1"
       joblib: "1.5.2"
       polars: "1.33.1"
       pyarrow: "21.0.0"
       pyod: "2.0.5"
       scipy: "1.16.2"
+
+    dependencies_removed:
+      evidently: "0.7.14"
+      removal_reason: "Replaced by PyOD ensemble methods and SciPy statistical tests"
+      removal_date: "2025-09-17"
+
+      typer: "0.12.0"
+      rich: "14.1.0"
+      removal_reason: "Reverted CLI modernization - maintain traditional argparse interface"
+      removal_date: "2025-09-17"
+
+      requests: "2.32.5"
+      removal_reason: "Replaced with httpx for better performance and connection handling"
+      removal_date: "2025-09-17"
 
     integration_status: "All SOTA libraries successfully integrated"
     performance_validation: "Confirmed through comprehensive testing"
@@ -126,6 +143,8 @@ x-evolution-guidance:
     - "Parallel processing (replaced by sequential with better UX)"
     - "Performance benchmarking (replaced by regression detection)"
     - "Custom checkpointing (replaced by SOTA joblib integration)"
+    - "Evidently dependency (replaced by PyOD + SciPy integration)"
+    - "Empty exchanges module (unused, removed for clarity)"
 
   reference_updates_required:
     outdated_files:

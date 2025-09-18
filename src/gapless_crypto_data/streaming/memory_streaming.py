@@ -5,11 +5,11 @@ This module provides SOTA streaming capabilities using Polars for constant memor
 regardless of dataset size. Replaces in-memory pandas operations with chunked streaming.
 """
 
-import logging
-from pathlib import Path
-from typing import Iterator, Optional, Union, List, Dict, Any
-import polars as pl
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Union
+
+import polars as pl
 
 from ..utils.error_handling import DataCollectionError, get_standard_logger
 
@@ -51,8 +51,7 @@ class StreamingDataProcessor:
             file_path = Path(file_path)
             if not file_path.exists():
                 raise DataCollectionError(
-                    f"CSV file not found: {file_path}",
-                    context={"file_path": str(file_path)}
+                    f"CSV file not found: {file_path}", context={"file_path": str(file_path)}
                 )
 
             # Use Polars lazy evaluation for memory efficiency
@@ -67,9 +66,7 @@ class StreamingDataProcessor:
 
                 chunk = lazy_df.slice(start_idx, end_idx - start_idx).collect()
 
-                self.logger.debug(
-                    f"Streamed chunk {start_idx}-{end_idx} from {file_path.name}"
-                )
+                self.logger.debug(f"Streamed chunk {start_idx}-{end_idx} from {file_path.name}")
 
                 yield chunk
 
@@ -79,12 +76,11 @@ class StreamingDataProcessor:
                 context={
                     "file_path": str(file_path),
                     "chunk_size": self.chunk_size,
-                    "error": str(e)
-                }
+                    "error": str(e),
+                },
             )
 
-    def stream_gap_detection(self, file_path: Union[str, Path],
-                           timeframe: str) -> Dict[str, Any]:
+    def stream_gap_detection(self, file_path: Union[str, Path], timeframe: str) -> Dict[str, Any]:
         """
         Stream-based gap detection with constant memory usage.
 
@@ -108,16 +104,13 @@ class StreamingDataProcessor:
 
             for chunk in self.stream_csv_chunks(file_path):
                 # Process timestamp column
-                if 'date' not in chunk.columns:
+                if "date" not in chunk.columns:
                     raise DataCollectionError(
-                        "CSV missing required 'date' column",
-                        context={"file_path": str(file_path)}
+                        "CSV missing required 'date' column", context={"file_path": str(file_path)}
                     )
 
                 # Convert to datetime if needed
-                timestamps = chunk.select(
-                    pl.col("date").str.to_datetime()
-                ).to_series()
+                timestamps = chunk.select(pl.col("date").str.to_datetime()).to_series()
 
                 # Check for gaps between consecutive timestamps
                 for current_ts in timestamps:
@@ -128,38 +121,37 @@ class StreamingDataProcessor:
                         # Detect gap (allow 50% tolerance)
                         if actual_diff > expected_diff_minutes * 1.5:
                             gap_size = int(actual_diff / expected_diff_minutes) - 1
-                            gaps_detected.append({
-                                'start': prev_timestamp,
-                                'end': current_ts,
-                                'missing_bars': gap_size,
-                                'duration_minutes': actual_diff
-                            })
+                            gaps_detected.append(
+                                {
+                                    "start": prev_timestamp,
+                                    "end": current_ts,
+                                    "missing_bars": gap_size,
+                                    "duration_minutes": actual_diff,
+                                }
+                            )
 
                     prev_timestamp = current_ts
 
                 total_rows += len(chunk)
 
             return {
-                'total_gaps_detected': len(gaps_detected),
-                'gaps_details': gaps_detected,
-                'total_rows_processed': total_rows,
-                'data_completeness_score': 1.0 - (len(gaps_detected) / max(total_rows, 1)),
-                'analysis_timestamp': datetime.now().isoformat(),
-                'streaming_method': 'polars_lazy_evaluation'
+                "total_gaps_detected": len(gaps_detected),
+                "gaps_details": gaps_detected,
+                "total_rows_processed": total_rows,
+                "data_completeness_score": 1.0 - (len(gaps_detected) / max(total_rows, 1)),
+                "analysis_timestamp": datetime.now().isoformat(),
+                "streaming_method": "polars_lazy_evaluation",
             }
 
         except Exception as e:
             raise DataCollectionError(
                 f"Stream gap detection failed: {e}",
-                context={
-                    "file_path": str(file_path),
-                    "timeframe": timeframe,
-                    "error": str(e)
-                }
+                context={"file_path": str(file_path), "timeframe": timeframe, "error": str(e)},
             )
 
-    def stream_csv_merge(self, input_files: List[Union[str, Path]],
-                        output_file: Union[str, Path]) -> Dict[str, Any]:
+    def stream_csv_merge(
+        self, input_files: List[Union[str, Path]], output_file: Union[str, Path]
+    ) -> Dict[str, Any]:
         """
         Stream-based CSV merging with memory efficiency.
 
@@ -195,27 +187,25 @@ class StreamingDataProcessor:
             if not lazy_dfs:
                 raise DataCollectionError(
                     "No valid input files found for merging",
-                    context={"input_files": [str(f) for f in input_files]}
+                    context={"input_files": [str(f) for f in input_files]},
                 )
 
             # Concatenate with lazy evaluation
             merged_lazy = pl.concat(lazy_dfs)
 
             # Sort by date and write to output
-            result = (merged_lazy
-                     .sort("date")
-                     .collect())  # Use default collection method
+            result = merged_lazy.sort("date").collect()  # Use default collection method
 
             # Write with optimal settings
             result.write_csv(str(output_path))
             total_rows = len(result)
 
             return {
-                'files_processed': files_processed,
-                'total_rows_merged': total_rows,
-                'output_file': str(output_path),
-                'merge_method': 'polars_streaming',
-                'memory_efficient': True
+                "files_processed": files_processed,
+                "total_rows_merged": total_rows,
+                "output_file": str(output_path),
+                "merge_method": "polars_streaming",
+                "memory_efficient": True,
             }
 
         except Exception as e:
@@ -224,8 +214,8 @@ class StreamingDataProcessor:
                 context={
                     "input_files": [str(f) for f in input_files],
                     "output_file": str(output_file),
-                    "error": str(e)
-                }
+                    "error": str(e),
+                },
             )
 
     def _parse_timeframe_minutes(self, timeframe: str) -> int:
@@ -242,11 +232,11 @@ class StreamingDataProcessor:
             DataCollectionError: If timeframe format is invalid
         """
         try:
-            if timeframe.endswith('m'):
+            if timeframe.endswith("m"):
                 return int(timeframe[:-1])
-            elif timeframe.endswith('h'):
+            elif timeframe.endswith("h"):
                 return int(timeframe[:-1]) * 60
-            elif timeframe.endswith('d'):
+            elif timeframe.endswith("d"):
                 return int(timeframe[:-1]) * 1440
             else:
                 raise ValueError(f"Unsupported timeframe format: {timeframe}")
@@ -254,7 +244,7 @@ class StreamingDataProcessor:
         except ValueError as e:
             raise DataCollectionError(
                 f"Invalid timeframe format: {timeframe}",
-                context={"timeframe": timeframe, "error": str(e)}
+                context={"timeframe": timeframe, "error": str(e)},
             )
 
 
@@ -276,9 +266,12 @@ class StreamingGapFiller:
         self.processor = StreamingDataProcessor(chunk_size=chunk_size)
         self.logger = get_standard_logger("streaming_gap_filler")
 
-    def stream_fill_gaps(self, file_path: Union[str, Path],
-                        timeframe: str,
-                        gap_fill_method: str = "authentic_binance_api") -> Dict[str, Any]:
+    def stream_fill_gaps(
+        self,
+        file_path: Union[str, Path],
+        timeframe: str,
+        gap_fill_method: str = "authentic_binance_api",
+    ) -> Dict[str, Any]:
         """
         Stream-based gap filling with memory efficiency.
 
@@ -297,14 +290,14 @@ class StreamingGapFiller:
             # First pass: detect gaps using streaming
             gap_analysis = self.processor.stream_gap_detection(file_path, timeframe)
 
-            if gap_analysis['total_gaps_detected'] == 0:
+            if gap_analysis["total_gaps_detected"] == 0:
                 self.logger.info(f"No gaps detected in {Path(file_path).name}")
                 return {
-                    'gaps_filled': 0,
-                    'gaps_remaining': 0,
-                    'method': gap_fill_method,
-                    'streaming_processed': True,
-                    'original_analysis': gap_analysis
+                    "gaps_filled": 0,
+                    "gaps_remaining": 0,
+                    "method": gap_fill_method,
+                    "streaming_processed": True,
+                    "original_analysis": gap_analysis,
                 }
 
             # For actual gap filling, would implement streaming API calls
@@ -317,12 +310,12 @@ class StreamingGapFiller:
             )
 
             return {
-                'gaps_detected': gap_analysis['total_gaps_detected'],
-                'gaps_filled': 0,  # Placeholder for actual implementation
-                'gaps_remaining': gap_analysis['total_gaps_detected'],
-                'method': gap_fill_method,
-                'streaming_processed': True,
-                'gap_details': gap_analysis['gaps_details']
+                "gaps_detected": gap_analysis["total_gaps_detected"],
+                "gaps_filled": 0,  # Placeholder for actual implementation
+                "gaps_remaining": gap_analysis["total_gaps_detected"],
+                "method": gap_fill_method,
+                "streaming_processed": True,
+                "gap_details": gap_analysis["gaps_details"],
             }
 
         except Exception as e:
@@ -332,6 +325,6 @@ class StreamingGapFiller:
                     "file_path": str(file_path),
                     "timeframe": timeframe,
                     "method": gap_fill_method,
-                    "error": str(e)
-                }
+                    "error": str(e),
+                },
             )

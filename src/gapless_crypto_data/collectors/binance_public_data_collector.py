@@ -21,7 +21,7 @@ import warnings
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from rich.console import Console
@@ -94,7 +94,7 @@ class BinancePublicDataCollector:
         symbol: str = "SOLUSDT",
         start_date: str = "2020-08-15",
         end_date: str = "2025-03-20",
-        output_dir: Optional[Union[str, Path]] = None
+        output_dir: Optional[Union[str, Path]] = None,
     ) -> None:
         """Initialize the Binance Public Data Collector.
 
@@ -425,7 +425,7 @@ class BinancePublicDataCollector:
                         datetime.fromtimestamp(
                             int(csv_row_data[6])
                             / (1000000 if len(str(int(csv_row_data[6]))) >= 16 else 1000),
-                            timezone.utc
+                            timezone.utc,
                         ).strftime("%Y-%m-%d %H:%M:%S"),  # close_time
                         float(csv_row_data[7]),  # quote_asset_volume
                         int(csv_row_data[8]),  # number_of_trades
@@ -957,7 +957,9 @@ class BinancePublicDataCollector:
         data_string = "\n".join(",".join(map(str, row)) for row in data)
         return hashlib.sha256(data_string.encode()).hexdigest()
 
-    def save_to_csv(self, timeframe: str, data: List[List], collection_stats: Dict[str, Any]) -> Path:
+    def save_to_csv(
+        self, timeframe: str, data: List[List], collection_stats: Dict[str, Any]
+    ) -> Path:
         """Save data to CSV file with full 11-column microstructure format and metadata."""
         if not data:
             print(f"❌ No data to save for {timeframe}")
@@ -1033,7 +1035,9 @@ class BinancePublicDataCollector:
 
         return filepath
 
-    def collect_multiple_timeframes(self, timeframes: Optional[List[str]] = None) -> Dict[str, Dict[str, Any]]:
+    def collect_multiple_timeframes(
+        self, timeframes: Optional[List[str]] = None
+    ) -> Dict[str, Dict[str, Any]]:
         """Collect data for multiple timeframes with comprehensive progress tracking.
 
         Efficiently collects historical data across multiple timeframes in sequence,
@@ -1152,7 +1156,9 @@ class BinancePublicDataCollector:
 
         return results
 
-    def validate_csv_file(self, csv_filepath: Union[str, Path], expected_timeframe: Optional[str] = None) -> Dict[str, Any]:
+    def validate_csv_file(
+        self, csv_filepath: Union[str, Path], expected_timeframe: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Comprehensive validation of CSV file data integrity, completeness, and quality.
 

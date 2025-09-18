@@ -6,10 +6,9 @@ Eliminates duplicate error handling patterns and ensures consistent debugging ex
 """
 
 import logging
-import sys
-from pathlib import Path
-from typing import Any, Optional, Dict, Callable, Union
 import traceback
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Union
 
 
 class GaplessCryptoError(Exception):
@@ -22,21 +21,25 @@ class GaplessCryptoError(Exception):
 
 class DataCollectionError(GaplessCryptoError):
     """Errors during data collection from Binance."""
+
     pass
 
 
 class GapFillingError(GaplessCryptoError):
     """Errors during gap detection or filling operations."""
+
     pass
 
 
 class FileOperationError(GaplessCryptoError):
     """Errors during file I/O operations."""
+
     pass
 
 
 class ValidationError(GaplessCryptoError):
     """Errors during data validation."""
+
     pass
 
 
@@ -46,9 +49,7 @@ def get_standard_logger(module_name: str) -> logging.Logger:
 
     if not logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
@@ -62,7 +63,7 @@ def handle_operation_error(
     context: Optional[Dict[str, Any]] = None,
     logger: Optional[logging.Logger] = None,
     reraise: bool = False,
-    default_return: Any = None
+    default_return: Any = None,
 ) -> Any:
     """
     Standardized error handling for operations.
@@ -108,7 +109,7 @@ def safe_operation(
     logger: Optional[logging.Logger] = None,
     exception_types: tuple = (Exception,),
     default_return: Any = None,
-    reraise: bool = False
+    reraise: bool = False,
 ) -> Any:
     """
     Execute operation with standardized error handling.
@@ -134,7 +135,7 @@ def safe_operation(
             context=context,
             logger=logger,
             reraise=reraise,
-            default_return=default_return
+            default_return=default_return,
         )
 
 
@@ -156,16 +157,14 @@ def validate_file_path(file_path: Union[str, Path], operation: str = "file opera
         path = Path(file_path)
         if not path.exists():
             raise FileOperationError(
-                f"File not found: {path}",
-                context={"operation": operation, "path": str(path)}
+                f"File not found: {path}", context={"operation": operation, "path": str(path)}
             )
         return path
     except Exception as e:
         if isinstance(e, FileOperationError):
             raise
         raise FileOperationError(
-            f"Invalid file path: {file_path}",
-            context={"operation": operation, "error": str(e)}
+            f"Invalid file path: {file_path}", context={"operation": operation, "error": str(e)}
         )
 
 

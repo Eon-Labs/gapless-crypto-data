@@ -45,8 +45,6 @@ from .streaming import StreamingDataProcessor, StreamingGapFiller
 from .utils import (
     get_standard_logger,
     handle_operation_error,
-    DataCollectionError,
-    format_user_error,
 )
 
 
@@ -60,12 +58,12 @@ def parse_filename_metadata(filename: str) -> Optional[dict]:
     Returns:
         dict with 'symbol' and 'timeframe' keys, or None if parsing fails
     """
-    pattern = r'binance_spot_([A-Z]+)-([0-9]+[mhd])_\d{8}-\d{8}_v[\d.]+\.csv$'
+    pattern = r"binance_spot_([A-Z]+)-([0-9]+[mhd])_\d{8}-\d{8}_v[\d.]+\.csv$"
     match = re.match(pattern, filename)
 
     if match:
         symbol, timeframe = match.groups()
-        return {'symbol': symbol, 'timeframe': timeframe}
+        return {"symbol": symbol, "timeframe": timeframe}
 
     return None
 
@@ -197,17 +195,19 @@ def collect_data(command_line_args: Any) -> int:
         "start_date": command_line_args.start,
         "end_date": command_line_args.end,
         "output_dir": command_line_args.output_dir,
-        "timeframes": requested_timeframes
+        "timeframes": requested_timeframes,
     }
 
     # Initialize checkpoint manager
-    enable_resume = command_line_args.resume or len(requested_symbols) > 1 or len(requested_timeframes) > 4
+    enable_resume = (
+        command_line_args.resume or len(requested_symbols) > 1 or len(requested_timeframes) > 4
+    )
     checkpoint_manager = None
 
     if enable_resume:
         checkpoint_manager = IntelligentCheckpointManager(
             cache_dir=command_line_args.checkpoint_dir,
-            verbose=1 if len(requested_symbols) > 3 else 0
+            verbose=1 if len(requested_symbols) > 3 else 0,
         )
 
         if command_line_args.clear_checkpoints:
@@ -243,7 +243,9 @@ def collect_data(command_line_args: Any) -> int:
     print(f"Timeframes: {requested_timeframes}")
     print(f"Date Range: {command_line_args.start} to {command_line_args.end}")
     if command_line_args.streaming:
-        print(f"🌊 Streaming Mode: Enabled (chunk_size={command_line_args.chunk_size}, memory_limit={command_line_args.memory_limit}MB)")
+        print(
+            f"🌊 Streaming Mode: Enabled (chunk_size={command_line_args.chunk_size}, memory_limit={command_line_args.memory_limit}MB)"
+        )
     if enable_resume and symbols_to_process != requested_symbols:
         print(f"Remaining symbols: {symbols_to_process}")
     print("=" * 60)
@@ -257,12 +259,9 @@ def collect_data(command_line_args: Any) -> int:
     streaming_gap_filler = None
     if command_line_args.streaming:
         streaming_processor = StreamingDataProcessor(
-            chunk_size=command_line_args.chunk_size,
-            memory_limit_mb=command_line_args.memory_limit
+            chunk_size=command_line_args.chunk_size, memory_limit_mb=command_line_args.memory_limit
         )
-        streaming_gap_filler = StreamingGapFiller(
-            chunk_size=command_line_args.chunk_size
-        )
+        streaming_gap_filler = StreamingGapFiller(chunk_size=command_line_args.chunk_size)
 
     # Process each symbol
     for symbol_index, symbol in enumerate(symbols_to_process, 1):
@@ -315,7 +314,7 @@ def collect_data(command_line_args: Any) -> int:
                 exception=e,
                 context={"symbol": symbol, "timeframes": command_line_args.timeframes},
                 logger=logger,
-                reraise=False
+                reraise=False,
             )
 
             if checkpoint_manager:
@@ -381,10 +380,12 @@ def fill_gaps(command_line_args: Any) -> int:
             print(f"⚠️  Skipping {csv_file_path.name}: Non-standard filename format")
             continue
 
-        detected_timeframe = file_metadata['timeframe']
-        detected_symbol = file_metadata['symbol']
+        detected_timeframe = file_metadata["timeframe"]
+        detected_symbol = file_metadata["symbol"]
 
-        print(f"🔍 Processing {detected_symbol} {detected_timeframe} data from {csv_file_path.name}")
+        print(
+            f"🔍 Processing {detected_symbol} {detected_timeframe} data from {csv_file_path.name}"
+        )
 
         # Detect gaps
         detected_gaps = gap_filler_instance.detect_all_gaps(csv_file_path, detected_timeframe)

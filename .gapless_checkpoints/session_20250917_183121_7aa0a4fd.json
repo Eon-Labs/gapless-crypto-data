@@ -1,0 +1,22 @@
+{
+  "session_id": "20250917_183121_7aa0a4fd",
+  "created_at": "2025-09-17T18:31:21.362627",
+  "last_updated": "2025-09-17T18:31:22.192977",
+  "symbols_completed": [
+    "BTCUSDT",
+    "ETHUSDT"
+  ],
+  "symbols_in_progress": {},
+  "total_datasets_collected": 2,
+  "collection_parameters": {
+    "start_date": "2024-01-01",
+    "end_date": "2024-01-01",
+    "output_dir": "/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T/tmp25weeged",
+    "timeframes": [
+      "1h"
+    ]
+  },
+  "errors": [],
+  "current_symbol": "ETHUSDT",
+  "completed_symbol": "ETHUSDT"
+}

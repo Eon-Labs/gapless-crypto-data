@@ -4,12 +4,13 @@ Tests for memory-streaming architecture using Polars.
 Verifies SOTA streaming capabilities for unlimited dataset processing.
 """
 
-import pytest
-import polars as pl
-from pathlib import Path
-import tempfile
 import csv
+import tempfile
 from datetime import datetime, timedelta
+from pathlib import Path
+
+import polars as pl
+import pytest
 
 from gapless_crypto_data.streaming import StreamingDataProcessor, StreamingGapFiller
 from gapless_crypto_data.utils.error_handling import DataCollectionError
@@ -22,23 +23,32 @@ class TestStreamingDataProcessor:
         """Setup test fixtures."""
         self.processor = StreamingDataProcessor(chunk_size=5, memory_limit_mb=10)
 
-    def create_test_csv(self, csv_path: Path, rows: int = 20,
-                       has_gaps: bool = False) -> Path:
+    def create_test_csv(self, csv_path: Path, rows: int = 20, has_gaps: bool = False) -> Path:
         """Create test CSV file with OHLCV data."""
         csv_file = csv_path if csv_path.suffix else csv_path / "test_data.csv"
         csv_file.parent.mkdir(parents=True, exist_ok=True)
 
         start_time = datetime(2024, 1, 1)
 
-        with open(csv_file, 'w', newline='') as f:
+        with open(csv_file, "w", newline="") as f:
             writer = csv.writer(f)
 
             # Write header
-            writer.writerow([
-                'date', 'open', 'high', 'low', 'close', 'volume',
-                'close_time', 'quote_asset_volume', 'number_of_trades',
-                'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-            ])
+            writer.writerow(
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "close_time",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+            )
 
             # Write data rows
             current_time = start_time
@@ -53,12 +63,21 @@ class TestStreamingDataProcessor:
                 if has_gaps and i == 9:  # After 10th row (0-indexed)
                     current_time += timedelta(minutes=3)  # Add 3-minute gap
 
-                writer.writerow([
-                    timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                    100.0 + i, 101.0 + i, 99.0 + i, 100.5 + i, 1000.0,
-                    close_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    100500.0, 50, 500.0, 50250.0
-                ])
+                writer.writerow(
+                    [
+                        timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        100.0 + i,
+                        101.0 + i,
+                        99.0 + i,
+                        100.5 + i,
+                        1000.0,
+                        close_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        100500.0,
+                        50,
+                        500.0,
+                        50250.0,
+                    ]
+                )
 
         return csv_file
 
@@ -79,9 +98,9 @@ class TestStreamingDataProcessor:
 
             # Verify first chunk structure
             first_chunk = chunks[0]
-            assert 'date' in first_chunk.columns
-            assert 'open' in first_chunk.columns
-            assert 'close' in first_chunk.columns
+            assert "date" in first_chunk.columns
+            assert "open" in first_chunk.columns
+            assert "close" in first_chunk.columns
             assert len(first_chunk) == 5
 
     def test_stream_csv_chunks_file_not_found(self):
@@ -101,10 +120,10 @@ class TestStreamingDataProcessor:
             result = self.processor.stream_gap_detection(csv_file, "1m")
 
             # Verify results
-            assert result['total_gaps_detected'] == 0
-            assert result['total_rows_processed'] == 20
-            assert result['data_completeness_score'] == 1.0
-            assert result['streaming_method'] == 'polars_lazy_evaluation'
+            assert result["total_gaps_detected"] == 0
+            assert result["total_rows_processed"] == 20
+            assert result["data_completeness_score"] == 1.0
+            assert result["streaming_method"] == "polars_lazy_evaluation"
 
     def test_stream_gap_detection_with_gaps(self):
         """Test gap detection with data gaps."""
@@ -116,13 +135,13 @@ class TestStreamingDataProcessor:
             result = self.processor.stream_gap_detection(csv_file, "1m")
 
             # Verify gap detection
-            assert result['total_gaps_detected'] == 1
-            assert result['total_rows_processed'] == 20
-            assert result['data_completeness_score'] < 1.0
+            assert result["total_gaps_detected"] == 1
+            assert result["total_rows_processed"] == 20
+            assert result["data_completeness_score"] < 1.0
 
             # Verify gap details
-            gap_details = result['gaps_details'][0]
-            assert gap_details['missing_bars'] == 3  # 3-minute gap in 1-minute data
+            gap_details = result["gaps_details"][0]
+            assert gap_details["missing_bars"] == 3  # 3-minute gap in 1-minute data
 
     def test_stream_csv_merge(self):
         """Test streaming CSV merging."""
@@ -136,15 +155,13 @@ class TestStreamingDataProcessor:
             output_file = temp_path / "merged.csv"
 
             # Test merging
-            result = self.processor.stream_csv_merge(
-                [csv1, csv2], output_file
-            )
+            result = self.processor.stream_csv_merge([csv1, csv2], output_file)
 
             # Verify merge results
-            assert result['files_processed'] == 2
-            assert result['total_rows_merged'] == 25
-            assert result['merge_method'] == 'polars_streaming'
-            assert result['memory_efficient'] is True
+            assert result["files_processed"] == 2
+            assert result["total_rows_merged"] == 25
+            assert result["merge_method"] == "polars_streaming"
+            assert result["memory_efficient"] is True
 
             # Verify output file exists
             assert output_file.exists()
@@ -182,15 +199,25 @@ class TestStreamingGapFiller:
 
         start_time = datetime(2024, 1, 1)
 
-        with open(csv_file, 'w', newline='') as f:
+        with open(csv_file, "w", newline="") as f:
             writer = csv.writer(f)
 
             # Write header
-            writer.writerow([
-                'date', 'open', 'high', 'low', 'close', 'volume',
-                'close_time', 'quote_asset_volume', 'number_of_trades',
-                'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-            ])
+            writer.writerow(
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "close_time",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+            )
 
             # Write data with gaps
             timestamps = [
@@ -204,12 +231,21 @@ class TestStreamingGapFiller:
 
             for i, timestamp in enumerate(timestamps):
                 close_time = timestamp + timedelta(minutes=1)
-                writer.writerow([
-                    timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                    100.0 + i, 101.0 + i, 99.0 + i, 100.5 + i, 1000.0,
-                    close_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    100500.0, 50, 500.0, 50250.0
-                ])
+                writer.writerow(
+                    [
+                        timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        100.0 + i,
+                        101.0 + i,
+                        99.0 + i,
+                        100.5 + i,
+                        1000.0,
+                        close_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        100500.0,
+                        50,
+                        500.0,
+                        50250.0,
+                    ]
+                )
 
         return csv_file
 
@@ -220,16 +256,18 @@ class TestStreamingGapFiller:
 
             # Create CSV without gaps
             processor = StreamingDataProcessor(chunk_size=5)
-            csv_file = processor.create_test_csv = lambda p, r=10, g=False: self.create_continuous_csv(p, r)
+            csv_file = processor.create_test_csv = (
+                lambda p, r=10, g=False: self.create_continuous_csv(p, r)
+            )
             csv_file = self.create_continuous_csv(temp_path)
 
             # Test gap filling
             result = self.gap_filler.stream_fill_gaps(csv_file, "1m")
 
             # Verify no gaps found
-            assert result['gaps_filled'] == 0
-            assert result['gaps_remaining'] == 0
-            assert result['streaming_processed'] is True
+            assert result["gaps_filled"] == 0
+            assert result["gaps_remaining"] == 0
+            assert result["streaming_processed"] is True
 
     def test_stream_fill_gaps_with_gaps(self):
         """Test streaming gap filling with gaps detected."""
@@ -241,10 +279,10 @@ class TestStreamingGapFiller:
             result = self.gap_filler.stream_fill_gaps(csv_file, "1m")
 
             # Verify gaps detected
-            assert result['gaps_detected'] == 1
-            assert result['gaps_remaining'] == 1  # Framework only - actual filling not implemented
-            assert result['streaming_processed'] is True
-            assert len(result['gap_details']) == 1
+            assert result["gaps_detected"] == 1
+            assert result["gaps_remaining"] == 1  # Framework only - actual filling not implemented
+            assert result["streaming_processed"] is True
+            assert len(result["gap_details"]) == 1
 
     def create_continuous_csv(self, temp_dir: Path, rows: int = 10) -> Path:
         """Create continuous CSV without gaps."""
@@ -252,26 +290,45 @@ class TestStreamingGapFiller:
 
         start_time = datetime(2024, 1, 1)
 
-        with open(csv_file, 'w', newline='') as f:
+        with open(csv_file, "w", newline="") as f:
             writer = csv.writer(f)
 
             # Write header
-            writer.writerow([
-                'date', 'open', 'high', 'low', 'close', 'volume',
-                'close_time', 'quote_asset_volume', 'number_of_trades',
-                'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume'
-            ])
+            writer.writerow(
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "close_time",
+                    "quote_asset_volume",
+                    "number_of_trades",
+                    "taker_buy_base_asset_volume",
+                    "taker_buy_quote_asset_volume",
+                ]
+            )
 
             # Write continuous data
             for i in range(rows):
                 timestamp = start_time + timedelta(minutes=i)
                 close_time = timestamp + timedelta(minutes=1)
 
-                writer.writerow([
-                    timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                    100.0 + i, 101.0 + i, 99.0 + i, 100.5 + i, 1000.0,
-                    close_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    100500.0, 50, 500.0, 50250.0
-                ])
+                writer.writerow(
+                    [
+                        timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        100.0 + i,
+                        101.0 + i,
+                        99.0 + i,
+                        100.5 + i,
+                        1000.0,
+                        close_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        100500.0,
+                        50,
+                        500.0,
+                        50250.0,
+                    ]
+                )
 
         return csv_file

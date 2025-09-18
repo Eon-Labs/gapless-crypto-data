@@ -24,8 +24,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import httpx
 import pandas as pd
-import requests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -228,9 +228,7 @@ class UniversalGapFiller:
         logger.info(f"   📡 Binance API call: {api_request_params}")
 
         try:
-            http_response = requests.get(
-                self.binance_base_url, params=api_request_params, timeout=30
-            )
+            http_response = httpx.get(self.binance_base_url, params=api_request_params, timeout=30)
             http_response.raise_for_status()
             binance_klines_data = http_response.json()
 
