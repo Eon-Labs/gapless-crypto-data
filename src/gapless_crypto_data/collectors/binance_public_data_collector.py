@@ -1117,7 +1117,9 @@ class BinancePublicDataCollector:
 
         print("\n" + "=" * 80)
         print("🎉 ULTRA-FAST COLLECTION COMPLETE")
-        print(f"⏱️  Total time: {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)")
+        print(
+            f"⏱️  Total time: {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)"
+        )
         print(f"📊 Generated {len(results)} files")
 
         return results
