@@ -81,6 +81,12 @@ current_configuration:
     error_reason: "file_already_exists"
     confirms_working: true
 
+  github_packages_limitation:
+    python_support: false
+    supported_types: [npm, docker, rubygems, maven, gradle, nuget]
+    reason: "GitHub Packages does not support Python/PyPI packages as of 2025-09-18"
+    workaround: "PyPI remains canonical distribution channel for Python packages"
+
 migration_completed:
   from: api_token_authentication
   to: oidc_trusted_publishing
