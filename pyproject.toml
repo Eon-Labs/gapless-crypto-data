@@ -1,6 +1,6 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.6.1"
+version = "2.6.2"
 description = "Ultra-fast cryptocurrency data collection with intuitive function-based API, zero gaps guarantee, and full 11-column microstructure format. Both simple function-based and advanced class-based APIs available."
 readme = "README.md"
 authors = [
