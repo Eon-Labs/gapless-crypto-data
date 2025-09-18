@@ -24,15 +24,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
 
 from ..gap_filling.universal_gap_filler import UniversalGapFiller
 
@@ -151,7 +142,7 @@ class BinancePublicDataCollector:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize Rich console for progress indicators
-        self.console = Console()
+        # Simple logging instead of Rich console
 
         # Available timeframes on Binance public data
         self.available_timeframes = [
@@ -1100,59 +1091,34 @@ class BinancePublicDataCollector:
         if timeframes is None:
             timeframes = ["1m", "3m", "5m", "15m", "30m", "1h", "2h"]
 
-        self.console.print("\n🚀 [bold blue]BINANCE PUBLIC DATA ULTRA-FAST COLLECTION[/bold blue]")
-        self.console.print(f"[cyan]Timeframes:[/cyan] {timeframes}")
-        self.console.print("=" * 80)
+        print("\n🚀 BINANCE PUBLIC DATA ULTRA-FAST COLLECTION")
+        print(f"Timeframes: {timeframes}")
+        print("=" * 80)
 
         results = {}
         overall_start = datetime.now()
 
-        # Create progress bar for timeframes
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            TimeElapsedColumn(),
-            console=self.console,
-            expand=True,
-        ) as progress:
-            main_task = progress.add_task(
-                f"[bold green]Collecting {len(timeframes)} timeframes", total=len(timeframes)
-            )
+        for i, timeframe in enumerate(timeframes):
+            print(f"Processing {timeframe} ({i + 1}/{len(timeframes)})...")
 
-            for i, timeframe in enumerate(timeframes):
-                # Update main progress
-                progress.update(
-                    main_task,
-                    description=f"[bold green]Processing {timeframe} ({i + 1}/{len(timeframes)})",
-                )
+            tf_start = datetime.now()
+            result = self.collect_timeframe_data(timeframe)
+            tf_duration = (datetime.now() - tf_start).total_seconds()
 
-                tf_start = datetime.now()
-                result = self.collect_timeframe_data(timeframe)
-                tf_duration = (datetime.now() - tf_start).total_seconds()
-
-                if result and result.get("filepath"):
-                    filepath = result["filepath"]
-                    results[timeframe] = filepath
-                    file_size_mb = filepath.stat().st_size / (1024 * 1024)
-                    self.console.print(
-                        f"✅ [green]{timeframe}[/green]: {filepath.name} ([cyan]{file_size_mb:.1f} MB[/cyan])"
-                    )
-                else:
-                    self.console.print(f"❌ [red]Failed to collect {timeframe} data[/red]")
-
-                # Update progress
-                progress.advance(main_task)
+            if result and result.get("filepath"):
+                filepath = result["filepath"]
+                results[timeframe] = filepath
+                file_size_mb = filepath.stat().st_size / (1024 * 1024)
+                print(f"✅ {timeframe}: {filepath.name} ({file_size_mb:.1f} MB)")
+            else:
+                print(f"❌ Failed to collect {timeframe} data")
 
         overall_duration = (datetime.now() - overall_start).total_seconds()
 
-        self.console.print("\n" + "=" * 80)
-        self.console.print("🎉 [bold green]ULTRA-FAST COLLECTION COMPLETE[/bold green]")
-        self.console.print(
-            f"⏱️  [yellow]Total time:[/yellow] {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)"
-        )
-        self.console.print(f"📊 [yellow]Generated {len(results)} files[/yellow]")
+        print("\n" + "=" * 80)
+        print("🎉 ULTRA-FAST COLLECTION COMPLETE")
+        print(f"⏱️  Total time: {overall_duration:.1f} seconds ({overall_duration / 60:.1f} minutes)")
+        print(f"📊 Generated {len(results)} files")
 
         return results
 
