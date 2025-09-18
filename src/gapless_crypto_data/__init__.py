@@ -55,9 +55,9 @@ Supported Symbols (USDT Spot Only):
     AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.6.2"
+__version__ = "2.7.0"
 __author__ = "Eon Labs"
-__email__ = "terry@eonlabs.ai"
+__email__ = "terry@eonlabs.com"
 
 # Core classes (advanced/power-user API)
 # Convenience functions (simple/intuitive API)
@@ -66,6 +66,7 @@ from .api import (
     fetch_data,
     fill_gaps,
     get_info,
+    get_supported_intervals,
     get_supported_symbols,
     get_supported_timeframes,
 )
@@ -79,6 +80,7 @@ __all__ = [
     "download",
     "get_supported_symbols",
     "get_supported_timeframes",
+    "get_supported_intervals",  # Legacy compatibility
     "fill_gaps",
     "get_info",
     # Advanced class-based API (for complex workflows)

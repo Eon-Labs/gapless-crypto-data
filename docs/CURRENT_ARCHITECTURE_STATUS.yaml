@@ -23,7 +23,7 @@ components:
 
 # CURRENT ARCHITECTURE STATUS (2025-09-17)
 x-current-status:
-  canonical_version: "v2.6.0"
+  canonical_version: "v2.7.0"
   architecture_phase: "COMPLETE"
 
   implemented_capabilities:
@@ -73,6 +73,16 @@ x-current-status:
         - "Custom date ranges and output directories"
         - "Sequential processing with progress reporting"
 
+    dual_parameter_api:
+      status: "PRODUCTION_READY"
+      description: "CCXT-compatible dual parameter support with backward compatibility"
+      technical_specs:
+        - "Exception-only parameter validation (no fallbacks)"
+        - "CCXT ecosystem alignment with timeframe parameter"
+        - "5-year deprecation period for legacy interval parameter"
+        - "Zero breaking changes during transition period"
+        - "Community-proven implementation patterns (PEP 387 compliant)"
+
     pypi_publishing:
       status: "PRODUCTION_READY"
       description: "Native GitHub Actions trusted publishing with OIDC authentication"
@@ -101,6 +111,7 @@ x-current-status:
       pyarrow: "21.0.0"
       pyod: "2.0.5"
       scipy: "1.16.2"
+      python_warnings: "builtin"  # For DeprecationWarning support
 
     dependencies_removed:
       evidently:
@@ -138,6 +149,7 @@ x-current-status:
   documentation_status:
     current_milestone: "docs/MILESTONE_v2.5.0.yaml"
     architecture_status: "docs/CURRENT_ARCHITECTURE_STATUS.yaml"
+    api_enhancement_spec: "docs/api-dual-parameter-enhancement.yaml"
     project_guide: "CLAUDE.md"
     user_documentation: "README.md"
 

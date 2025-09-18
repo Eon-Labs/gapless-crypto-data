@@ -65,21 +65,24 @@ def get_supported_timeframes() -> List[str]:
 
 def fetch_data(
     symbol: str,
-    interval: str,
+    timeframe: Optional[str] = None,
     limit: Optional[int] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
     output_dir: Optional[Union[str, Path]] = None,
+    *,
+    interval: Optional[str] = None,
 ) -> pd.DataFrame:
     """Fetch cryptocurrency data with simple function-based API.
 
     Args:
         symbol: Trading pair symbol (e.g., "BTCUSDT", "ETHUSDT")
-        interval: Timeframe interval (e.g., "1m", "5m", "1h", "4h", "1d")
+        timeframe: Timeframe interval (e.g., "1m", "5m", "1h", "4h", "1d")
         limit: Maximum number of recent bars to return (optional)
         start: Start date in YYYY-MM-DD format (optional)
         end: End date in YYYY-MM-DD format (optional)
         output_dir: Directory to save CSV files (optional)
+        interval: Legacy parameter name for timeframe (deprecated, use timeframe)
 
     Returns:
         pandas.DataFrame with OHLCV data and microstructure columns:
@@ -101,7 +104,26 @@ def fetch_data(
 
         # Save to custom directory
         df = fetch_data("SOLUSDT", "1h", limit=500, output_dir="./crypto_data")
+
+        # Legacy interval parameter (deprecated)
+        df = fetch_data("BTCUSDT", interval="1h", limit=1000)
     """
+    # Dual parameter validation with exception-only failures
+    if timeframe is None and interval is None:
+        raise ValueError(
+            "Must specify 'timeframe' parameter. "
+            "CCXT-compatible 'timeframe' is preferred over legacy 'interval'."
+        )
+
+    if timeframe is not None and interval is not None:
+        raise ValueError(
+            "Cannot specify both 'timeframe' and 'interval' parameters. "
+            "Use 'timeframe' (CCXT-compatible) or 'interval' (legacy), not both."
+        )
+
+    # Use timeframe if provided, otherwise use interval (legacy)
+    period = timeframe if timeframe is not None else interval
+
     # Handle limit by calculating date range
     if limit and not start and not end:
         # Calculate start date based on limit and interval
@@ -117,13 +139,13 @@ def fetch_data(
             "1d": 1440,
         }
 
-        if interval in interval_minutes:
-            minutes_total = limit * interval_minutes[interval]
+        if period in interval_minutes:
+            minutes_total = limit * interval_minutes[period]
             start_date = datetime.now() - timedelta(minutes=minutes_total)
             start = start_date.strftime("%Y-%m-%d")
             end = datetime.now().strftime("%Y-%m-%d")
         else:
-            # Default fallback for unknown intervals
+            # Default fallback for unknown periods
             start = "2024-01-01"
             end = datetime.now().strftime("%Y-%m-%d")
 
@@ -139,7 +161,7 @@ def fetch_data(
     )
 
     # Collect data for single timeframe
-    result = collector.collect_timeframe_data(interval)
+    result = collector.collect_timeframe_data(period)
 
     if result and "dataframe" in result:
         df = result["dataframe"]
@@ -169,10 +191,12 @@ def fetch_data(
 
 def download(
     symbol: str,
-    interval: str = "1h",
+    timeframe: Optional[str] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
     output_dir: Optional[Union[str, Path]] = None,
+    *,
+    interval: Optional[str] = None,
 ) -> pd.DataFrame:
     """Download cryptocurrency data (alias for fetch_data).
 
@@ -180,10 +204,11 @@ def download(
 
     Args:
         symbol: Trading pair symbol (e.g., "BTCUSDT")
-        interval: Timeframe interval (default: "1h")
+        timeframe: Timeframe interval (default: "1h" if neither specified)
         start: Start date in YYYY-MM-DD format
         end: End date in YYYY-MM-DD format
         output_dir: Directory to save CSV files
+        interval: Legacy parameter name for timeframe (deprecated)
 
     Returns:
         pandas.DataFrame with complete OHLCV and microstructure data
@@ -194,8 +219,22 @@ def download(
 
         # Simple recent data
         df = download("ETHUSDT", "4h")
+
+        # Legacy interval parameter
+        df = download("BTCUSDT", interval="1h")
     """
-    return fetch_data(symbol=symbol, interval=interval, start=start, end=end, output_dir=output_dir)
+    # Apply default if neither parameter specified
+    if timeframe is None and interval is None:
+        timeframe = "1h"
+
+    return fetch_data(
+        symbol=symbol,
+        timeframe=timeframe,
+        start=start,
+        end=end,
+        output_dir=output_dir,
+        interval=interval,
+    )
 
 
 def fill_gaps(directory: Union[str, Path], symbols: Optional[List[str]] = None) -> dict:
@@ -284,3 +323,26 @@ def get_info() -> dict:
             "Production-grade data quality",
         ],
     }
+
+
+def get_supported_intervals() -> List[str]:
+    """Get list of supported timeframe intervals (legacy alias).
+
+    Deprecated: Use get_supported_timeframes() instead.
+    Maintained for backward compatibility with existing code.
+
+    Returns:
+        List of timeframe strings (e.g., ["1m", "5m", "1h", "4h", ...])
+
+    Examples:
+        >>> intervals = get_supported_intervals()  # deprecated
+        >>> timeframes = get_supported_timeframes()  # preferred
+    """
+    import warnings
+
+    warnings.warn(
+        "get_supported_intervals() is deprecated. Use get_supported_timeframes() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_supported_timeframes()

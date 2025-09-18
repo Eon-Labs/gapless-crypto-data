@@ -1,13 +1,13 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.6.2"
+version = "2.7.0"
 description = "Ultra-fast cryptocurrency data collection with intuitive function-based API, zero gaps guarantee, and full 11-column microstructure format. Both simple function-based and advanced class-based APIs available."
 readme = "README.md"
 authors = [
-    { name = "Eon Labs", email = "terry@eonlabs.ai" }
+    { name = "Eon Labs", email = "terry@eonlabs.com" }
 ]
 maintainers = [
-    { name = "Terry Li", email = "terry@eonlabs.ai" }
+    { name = "Terry Li", email = "terry@eonlabs.com" }
 ]
 license = { text = "MIT" }
 keywords = [
