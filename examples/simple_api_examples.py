@@ -8,6 +8,7 @@ Familiar patterns for intuitive cryptocurrency data collection.
 
 import gapless_crypto_data as gcd
 
+
 def example_basic_usage():
     """Basic data fetching examples"""
     print("🚀 Basic Usage Examples")
@@ -60,14 +61,14 @@ def example_download_date_range():
     if not df.empty:
         print(f"✅ Downloaded {len(df)} bars")
         print(f"Date range: {df['date'].min()} to {df['date'].max()}")
-        print(f"Price statistics:")
+        print("Price statistics:")
         print(f"  Open: ${df['open'].iloc[0]:.2f}")
         print(f"  Close: ${df['close'].iloc[-1]:.2f}")
         print(f"  High: ${df['high'].max():.2f}")
         print(f"  Low: ${df['low'].min():.2f}")
 
         # Microstructure analysis
-        buy_ratio = df['taker_buy_base_asset_volume'].sum() / df['volume'].sum()
+        buy_ratio = df["taker_buy_base_asset_volume"].sum() / df["volume"].sum()
         print(f"  Taker buy ratio: {buy_ratio:.1%}")
     else:
         print("❌ No data downloaded")
@@ -86,7 +87,9 @@ def example_multiple_symbols():
         df = gcd.fetch_data(symbol, "1d", limit=30)  # Last 30 days
 
         if not df.empty:
-            price_change = ((df['close'].iloc[-1] - df['close'].iloc[0]) / df['close'].iloc[0]) * 100
+            price_change = (
+                (df["close"].iloc[-1] - df["close"].iloc[0]) / df["close"].iloc[0]
+            ) * 100
             print(f"  ✅ {symbol}: {len(df)} days, price change: {price_change:+.1f}%")
         else:
             print(f"  ❌ {symbol}: No data")
@@ -102,22 +105,25 @@ def example_gap_filling():
     # In practice, you would first collect data, then fill gaps
 
     import os
+
     data_dir = "./sample_data"
 
     if os.path.exists(data_dir):
         print(f"Checking for gaps in {data_dir}...")
         results = gcd.fill_gaps(data_dir)
 
-        print(f"Gap filling results:")
+        print("Gap filling results:")
         print(f"  Files processed: {results['files_processed']}")
         print(f"  Gaps detected: {results['gaps_detected']}")
         print(f"  Gaps filled: {results['gaps_filled']}")
         print(f"  Success rate: {results['success_rate']:.1f}%")
 
-        if results['file_results']:
+        if results["file_results"]:
             print("  Per-file results:")
-            for filename, file_result in results['file_results'].items():
-                print(f"    {filename}: {file_result['gaps_filled']}/{file_result['gaps_detected']} gaps filled")
+            for filename, file_result in results["file_results"].items():
+                print(
+                    f"    {filename}: {file_result['gaps_filled']}/{file_result['gaps_detected']} gaps filled"
+                )
     else:
         print(f"📁 Data directory {data_dir} not found")
         print("💡 First collect some data, then run gap filling")

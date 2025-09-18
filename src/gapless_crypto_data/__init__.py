@@ -60,10 +60,6 @@ __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 
 # Core classes (advanced/power-user API)
-from .collectors.binance_public_data_collector import BinancePublicDataCollector
-from .gap_filling.safe_file_operations import AtomicCSVOperations, SafeCSVMerger
-from .gap_filling.universal_gap_filler import UniversalGapFiller
-
 # Convenience functions (simple/intuitive API)
 from .api import (
     download,
@@ -73,6 +69,9 @@ from .api import (
     get_supported_symbols,
     get_supported_timeframes,
 )
+from .collectors.binance_public_data_collector import BinancePublicDataCollector
+from .gap_filling.safe_file_operations import AtomicCSVOperations, SafeCSVMerger
+from .gap_filling.universal_gap_filler import UniversalGapFiller
 
 __all__ = [
     # Simple function-based API (recommended for most users)

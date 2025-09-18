@@ -69,7 +69,7 @@ def fetch_data(
     limit: Optional[int] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
-    output_dir: Optional[Union[str, Path]] = None
+    output_dir: Optional[Union[str, Path]] = None,
 ) -> pd.DataFrame:
     """Fetch cryptocurrency data with simple function-based API.
 
@@ -106,8 +106,15 @@ def fetch_data(
     if limit and not start and not end:
         # Calculate start date based on limit and interval
         interval_minutes = {
-            "1m": 1, "3m": 3, "5m": 5, "15m": 15, "30m": 30,
-            "1h": 60, "2h": 120, "4h": 240, "1d": 1440
+            "1m": 1,
+            "3m": 3,
+            "5m": 5,
+            "15m": 15,
+            "30m": 30,
+            "1h": 60,
+            "2h": 120,
+            "4h": 240,
+            "1d": 1440,
         }
 
         if interval in interval_minutes:
@@ -128,10 +135,7 @@ def fetch_data(
 
     # Initialize collector
     collector = BinancePublicDataCollector(
-        symbol=symbol,
-        start_date=start,
-        end_date=end,
-        output_dir=output_dir
+        symbol=symbol, start_date=start, end_date=end, output_dir=output_dir
     )
 
     # Collect data for single timeframe
@@ -148,9 +152,17 @@ def fetch_data(
     else:
         # Return empty DataFrame with expected columns
         columns = [
-            "date", "open", "high", "low", "close", "volume",
-            "close_time", "quote_asset_volume", "number_of_trades",
-            "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume"
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "close_time",
+            "quote_asset_volume",
+            "number_of_trades",
+            "taker_buy_base_asset_volume",
+            "taker_buy_quote_asset_volume",
         ]
         return pd.DataFrame(columns=columns)
 
@@ -160,7 +172,7 @@ def download(
     interval: str = "1h",
     start: Optional[str] = None,
     end: Optional[str] = None,
-    output_dir: Optional[Union[str, Path]] = None
+    output_dir: Optional[Union[str, Path]] = None,
 ) -> pd.DataFrame:
     """Download cryptocurrency data (alias for fetch_data).
 
@@ -183,13 +195,7 @@ def download(
         # Simple recent data
         df = download("ETHUSDT", "4h")
     """
-    return fetch_data(
-        symbol=symbol,
-        interval=interval,
-        start=start,
-        end=end,
-        output_dir=output_dir
-    )
+    return fetch_data(symbol=symbol, interval=interval, start=start, end=end, output_dir=output_dir)
 
 
 def fill_gaps(directory: Union[str, Path], symbols: Optional[List[str]] = None) -> dict:
@@ -223,7 +229,7 @@ def fill_gaps(directory: Union[str, Path], symbols: Optional[List[str]] = None) 
         "gaps_detected": 0,
         "gaps_filled": 0,
         "success_rate": 0.0,
-        "file_results": {}
+        "file_results": {},
     }
 
     for csv_file in csv_files:
@@ -275,6 +281,6 @@ def get_info() -> dict:
             "22x faster than API calls",
             "Full 11-column microstructure format",
             "Automatic gap detection and filling",
-            "Production-grade data quality"
-        ]
+            "Production-grade data quality",
+        ],
     }

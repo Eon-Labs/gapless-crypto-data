@@ -6,13 +6,12 @@ Demonstrates the class-based API for complex workflows and power users.
 Shows how to use the full capabilities of the library.
 """
 
-from datetime import datetime
 from pathlib import Path
 
 from gapless_crypto_data import (
+    AtomicCSVOperations,
     BinancePublicDataCollector,
     UniversalGapFiller,
-    AtomicCSVOperations,
 )
 
 
@@ -23,15 +22,14 @@ def example_advanced_collection():
 
     # Initialize collector with custom parameters
     collector = BinancePublicDataCollector(
-        symbol="BTCUSDT",
-        start_date="2024-01-01",
-        end_date="2024-01-31",
-        output_dir="./custom_data"
+        symbol="BTCUSDT", start_date="2024-01-01", end_date="2024-01-31", output_dir="./custom_data"
     )
 
-    print(f"Collector configured:")
+    print("Collector configured:")
     print(f"  Symbol: {collector.symbol}")
-    print(f"  Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}")
+    print(
+        f"  Date range: {collector.start_date.strftime('%Y-%m-%d')} to {collector.end_date.strftime('%Y-%m-%d')}"
+    )
     print(f"  Output directory: {collector.output_dir}")
     print()
 
@@ -61,9 +59,7 @@ def example_single_timeframe_collection():
     print("=" * 50)
 
     collector = BinancePublicDataCollector(
-        symbol="ETHUSDT",
-        start_date="2024-06-01",
-        end_date="2024-06-30"
+        symbol="ETHUSDT", start_date="2024-06-01", end_date="2024-06-30"
     )
 
     print("Collecting ETHUSDT 1-hour data for June 2024...")
@@ -76,18 +72,20 @@ def example_single_timeframe_collection():
             filepath = result["filepath"]
             stats = result["stats"]
 
-            print(f"✅ Collection successful!")
+            print("✅ Collection successful!")
             print(f"  DataFrame shape: {df.shape}")
             print(f"  Date range: {df['date'].min()} to {df['date'].max()}")
             print(f"  File saved: {filepath}")
             print(f"  Collection stats: {stats}")
 
             # Analyze the data
-            print(f"\n📈 Data Analysis:")
+            print("\n📈 Data Analysis:")
             print(f"  Price range: ${df['low'].min():.2f} - ${df['high'].max():.2f}")
             print(f"  Total volume: {df['volume'].sum():,.0f}")
             print(f"  Total trades: {df['number_of_trades'].sum():,}")
-            print(f"  Average taker buy ratio: {(df['taker_buy_base_asset_volume'].sum() / df['volume'].sum()):.1%}")
+            print(
+                f"  Average taker buy ratio: {(df['taker_buy_base_asset_volume'].sum() / df['volume'].sum()):.1%}"
+            )
 
         else:
             print("❌ Collection failed")
@@ -130,16 +128,20 @@ def example_gap_detection_and_filling():
                 print(f"  Gaps detected: {len(gaps)}")
 
                 if gaps:
-                    print(f"  Gap details:")
+                    print("  Gap details:")
                     for i, gap in enumerate(gaps[:3]):  # Show first 3 gaps
-                        duration = gap['duration'].total_seconds() / 3600  # Hours
-                        print(f"    {i+1}. {gap['start_time']} → {gap['end_time']} ({duration:.1f}h)")
+                        duration = gap["duration"].total_seconds() / 3600  # Hours
+                        print(
+                            f"    {i + 1}. {gap['start_time']} → {gap['end_time']} ({duration:.1f}h)"
+                        )
 
                     # Fill gaps
                     result = gap_filler.process_file(csv_file, timeframe)
-                    print(f"  Fill result: {result['gaps_filled']}/{result['gaps_detected']} gaps filled ({result['success_rate']:.1f}%)")
+                    print(
+                        f"  Fill result: {result['gaps_filled']}/{result['gaps_detected']} gaps filled ({result['success_rate']:.1f}%)"
+                    )
                 else:
-                    print(f"  ✅ No gaps found - data is complete!")
+                    print("  ✅ No gaps found - data is complete!")
 
             except Exception as e:
                 print(f"  ❌ Gap analysis error: {e}")
@@ -177,7 +179,7 @@ def example_atomic_operations():
 
         # Read and verify
         if test_file.exists():
-            with open(test_file, 'r') as f:
+            with open(test_file, "r") as f:
                 content = f.read()
             print(f"✅ File verification: {len(content)} characters written")
 
@@ -224,14 +226,14 @@ def example_validation_and_quality_checks():
                 # Validate the CSV file
                 validation_result = collector.validate_csv_file(csv_file, timeframe)
 
-                print(f"✅ Validation completed:")
+                print("✅ Validation completed:")
                 print(f"  Status: {validation_result['validation_summary']}")
                 print(f"  Errors: {validation_result['total_errors']}")
                 print(f"  Warnings: {validation_result['total_warnings']}")
                 print(f"  File size: {validation_result['file_size_mb']:.1f} MB")
 
-                if 'structure_validation' in validation_result:
-                    structure = validation_result['structure_validation']
+                if "structure_validation" in validation_result:
+                    structure = validation_result["structure_validation"]
                     print(f"  Format: {structure['format_type']}")
 
             except Exception as e:
