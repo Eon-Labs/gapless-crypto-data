@@ -47,7 +47,7 @@ Supported Symbols (USDT Spot Only):
     AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.5.0"
+__version__ = "2.6.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.ai"
 

@@ -4,7 +4,7 @@ info:
   description: |
     Consolidated status of current system architecture, replacing outdated planning documents.
     All references should point to this canonical source for current capabilities.
-  version: "2.5.0"
+  version: "2.6.0"
 
 paths: {}
 
@@ -23,7 +23,7 @@ components:
 
 # CURRENT ARCHITECTURE STATUS (2025-09-17)
 x-current-status:
-  canonical_version: "v2.5.0"
+  canonical_version: "v2.6.0"
   architecture_phase: "COMPLETE"
 
   implemented_capabilities:

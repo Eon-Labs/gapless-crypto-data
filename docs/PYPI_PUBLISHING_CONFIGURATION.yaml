@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: PyPI Publishing Configuration
-  version: 2.5.0
+  version: 2.6.0
   description: |
     Native GitHub Actions trusted publishing configuration for gapless-crypto-data.
     Implements OIDC-based authentication without API token dependencies.
