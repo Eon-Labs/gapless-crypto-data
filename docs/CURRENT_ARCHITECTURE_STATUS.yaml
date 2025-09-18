@@ -65,14 +65,22 @@ x-current-status:
 
     cli_interface:
       status: "PRODUCTION_READY"
-      description: "Modern Typer-based CLI with Rich formatting and backward compatibility"
+      description: "Traditional argparse CLI with multi-symbol support"
       technical_specs:
-        - "Modern Typer interface with Rich progress indicators"
-        - "Backward compatibility with legacy argparse interface"
+        - "Traditional argparse interface with standard Python patterns"
         - "Comma-separated multi-symbol support"
         - "16 timeframe options with validation"
         - "Custom date ranges and output directories"
-        - "Sequential processing with enhanced progress reporting"
+        - "Sequential processing with progress reporting"
+
+    pypi_publishing:
+      status: "PRODUCTION_READY"
+      description: "Native GitHub Actions trusted publishing with OIDC authentication"
+      technical_specs:
+        - "OIDC-based authentication eliminating API token dependencies"
+        - "PyPI trusted publisher configuration for Eon-Labs/gapless-crypto-data"
+        - "Environment-scoped publishing with pypi environment requirement"
+        - "Automatic digital attestations and Sigstore artifact signing"
 
   removed_concepts:
     parallel_processing:
