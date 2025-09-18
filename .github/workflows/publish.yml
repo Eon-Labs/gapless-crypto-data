@@ -1,5 +1,5 @@
 name: Build and Publish to PyPI
-true:
+on:
   push:
     branches:
     - main
