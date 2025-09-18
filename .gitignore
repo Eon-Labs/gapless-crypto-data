@@ -12,3 +12,5 @@ venv/
 env/
 test-env/
 *-env/
+# Gapless Crypto Data checkpoint files (auto-generated during collection)
+.gapless_checkpoints/

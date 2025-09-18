@@ -328,8 +328,8 @@ def test_cli_help_mentions_list_timeframes():
     assert "--list-timeframes" in result.stdout
     assert "List all available timeframes with descriptions" in result.stdout
 
-    # Check that timeframes help mentions 16 available options
-    assert "from 16 available options" in result.stdout
+    # Check that timeframes help mentions 13 available options
+    assert "from 13 available options" in result.stdout
     # More flexible check for list-timeframes usage instruction
     assert (
         "list-timeframes" in result.stdout.lower()

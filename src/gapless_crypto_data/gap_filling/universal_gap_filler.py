@@ -11,7 +11,7 @@ providing complete microstructure columns for professional analysis.
 Key Features:
 - Auto-detects gaps by analyzing timestamp sequences
 - Uses authentic Binance API with full 11-column microstructure format
-- Handles all timeframes (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- Handles all timeframes (1s, 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d)
 - Provides authentic order flow metrics including trade counts and taker volumes
 - Processes gaps chronologically to maintain data integrity
 - NO synthetic or estimated data - only authentic exchange data
@@ -43,7 +43,7 @@ class UniversalGapFiller:
     trade counts, and taker volume statistics essential for quantitative analysis.
 
     Features:
-        - Universal gap detection for any timeframe (1m to 4h)
+        - Universal gap detection for any timeframe (1s to 1d)
         - Authentic Binance API data for gap filling (never synthetic)
         - Complete 11-column microstructure format preservation
         - Chronological processing for data integrity
@@ -52,8 +52,10 @@ class UniversalGapFiller:
         - Safe atomic operations with backup/rollback
 
     Supported Timeframes:
+        - 1s: Second-based intervals
         - 1m, 3m, 5m, 15m, 30m: Minute-based intervals
-        - 1h, 2h, 4h: Hour-based intervals
+        - 1h, 2h, 4h, 6h, 8h, 12h: Hour-based intervals
+        - 1d: Daily intervals
 
     Data Quality:
         All gap-filled data maintains the same structure as original Binance data:
@@ -101,6 +103,7 @@ class UniversalGapFiller:
     def __init__(self):
         self.binance_base_url = "https://api.binance.com/api/v3/klines"
         self.timeframe_mapping = {
+            "1s": "1s",
             "1m": "1m",
             "3m": "3m",
             "5m": "5m",
@@ -109,9 +112,13 @@ class UniversalGapFiller:
             "1h": "1h",
             "2h": "2h",
             "4h": "4h",
+            "6h": "6h",
+            "8h": "8h",
+            "12h": "12h",
+            "1d": "1d",
         }
 
-    def extract_symbol_from_filename(self, csv_path: Path) -> str:
+    def extract_symbol_from_filename(self, csv_path) -> str:
         """Extract symbol from CSV filename
 
         Supports formats like:
@@ -119,7 +126,12 @@ class UniversalGapFiller:
         - BTCUSDT_1h_data.csv
         - ETHUSDT-4h.csv
         """
-        filename = csv_path.name
+        # Handle both string and Path inputs
+        if isinstance(csv_path, (str, Path)):
+            path_obj = Path(csv_path)
+            filename = path_obj.name
+        else:
+            filename = str(csv_path)
 
         # Handle gapless-crypto-data format: binance_spot_SYMBOL-timeframe_dates.csv
         if "binance_spot_" in filename:
@@ -162,6 +174,7 @@ class UniversalGapFiller:
 
         # Calculate expected interval
         interval_mapping = {
+            "1s": timedelta(seconds=1),
             "1m": timedelta(minutes=1),
             "3m": timedelta(minutes=3),
             "5m": timedelta(minutes=5),
@@ -170,6 +183,10 @@ class UniversalGapFiller:
             "1h": timedelta(hours=1),
             "2h": timedelta(hours=2),
             "4h": timedelta(hours=4),
+            "6h": timedelta(hours=6),
+            "8h": timedelta(hours=8),
+            "12h": timedelta(hours=12),
+            "1d": timedelta(days=1),
         }
         expected_interval = interval_mapping[timeframe]
 
@@ -337,7 +354,8 @@ class UniversalGapFiller:
         # ✅ API-FIRST VALIDATION: Always use authentic Binance REST API data
         # Extract symbol from filename to ensure correct data is fetched
         extracted_symbol = self.extract_symbol_from_filename(csv_path)
-        logger.info(f"   🎯 Extracted symbol: {extracted_symbol} from file: {csv_path.name}")
+        filename = Path(csv_path).name if isinstance(csv_path, str) else csv_path.name
+        logger.info(f"   🎯 Extracted symbol: {extracted_symbol} from file: {filename}")
 
         logger.info("   🔍 Step 1: Attempting authentic Binance REST API data retrieval")
         authentic_api_data = self.fetch_binance_data(

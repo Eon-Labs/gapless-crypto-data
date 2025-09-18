@@ -16,7 +16,7 @@ Examples:
     uv run gapless-crypto-data
 
     # Custom symbol and timeframes with automatic gap filling
-    uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h,4h,1d
+    uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1s,1h,4h,6h,8h,12h,1d
 
     # Multiple symbols and timeframes with automatic gap filling
     uv run gapless-crypto-data --symbol BTCUSDT,ETHUSDT,SOLUSDT --timeframes 1h,4h
@@ -77,8 +77,8 @@ def add_collection_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--timeframes",
-        default="1m,3m,5m,15m,30m,1h,2h,4h",
-        help="Comma-separated timeframes from 16 available options (default: 1m,3m,5m,15m,30m,1h,2h,4h). Use --list-timeframes to see all available timeframes",
+        default="1s,1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d",
+        help="Comma-separated timeframes from 13 available options (default: 1s,1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d). Use --list-timeframes to see all available timeframes",
     )
     parser.add_argument(
         "--start", default="2021-08-06", help="Start date YYYY-MM-DD (default: 2021-08-06)"
@@ -133,7 +133,7 @@ def list_timeframes() -> int:
     collector = BinancePublicDataCollector()
     timeframes = collector.available_timeframes
 
-    # Timeframe descriptions
+    # Timeframe descriptions for all 13 supported timeframes
     descriptions = {
         "1s": "1 second intervals (ultra high-frequency, very large datasets)",
         "1m": "1 minute intervals (high-frequency trading, large datasets)",
@@ -148,9 +148,6 @@ def list_timeframes() -> int:
         "8h": "8 hour intervals (daily cycle analysis)",
         "12h": "12 hour intervals (half-daily patterns)",
         "1d": "1 day intervals (daily trading, long-term trends)",
-        "3d": "3 day intervals (weekly pattern analysis)",
-        "1w": "1 week intervals (long-term trend analysis)",
-        "1mo": "1 month intervals (macro trend analysis, small datasets)",
     }
 
     print("Timeframe | Description")
@@ -172,7 +169,7 @@ def list_timeframes() -> int:
     print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1s,1m")
     print()
     print("   # Long-term analysis")
-    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1d,1w,1mo")
+    print("   uv run gapless-crypto-data --symbol BTCUSDT --timeframes 6h,12h,1d")
     print()
     print("📈 Performance Notes:")
     print("   • Shorter intervals = larger datasets, longer collection time")

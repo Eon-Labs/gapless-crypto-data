@@ -15,6 +15,60 @@ from gapless_crypto_data import (
 )
 
 
+def example_ultra_high_frequency_collection():
+    """Demonstrate ultra-high frequency and extended timeframes"""
+    print("⚡ Ultra-High Frequency & Extended Timeframes Example")
+    print("=" * 50)
+
+    # Ultra-high frequency collection (1s data)
+    print("Collecting 1-second ultra-high frequency data (small date range)...")
+    uhf_collector = BinancePublicDataCollector(
+        symbol="BTCUSDT",
+        start_date="2024-01-01",
+        end_date="2024-01-01",  # Single day for 1s data
+        output_dir="./uhf_data",
+    )
+
+    try:
+        uhf_result = uhf_collector.collect_timeframe_data("1s")
+        if uhf_result and "dataframe" in uhf_result:
+            df = uhf_result["dataframe"]
+            print(f"✅ 1s data: {len(df)} bars (ultra-high frequency)")
+            print(f"   File size: {uhf_result['filepath'].stat().st_size / (1024 * 1024):.1f} MB")
+        else:
+            print("⚠️  1s data not available for this date range")
+    except Exception as e:
+        print(f"⚠️  1s collection: {e}")
+
+    # Extended timeframes collection
+    print("\nCollecting extended timeframes (6h, 8h, 12h, 1d)...")
+    extended_collector = BinancePublicDataCollector(
+        symbol="ETHUSDT",
+        start_date="2024-01-01",
+        end_date="2024-02-01",
+        output_dir="./extended_data",
+    )
+
+    extended_timeframes = ["6h", "8h", "12h", "1d"]
+    try:
+        extended_results = extended_collector.collect_multiple_timeframes(extended_timeframes)
+        if extended_results:
+            print(f"✅ Extended timeframes: {len(extended_results)} collected")
+            for tf, filepath in extended_results.items():
+                file_size = filepath.stat().st_size / (1024 * 1024)
+                print(f"   {tf}: {filepath.name} ({file_size:.1f} MB)")
+        else:
+            print("❌ Extended timeframes collection failed")
+    except Exception as e:
+        print(f"❌ Extended collection error: {e}")
+
+    print("\n💡 Note: All 13 timeframes supported with intelligent fallback system")
+    print("   • Ultra-high frequency: 1s (use short date ranges)")
+    print("   • Standard: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h")
+    print("   • Extended: 6h, 8h, 12h, 1d (automatic monthly-to-daily fallback)")
+    print()
+
+
 def example_advanced_collection():
     """Advanced data collection with custom configuration"""
     print("🎯 Advanced Collection Example")
@@ -115,7 +169,21 @@ def example_gap_detection_and_filling():
 
             # Extract timeframe from filename
             timeframe = "1h"  # Default
-            for tf in ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h"]:
+            for tf in [
+                "1s",
+                "1m",
+                "3m",
+                "5m",
+                "15m",
+                "30m",
+                "1h",
+                "2h",
+                "4h",
+                "6h",
+                "8h",
+                "12h",
+                "1d",
+            ]:
                 if f"-{tf}_" in csv_file.name:
                     timeframe = tf
                     break
@@ -218,7 +286,21 @@ def example_validation_and_quality_checks():
             try:
                 # Extract timeframe for validation
                 timeframe = None
-                for tf in ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h"]:
+                for tf in [
+                    "1s",
+                    "1m",
+                    "3m",
+                    "5m",
+                    "15m",
+                    "30m",
+                    "1h",
+                    "2h",
+                    "4h",
+                    "6h",
+                    "8h",
+                    "12h",
+                    "1d",
+                ]:
                     if f"-{tf}_" in csv_file.name:
                         timeframe = tf
                         break
@@ -251,6 +333,7 @@ if __name__ == "__main__":
     print()
 
     try:
+        example_ultra_high_frequency_collection()
         example_advanced_collection()
         example_single_timeframe_collection()
         example_gap_detection_and_filling()

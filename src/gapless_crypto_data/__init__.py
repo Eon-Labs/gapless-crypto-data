@@ -13,7 +13,9 @@ Core Features:
 - Zero gaps guarantee through authentic API-first validation
 - UV-based Python tooling
 - Atomic file operations
-- Multi-timeframe support (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h)
+- Complete 13-timeframe support (1s, 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d)
+- Ultra-high frequency (1s) to daily (1d) data collection
+- Intelligent monthly-to-daily fallback for seamless recent data access
 - Gap detection and filling with authentic data only
 - CCXT-compatible dual parameter support (timeframe/interval)
 - Backward compatibility with 5-year deprecation period
@@ -51,7 +53,8 @@ Usage:
     df = result["dataframe"]
 
 CLI Usage:
-    uv run gapless-crypto-data --symbol SOLUSDT --timeframes 1m,3m,5m
+    uv run gapless-crypto-data --symbol SOLUSDT --timeframes 1s,1m,5m,1h,4h,1d
+    uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1s,6h,8h,12h,1d
     uv run gapless-crypto-data --fill-gaps --directory ./data
 
 Supported Symbols (USDT Spot Only):
@@ -59,7 +62,7 @@ Supported Symbols (USDT Spot Only):
     AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.8.0"
+__version__ = "2.9.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.com"
 

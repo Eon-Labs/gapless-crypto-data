@@ -272,6 +272,107 @@ class BinancePublicDataCollector:
 
         except Exception as download_exception:
             print(f"    ❌ Error downloading {zip_filename}: {download_exception}")
+
+            # Implement automatic fallback to daily files when monthly fails
+            print(f"    🔄 Attempting daily file fallback for {zip_filename}")
+            return self._fallback_to_daily_files(zip_filename)
+
+    def _fallback_to_daily_files(self, failed_monthly_filename):
+        """
+        Fallback to daily file downloads when monthly file is not available.
+
+        Automatically downloads individual daily files for the failed month
+        and combines them into a single dataset for seamless operation.
+
+        Args:
+            failed_monthly_filename: The monthly filename that failed (e.g., "BTCUSDT-1d-2025-09.zip")
+
+        Returns:
+            List of combined daily data, or empty list if all daily files also fail
+        """
+        # Extract symbol, timeframe, and year-month from failed filename
+        # Format: "BTCUSDT-1d-2025-09.zip"
+        parts = failed_monthly_filename.replace(".zip", "").split("-")
+        if len(parts) < 4:
+            print(f"    ❌ Cannot parse monthly filename: {failed_monthly_filename}")
+            return []
+
+        symbol = parts[0]
+        timeframe = parts[1]
+        year = parts[2]
+        month = parts[3]
+
+        print(f"    📅 Fallback: Downloading daily files for {symbol} {timeframe} {year}-{month}")
+
+        # Generate daily URLs for the entire month
+        daily_urls = self._generate_daily_urls_for_month(symbol, timeframe, year, month)
+
+        # Download all daily files for this month
+        combined_daily_data = []
+        successful_daily_downloads = 0
+
+        for daily_url, daily_filename in daily_urls:
+            daily_data = self._download_and_extract_daily_file(daily_url, daily_filename)
+            if daily_data:
+                combined_daily_data.extend(daily_data)
+                successful_daily_downloads += 1
+
+        if successful_daily_downloads > 0:
+            print(
+                f"    ✅ Daily fallback successful: {successful_daily_downloads}/{len(daily_urls)} daily files retrieved"
+            )
+            return combined_daily_data
+        else:
+            print(f"    ❌ Daily fallback failed: No daily files available for {year}-{month}")
+            return []
+
+    def _generate_daily_urls_for_month(self, symbol, timeframe, year, month):
+        """Generate daily URLs for all days in a specific month."""
+        from calendar import monthrange
+
+        # Get number of days in the month
+        year_int = int(year)
+        month_int = int(month)
+        _, days_in_month = monthrange(year_int, month_int)
+
+        daily_urls = []
+
+        # Use daily data URL pattern: https://data.binance.vision/data/spot/daily/klines/
+        daily_base_url = self.base_url.replace("/monthly/", "/daily/")
+
+        for day in range(1, days_in_month + 1):
+            date_str = f"{year}-{month_int:02d}-{day:02d}"
+            daily_filename = f"{symbol}-{timeframe}-{date_str}.zip"
+            daily_url = f"{daily_base_url}/{symbol}/{timeframe}/{daily_filename}"
+            daily_urls.append((daily_url, daily_filename))
+
+        return daily_urls
+
+    def _download_and_extract_daily_file(self, daily_url, daily_filename):
+        """Download and extract a single daily ZIP file."""
+        try:
+            with tempfile.NamedTemporaryFile() as temporary_zip_file:
+                # Download daily ZIP file
+                with urllib.request.urlopen(daily_url, timeout=30) as http_response:
+                    if http_response.status == 200:
+                        shutil.copyfileobj(http_response, temporary_zip_file)
+                        temporary_zip_file.flush()
+                    else:
+                        # Daily file not available (normal for future dates or weekends)
+                        return []
+
+                # Extract CSV data from daily file
+                with zipfile.ZipFile(temporary_zip_file.name, "r") as zip_file_handle:
+                    expected_csv_filename = daily_filename.replace(".zip", ".csv")
+                    if expected_csv_filename in zip_file_handle.namelist():
+                        with zip_file_handle.open(expected_csv_filename) as extracted_csv_file:
+                            csv_file_content = extracted_csv_file.read().decode("utf-8")
+                            return list(csv.reader(csv_file_content.strip().split("\n")))
+                    else:
+                        return []
+
+        except Exception:
+            # Silent failure for daily files - many days may not have data
             return []
 
     def _detect_header_intelligent(self, raw_csv_data):

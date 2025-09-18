@@ -128,6 +128,7 @@ def fetch_data(
     if limit and not start and not end:
         # Calculate start date based on limit and interval
         interval_minutes = {
+            "1s": 1 / 60,  # 1 second = 1/60 minute
             "1m": 1,
             "3m": 3,
             "5m": 5,
@@ -136,6 +137,9 @@ def fetch_data(
             "1h": 60,
             "2h": 120,
             "4h": 240,
+            "6h": 360,
+            "8h": 480,
+            "12h": 720,
             "1d": 1440,
         }
 
@@ -274,7 +278,7 @@ def fill_gaps(directory: Union[str, Path], symbols: Optional[List[str]] = None) 
     for csv_file in csv_files:
         # Extract timeframe from filename
         timeframe = "1h"  # Default
-        for tf in ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h"]:
+        for tf in ["1s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d"]:
             if f"-{tf}_" in csv_file.name or f"-{tf}-" in csv_file.name:
                 timeframe = tf
                 break
