@@ -5,6 +5,93 @@ All notable changes to gapless-crypto-data will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-09-18
+
+### ✨ Major API Enhancement: Dual API Architecture
+
+#### 🎯 Simple Function-Based API (New)
+- **Intuitive function-based API** - `fetch_data()`, `download()`, `get_supported_symbols()` for simple data collection
+- **Familiar patterns** - Drop-in usage similar to popular financial data libraries
+- **Production-ready** - Full feature parity with class-based API for common use cases
+- **Zero learning curve** - Immediate productivity for users familiar with financial data tools
+
+#### 🏗️ Enhanced API Structure
+- **Dual API design** - Simple functions for quick tasks, classes for complex workflows
+- **Backward compatibility** - All existing class-based code continues to work unchanged
+- **Consistent returns** - Both APIs return identical pandas DataFrames with 11-column microstructure format
+- **Unified documentation** - All examples show both API styles for maximum flexibility
+
+#### 📦 New Function-Based API Reference
+- `fetch_data(symbol, interval, limit=None, start=None, end=None)` - Core data fetching
+- `download(symbol, interval, start=None, end=None)` - Familiar download interface
+- `get_supported_symbols()` - Discover available trading pairs
+- `get_supported_timeframes()` - List all supported intervals
+- `fill_gaps(directory, symbols=None)` - Simple gap filling for directories
+- `get_info()` - Library metadata and capabilities
+
+#### 🔧 API Integration Examples
+```python
+# Simple API (new)
+import gapless_crypto_data as gcd
+df = gcd.download("BTCUSDT", "1h", start="2024-01-01", end="2024-06-30")
+symbols = gcd.get_supported_symbols()
+
+# Advanced API (existing, unchanged)
+from gapless_crypto_data import BinancePublicDataCollector
+collector = BinancePublicDataCollector(symbol="BTCUSDT")
+result = collector.collect_timeframe_data("1h")
+```
+
+#### 📚 Comprehensive Documentation Updates
+- **README.md** - Updated with dual API examples and microstructure analysis patterns
+- **API_QUICK_START.md** - New quick start guide with function-based examples
+- **PYPI_DOCUMENTATION.md** - Complete API reference for PyPI users
+- **Examples** - Both simple and advanced usage patterns demonstrated
+
+#### 🧪 Enhanced Testing
+- **Function API tests** - 13 new test cases validating function-based API
+- **Usage pattern tests** - Validates common financial data workflow patterns
+- **API consistency tests** - Ensures both APIs return identical data structures
+- **Backward compatibility** - Confirms existing class-based code works unchanged
+
+#### 🔧 Trusted Publishing Migration
+- **OIDC authentication** - Migrated from API tokens to GitHub Actions trusted publishing
+- **Zero credentials** - Eliminated stored secrets for PyPI publishing workflow
+- **Enhanced security** - GitHub-native authentication with automatic attestations
+- **Sigstore signing** - Digital artifact signing for supply chain security
+
+#### 📊 Package Metadata Enhancements
+- **Updated descriptions** - Reflect dual API architecture and intuitive usage
+- **Enhanced keywords** - Include function-based, simple-api, download, fetch-data
+- **CLI help text** - Updated to mention both API styles with examples
+- **Docstring improvements** - All major classes reference simple API alternatives
+
+### 🔄 Dependency Evolution
+#### Added
+- No new dependencies - enhanced functionality using existing stack
+
+#### Improved
+- **httpx integration** - Maintains high-performance HTTP operations
+- **Documentation structure** - Machine-readable API specifications
+- **Testing coverage** - Expanded to validate both API architectures
+
+### 🏗️ Non-Breaking Changes
+- **Full backward compatibility** - All existing code continues to work unchanged
+- **Additive API** - New functions complement existing classes without conflicts
+- **Import stability** - Existing import statements work identically
+- **Data format consistency** - Same 11-column microstructure format across both APIs
+
+### 📈 Performance
+- **Same collection speed** - Maintains 22x faster performance with new API
+- **Memory efficiency** - Function-based API uses identical underlying implementation
+- **Zero overhead** - New functions are lightweight wrappers around proven classes
+
+### 🎯 User Experience Improvements
+- **Lower barrier to entry** - Simple one-line data fetching for new users
+- **Power user flexibility** - Class-based API unchanged for complex workflows
+- **Documentation clarity** - Clear guidance on when to use each API style
+- **Migration path** - Easy evolution from simple to advanced usage
+
 ## [2.0.0] - 2025-09-15
 
 ### ✨ Major Version: Full 11-Column Microstructure Format

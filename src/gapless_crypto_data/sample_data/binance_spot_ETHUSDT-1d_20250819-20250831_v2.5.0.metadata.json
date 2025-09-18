@@ -1,38 +1,38 @@
 {
   "version": "v2.5.0",
   "generator": "BinancePublicDataCollector",
-  "generation_timestamp": "2025-09-18T15:29:58.800420+00:00Z",
+  "generation_timestamp": "2025-09-18T15:39:50.720290+00:00Z",
   "data_source": "Binance Public Data Repository",
   "data_source_url": "https://data.binance.vision/data/spot/monthly/klines",
   "market_type": "spot",
-  "symbol": "BTCUSDT",
-  "timeframe": "1h",
+  "symbol": "ETHUSDT",
+  "timeframe": "1d",
   "collection_method": "direct_download",
   "target_period": {
-    "start": "2024-01-01T00:00:00",
-    "end": "2024-01-02T23:59:59",
-    "total_days": 1
+    "start": "2025-08-19T00:00:00",
+    "end": "2025-09-18T23:59:59",
+    "total_days": 30
   },
-  "actual_bars": 48,
+  "actual_bars": 13,
   "date_range": {
-    "start": "2024-01-01 00:00:00",
-    "end": "2024-01-02 23:00:00"
+    "start": "2025-08-19 00:00:00",
+    "end": "2025-08-31 00:00:00"
   },
   "statistics": {
-    "price_min": 42180.77,
-    "price_max": 45879.63,
-    "volume_total": 92320.70564,
-    "volume_mean": 1923.3480341666666
+    "price_min": 4060.0,
+    "price_max": 4956.78,
+    "volume_total": 8911021.04288,
+    "volume_mean": 685463.1571446154
   },
   "collection_performance": {
     "method": "direct_download",
     "duration": 0.0,
     "bars_per_second": 0,
-    "total_bars": 48
+    "total_bars": 13
   },
   "data_integrity": {
     "chronological_order": true,
-    "data_hash": "5fba9d2e5d3db849c27124002860a1d4ad344b6bc9329d1b67a96ed9b3453696",
+    "data_hash": "41253241746ff9c7a512842136342bbe9907b25eab1b9e7611e555bb1287a359",
     "corruption_detected": false,
     "corrupted_rows_count": 0,
     "corruption_details": [],
@@ -43,13 +43,13 @@
     }
   },
   "timestamp_format_analysis": {
-    "total_rows_analyzed": 744,
+    "total_rows_analyzed": 31,
     "formats_detected": {
-      "milliseconds": 744
+      "microseconds": 31
     },
     "transitions_detected": 0,
     "transition_details": [],
-    "primary_format": "milliseconds",
+    "primary_format": "microseconds",
     "format_consistency": true
   },
   "enhanced_microstructure_format": {
@@ -81,10 +81,10 @@
     "total_missing_bars": 0,
     "gap_filling_method": "authentic_binance_api",
     "data_completeness_score": 1.0,
-    "analysis_timestamp": "2025-09-18T15:29:58.800403+00:00Z",
+    "analysis_timestamp": "2025-09-18T15:39:50.720282+00:00Z",
     "analysis_parameters": {
-      "timeframe": "1h",
-      "expected_interval_minutes": 60,
+      "timeframe": "1d",
+      "expected_interval_minutes": 1440,
       "tolerance_factor": 1.5
     }
   },

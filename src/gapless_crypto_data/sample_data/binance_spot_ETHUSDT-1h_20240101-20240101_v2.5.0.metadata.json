@@ -1,38 +1,38 @@
 {
   "version": "v2.5.0",
   "generator": "BinancePublicDataCollector",
-  "generation_timestamp": "2025-09-18T15:29:58.800420+00:00Z",
+  "generation_timestamp": "2025-09-18T15:30:00.698469+00:00Z",
   "data_source": "Binance Public Data Repository",
   "data_source_url": "https://data.binance.vision/data/spot/monthly/klines",
   "market_type": "spot",
-  "symbol": "BTCUSDT",
+  "symbol": "ETHUSDT",
   "timeframe": "1h",
   "collection_method": "direct_download",
   "target_period": {
     "start": "2024-01-01T00:00:00",
-    "end": "2024-01-02T23:59:59",
-    "total_days": 1
+    "end": "2024-01-01T23:59:59",
+    "total_days": 0
   },
-  "actual_bars": 48,
+  "actual_bars": 24,
   "date_range": {
     "start": "2024-01-01 00:00:00",
-    "end": "2024-01-02 23:00:00"
+    "end": "2024-01-01 23:00:00"
   },
   "statistics": {
-    "price_min": 42180.77,
-    "price_max": 45879.63,
-    "volume_total": 92320.70564,
-    "volume_mean": 1923.3480341666666
+    "price_min": 2265.24,
+    "price_max": 2352.37,
+    "volume_total": 216702.6914,
+    "volume_mean": 9029.278808333334
   },
   "collection_performance": {
     "method": "direct_download",
     "duration": 0.0,
     "bars_per_second": 0,
-    "total_bars": 48
+    "total_bars": 24
   },
   "data_integrity": {
     "chronological_order": true,
-    "data_hash": "5fba9d2e5d3db849c27124002860a1d4ad344b6bc9329d1b67a96ed9b3453696",
+    "data_hash": "582bee86ac4fed7033cf997d17367916b6a8a60dd034a267b45af15a92fbc60d",
     "corruption_detected": false,
     "corrupted_rows_count": 0,
     "corruption_details": [],
@@ -81,7 +81,7 @@
     "total_missing_bars": 0,
     "gap_filling_method": "authentic_binance_api",
     "data_completeness_score": 1.0,
-    "analysis_timestamp": "2025-09-18T15:29:58.800403+00:00Z",
+    "analysis_timestamp": "2025-09-18T15:30:00.698460+00:00Z",
     "analysis_parameters": {
       "timeframe": "1h",
       "expected_interval_minutes": 60,

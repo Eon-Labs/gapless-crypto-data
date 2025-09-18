@@ -426,17 +426,20 @@ Data Availability Notes:
     Historical test:  --start 2022-01-01 --end 2022-12-31
     Long backtest:    --start 2020-01-01 --end 2023-12-31
 
-  Output Directory Examples:
+  CLI Examples:
     Single symbol:     uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h
     Multiple symbols:  uv run gapless-crypto-data --symbol BTCUSDT,ETHUSDT --timeframes 1h,4h
     Custom directory:  uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --output-dir ./data
-    Absolute path:     uv run gapless-crypto-data --symbol BTCUSDT,ETHUSDT --timeframes 1h --output-dir /home/user/crypto_data
+
+  Python API Examples:
+    Simple API:        import gapless_crypto_data as gcd; df = gcd.download("BTCUSDT", "1h")
+    Advanced API:      from gapless_crypto_data import BinancePublicDataCollector
 
 Performance: 22x faster than API calls via Binance public data repository with automatic gap filling and full 11-column microstructure format
 """
 
     parser = argparse.ArgumentParser(
-        description="Ultra-fast cryptocurrency data collection with automatic gap filling and full 11-column microstructure format",
+        description="Ultra-fast cryptocurrency data collection with intuitive function-based API, automatic gap filling, and full 11-column microstructure format",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__ + data_availability_info,
     )

@@ -18,7 +18,35 @@ pip install gapless-crypto-data
 
 ## 📁 Example Files
 
-### 1. [basic_data_collection.py](basic_data_collection.py)
+### 1. [simple_api_examples.py](simple_api_examples.py) ⭐ **NEW**
+**Demonstrates:** Function-based API for simple data collection
+
+**Key Features:**
+- Intuitive `fetch_data()` and `download()` functions
+- Symbol and timeframe discovery
+- Simple gap filling
+- Multiple usage patterns
+
+**Run it:**
+```bash
+uv run python examples/simple_api_examples.py
+```
+
+### 2. [advanced_api_examples.py](advanced_api_examples.py) ⭐ **NEW**
+**Demonstrates:** Class-based API for complex workflows
+
+**Key Features:**
+- Advanced data collection with custom configuration
+- Detailed gap detection and analysis
+- Atomic file operations
+- Validation and quality checks
+
+**Run it:**
+```bash
+uv run python examples/advanced_api_examples.py
+```
+
+### 3. [basic_data_collection.py](basic_data_collection.py)
 **Demonstrates:** Basic data collection workflow
 
 **Key Features:**
@@ -31,7 +59,7 @@ pip install gapless-crypto-data
 uv run python examples/basic_data_collection.py
 ```
 
-### 2. [gap_filling_example.py](gap_filling_example.py)
+### 4. [gap_filling_example.py](gap_filling_example.py)
 **Demonstrates:** Gap detection and filling
 
 **Key Features:**
@@ -79,13 +107,16 @@ bash examples/cli_usage_examples.sh
 Perfect for testing and understanding the package:
 
 ```bash
-# 1. Basic collection
+# 1. Simple API demo (NEW - start here!)
+uv run python examples/simple_api_examples.py
+
+# 2. Advanced API demo (NEW - for complex workflows)
+uv run python examples/advanced_api_examples.py
+
+# 3. Basic collection
 uv run python examples/basic_data_collection.py
 
-# 2. Gap filling demo
-uv run python examples/gap_filling_example.py
-
-# 3. CLI quick test
+# 4. CLI quick test
 uv run gapless-crypto-data --symbol BTCUSDT --timeframes 1h --start 2024-01-01 --end 2024-01-02
 ```
 

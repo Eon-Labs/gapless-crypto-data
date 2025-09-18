@@ -60,21 +60,69 @@ gapless-crypto-data --help
 
 ### Python API
 
+#### Simple API (Recommended)
+
+```python
+import gapless_crypto_data as gcd
+
+# Fetch recent data with date range
+df = gcd.download("BTCUSDT", "1h", start="2024-01-01", end="2024-06-30")
+
+# Or with limit
+df = gcd.fetch_data("ETHUSDT", "4h", limit=1000)
+
+# Get available symbols and timeframes
+symbols = gcd.get_supported_symbols()
+timeframes = gcd.get_supported_timeframes()
+
+# Fill gaps in existing data
+results = gcd.fill_gaps("./data")
+```
+
+#### Advanced API (Power Users)
+
 ```python
 from gapless_crypto_data import BinancePublicDataCollector, UniversalGapFiller
 
-# Collect data
-collector = BinancePublicDataCollector()
-collector.collect_data(
+# Custom collection with full control
+collector = BinancePublicDataCollector(
     symbol="SOLUSDT",
-    timeframes=["1m", "5m", "1h"],
     start_date="2023-01-01",
     end_date="2023-12-31"
 )
 
-# Fill gaps
+result = collector.collect_timeframe_data("1h")
+df = result["dataframe"]
+
+# Manual gap filling
 gap_filler = UniversalGapFiller()
-gap_filler.fill_gaps(directory="./data")
+gaps = gap_filler.detect_all_gaps(csv_file, "1h")
+```
+
+## 🎯 Data Structure
+
+All functions return pandas DataFrames with complete microstructure data:
+
+```python
+import gapless_crypto_data as gcd
+
+# Fetch data
+df = gcd.download("BTCUSDT", "1h", start="2024-01-01", end="2024-06-30")
+
+# DataFrame columns (11-column microstructure format)
+print(df.columns.tolist())
+# ['date', 'open', 'high', 'low', 'close', 'volume',
+#  'close_time', 'quote_asset_volume', 'number_of_trades',
+#  'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume']
+
+# Professional microstructure analysis
+buy_pressure = df['taker_buy_base_asset_volume'].sum() / df['volume'].sum()
+avg_trade_size = df['volume'].sum() / df['number_of_trades'].sum()
+market_impact = df['quote_asset_volume'].std() / df['quote_asset_volume'].mean()
+
+print(f"Taker buy pressure: {buy_pressure:.1%}")
+print(f"Average trade size: {avg_trade_size:.4f} BTC")
+print(f"Market impact volatility: {market_impact:.3f}")
 ```
 
 ## 📊 Performance Comparison
@@ -147,43 +195,76 @@ gapless-crypto-data --symbol BTCUSDT,ETHUSDT --timeframes 1m,1h --start 2023-01-
 gapless-crypto-data --symbol SOLUSDT,ADAUSDT --timeframes 5m,4h --start 2023-07-01 --end 2023-12-31
 ```
 
-#### Python API
+#### Simple API (Recommended)
+
+```python
+import gapless_crypto_data as gcd
+
+# Process multiple symbols with simple loops
+symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT"]
+timeframes = ["1h", "4h"]
+
+for symbol in symbols:
+    for timeframe in timeframes:
+        df = gcd.fetch_data(symbol, timeframe, start="2023-01-01", end="2023-12-31")
+        print(f"{symbol} {timeframe}: {len(df)} bars collected")
+```
+
+#### Advanced API (Complex Workflows)
 
 ```python
 from gapless_crypto_data import BinancePublicDataCollector
 
-collector = BinancePublicDataCollector()
+# Initialize with custom settings
+collector = BinancePublicDataCollector(
+    start_date="2023-01-01",
+    end_date="2023-12-31",
+    output_dir="./crypto_data"
+)
 
-# Process multiple symbols (loop-based for complex logic)
-symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT"]
-timeframes = ["1m", "5m", "15m", "1h", "4h"]
-
+# Process multiple symbols with detailed control
+symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
 for symbol in symbols:
-    collector.collect_data(
-        symbol=symbol,
-        timeframes=timeframes,
-        start_date="2023-01-01",
-        end_date="2023-12-31"
-    )
+    collector.symbol = symbol
+    results = collector.collect_multiple_timeframes(["1m", "5m", "1h", "4h"])
+    for timeframe, result in results.items():
+        print(f"{symbol} {timeframe}: {result['stats']}")
 ```
 
 ### Gap Analysis
+
+#### Simple API (Recommended)
+
+```python
+import gapless_crypto_data as gcd
+
+# Quick gap filling for entire directory
+results = gcd.fill_gaps("./data")
+print(f"Processed {results['files_processed']} files")
+print(f"Filled {results['gaps_filled']}/{results['gaps_detected']} gaps")
+print(f"Success rate: {results['success_rate']:.1f}%")
+
+# Gap filling for specific symbols only
+results = gcd.fill_gaps("./data", symbols=["BTCUSDT", "ETHUSDT"])
+```
+
+#### Advanced API (Detailed Control)
 
 ```python
 from gapless_crypto_data import UniversalGapFiller
 
 gap_filler = UniversalGapFiller()
 
-# Analyze gaps before filling
-gaps = gap_filler.detect_gaps(directory="./data")
-print(f"Found {len(gaps)} gaps across all files")
+# Manual gap detection and analysis
+gaps = gap_filler.detect_all_gaps("BTCUSDT_1h.csv", "1h")
+print(f"Found {len(gaps)} gaps")
 
-# Fill gaps with detailed logging
-gap_filler.fill_gaps(
-    directory="./data",
-    verbose=True,
-    max_retries=3
-)
+for gap in gaps:
+    duration_hours = gap['duration'].total_seconds() / 3600
+    print(f"Gap: {gap['start_time']} → {gap['end_time']} ({duration_hours:.1f}h)")
+
+# Fill specific gaps
+result = gap_filler.process_file("BTCUSDT_1h.csv", "1h")
 ```
 
 ## 🛠️ Development

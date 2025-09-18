@@ -1,38 +1,38 @@
 {
   "version": "v2.5.0",
   "generator": "BinancePublicDataCollector",
-  "generation_timestamp": "2025-09-18T15:29:58.800420+00:00Z",
+  "generation_timestamp": "2025-09-18T15:30:00.014449+00:00Z",
   "data_source": "Binance Public Data Repository",
   "data_source_url": "https://data.binance.vision/data/spot/monthly/klines",
   "market_type": "spot",
   "symbol": "BTCUSDT",
-  "timeframe": "1h",
+  "timeframe": "1d",
   "collection_method": "direct_download",
   "target_period": {
     "start": "2024-01-01T00:00:00",
     "end": "2024-01-02T23:59:59",
     "total_days": 1
   },
-  "actual_bars": 48,
+  "actual_bars": 2,
   "date_range": {
     "start": "2024-01-01 00:00:00",
-    "end": "2024-01-02 23:00:00"
+    "end": "2024-01-02 00:00:00"
   },
   "statistics": {
     "price_min": 42180.77,
     "price_max": 45879.63,
     "volume_total": 92320.70564,
-    "volume_mean": 1923.3480341666666
+    "volume_mean": 46160.35282
   },
   "collection_performance": {
     "method": "direct_download",
     "duration": 0.0,
     "bars_per_second": 0,
-    "total_bars": 48
+    "total_bars": 2
   },
   "data_integrity": {
     "chronological_order": true,
-    "data_hash": "5fba9d2e5d3db849c27124002860a1d4ad344b6bc9329d1b67a96ed9b3453696",
+    "data_hash": "fe2fd1bf7eec5ece76659a505d1bfa84d48d0efd22b1d44a182e236694d0c982",
     "corruption_detected": false,
     "corrupted_rows_count": 0,
     "corruption_details": [],
@@ -43,9 +43,9 @@
     }
   },
   "timestamp_format_analysis": {
-    "total_rows_analyzed": 744,
+    "total_rows_analyzed": 31,
     "formats_detected": {
-      "milliseconds": 744
+      "milliseconds": 31
     },
     "transitions_detected": 0,
     "transition_details": [],
@@ -81,10 +81,10 @@
     "total_missing_bars": 0,
     "gap_filling_method": "authentic_binance_api",
     "data_completeness_score": 1.0,
-    "analysis_timestamp": "2025-09-18T15:29:58.800403+00:00Z",
+    "analysis_timestamp": "2025-09-18T15:30:00.014441+00:00Z",
     "analysis_parameters": {
-      "timeframe": "1h",
-      "expected_interval_minutes": 60,
+      "timeframe": "1d",
+      "expected_interval_minutes": 1440,
       "tolerance_factor": 1.5
     }
   },

@@ -1,7 +1,7 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.6.0"
-description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee and full 11-column microstructure format"
+version = "2.6.1"
+description = "Ultra-fast cryptocurrency data collection with intuitive function-based API, zero gaps guarantee, and full 11-column microstructure format. Both simple function-based and advanced class-based APIs available."
 readme = "README.md"
 authors = [
     { name = "Eon Labs", email = "terry@eonlabs.ai" }
@@ -13,7 +13,8 @@ license = { text = "MIT" }
 keywords = [
     "cryptocurrency", "crypto", "binance", "data", "collection",
     "trading", "OHLCV", "gap-filling", "financial-data", "time-series",
-    "microstructure", "order-flow", "liquidity", "taker-volume", "authentic-data"
+    "microstructure", "order-flow", "liquidity", "taker-volume", "authentic-data",
+    "api", "pandas", "download", "fetch-data", "simple-api", "function-based"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

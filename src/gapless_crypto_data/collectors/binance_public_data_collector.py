@@ -53,7 +53,12 @@ class BinancePublicDataCollector:
         - Taker Metrics: Taker Buy Base Volume, Taker Buy Quote Volume
 
     Examples:
-        Basic usage with default SOLUSDT data:
+        For simple data collection, consider using the function-based API:
+
+        >>> import gapless_crypto_data as gcd
+        >>> df = gcd.fetch_data("BTCUSDT", "1h", start="2024-01-01", end="2024-12-31")
+
+        Advanced usage with this class for complex workflows:
 
         >>> collector = BinancePublicDataCollector()
         >>> result = collector.collect_timeframe_data("1h")
@@ -61,7 +66,7 @@ class BinancePublicDataCollector:
         >>> print(f"Collected {len(df)} bars of {collector.symbol} data")
         Collected 26280 bars of SOLUSDT data
 
-        Custom symbol and date range:
+        Custom configuration and multiple timeframes:
 
         >>> collector = BinancePublicDataCollector(
         ...     symbol="BTCUSDT",

@@ -63,12 +63,18 @@ class UniversalGapFiller:
         - Taker Metrics: Taker buy base volume, Taker buy quote volume
 
     Examples:
-        Single file gap detection and filling:
+        For simple gap filling, consider using the function-based API:
+
+        >>> import gapless_crypto_data as gcd
+        >>> results = gcd.fill_gaps("./data")
+        >>> print(f"Filled {results['gaps_filled']}/{results['gaps_detected']} gaps")
+
+        Advanced usage with this class for detailed control:
 
         >>> gap_filler = UniversalGapFiller()
-        >>> gaps = gap_filler.detect_all_gaps("BTCUSDT_1h_2024-01-01_to_2024-12-31.csv")
+        >>> gaps = gap_filler.detect_all_gaps("BTCUSDT_1h_2024-01-01_to_2024-12-31.csv", "1h")
         >>> print(f"Found {len(gaps)} gaps")
-        >>> success = gap_filler.fill_gap("BTCUSDT_1h_2024-01-01_to_2024-12-31.csv", gaps[0])
+        >>> success = gap_filler.fill_gap(gaps[0], "BTCUSDT_1h_data.csv", "1h")
         >>> print(f"Gap filled: {success}")
         Found 3 gaps
         Gap filled: True
@@ -76,11 +82,9 @@ class UniversalGapFiller:
         Batch processing for directory:
 
         >>> gap_filler = UniversalGapFiller()
-        >>> results = gap_filler.process_file("./crypto_data/")
-        >>> for file, result in results.items():
-        ...     print(f"{file}: {result['gaps_filled']} gaps filled")
-        BTCUSDT_1h.csv: 2 gaps filled
-        ETHUSDT_4h.csv: 1 gaps filled
+        >>> result = gap_filler.process_file("BTCUSDT_1h.csv", "1h")
+        >>> print(f"Filled {result['gaps_filled']}/{result['gaps_detected']} gaps")
+        Filled 2/3 gaps
 
         Custom symbol processing:
 
