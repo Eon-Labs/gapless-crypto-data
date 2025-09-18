@@ -73,8 +73,6 @@ jobs:
     needs:
     - build
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
     - name: Download all the dists
       uses: actions/download-artifact@v4
@@ -86,6 +84,7 @@ jobs:
       with:
         verbose: true
         password: ${{ secrets.PYPI_API_TOKEN }}
+        attestations: false
   sign-artifacts:
     name: Sign artifacts with Sigstore
     needs:
