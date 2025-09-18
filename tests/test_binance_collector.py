@@ -26,7 +26,7 @@ class TestBinancePublicDataCollector:
         )
         assert collector.symbol == "BTCUSDT"
 
-    @patch("requests.get")
+    @patch("httpx.get")
     def test_download_file_success(self, mock_get):
         """Test successful file download."""
         # Mock successful response
