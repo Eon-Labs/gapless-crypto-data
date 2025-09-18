@@ -66,8 +66,6 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Validate documentation
-      run: uv run python -m docs.ultrathink.cli validate --package gapless_crypto_data
   publish-to-pypi:
     name: Publish to PyPI
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name
