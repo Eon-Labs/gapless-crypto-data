@@ -93,6 +93,8 @@ ignore = [
     "F841",  # unused variables (test files)
     "W291",  # trailing whitespace
     "W293",  # blank line contains whitespace
+    "B904",  # exception chaining warnings (non-critical for publishing)
+    "B007",  # unused loop variables (non-critical for publishing)
 ]
 
 [tool.ruff.lint.isort]
