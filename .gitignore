@@ -14,3 +14,7 @@ test-env/
 *-env/
 # Gapless Crypto Data checkpoint files (auto-generated during collection)
 .gapless_checkpoints/
+
+# macOS system files
+.DS_Store
+*/.DS_Store
