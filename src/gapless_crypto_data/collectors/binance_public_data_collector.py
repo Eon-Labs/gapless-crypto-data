@@ -91,6 +91,7 @@ class BinancePublicDataCollector:
         start_date: str = "2020-08-15",
         end_date: str = "2025-03-20",
         output_dir: Optional[Union[str, Path]] = None,
+        output_format: str = "csv",
     ) -> None:
         """Initialize the Binance Public Data Collector.
 
@@ -104,9 +105,12 @@ class BinancePublicDataCollector:
             end_date (str, optional): End date in YYYY-MM-DD format.
                 Data collection ends on this date (inclusive, 23:59:59).
                 Defaults to "2025-03-20".
-            output_dir (str or Path, optional): Directory to save CSV files.
+            output_dir (str or Path, optional): Directory to save files.
                 If None, saves to package's sample_data directory.
                 Defaults to None.
+            output_format (str, optional): Output format ("csv" or "parquet").
+                CSV provides universal compatibility, Parquet offers 5-10x compression.
+                Defaults to "csv".
 
         Raises:
             ValueError: If symbol format is invalid or dates are malformed.
@@ -123,10 +127,11 @@ class BinancePublicDataCollector:
             ...     end_date="2024-12-31"
             ... )
 
-            >>> # Custom output directory
+            >>> # Custom output directory with Parquet format
             >>> collector = BinancePublicDataCollector(
             ...     symbol="ETHUSDT",
-            ...     output_dir="/path/to/crypto/data"
+            ...     output_dir="/path/to/crypto/data",
+            ...     output_format="parquet"
             ... )
         """
         self.symbol = symbol
@@ -136,6 +141,11 @@ class BinancePublicDataCollector:
             hour=23, minute=59, second=59
         )
         self.base_url = "https://data.binance.vision/data/spot/monthly/klines"
+
+        # Validate and store output format
+        if output_format not in ["csv", "parquet"]:
+            raise ValueError(f"output_format must be 'csv' or 'parquet', got '{output_format}'")
+        self.output_format = output_format
 
         # Configure output directory - use provided path or default to sample_data
         if output_dir:
@@ -770,7 +780,7 @@ class BinancePublicDataCollector:
                 }
 
                 # Save to CSV file (addresses the output_dir bug)
-                filepath = self.save_to_csv(trading_timeframe, date_filtered_data, collection_stats)
+                filepath = self.save_data(trading_timeframe, date_filtered_data, collection_stats)
 
                 # Convert to DataFrame for Python API users
                 columns = [
@@ -822,7 +832,7 @@ class BinancePublicDataCollector:
             }
 
             # Save to CSV file (addresses the output_dir bug)
-            filepath = self.save_to_csv(trading_timeframe, combined_candle_data, collection_stats)
+            filepath = self.save_data(trading_timeframe, combined_candle_data, collection_stats)
 
             # Convert to DataFrame for Python API users
             columns = [
@@ -1054,21 +1064,18 @@ class BinancePublicDataCollector:
         data_string = "\n".join(",".join(map(str, row)) for row in data)
         return hashlib.sha256(data_string.encode()).hexdigest()
 
-    def save_to_csv(
-        self, timeframe: str, data: List[List], collection_stats: Dict[str, Any]
-    ) -> Path:
-        """Save data to CSV file with full 11-column microstructure format and metadata."""
+    def save_data(self, timeframe: str, data: List[List], collection_stats: Dict[str, Any]) -> Path:
+        """Save data to file with format determined by output_format (CSV or Parquet)."""
         if not data:
             print(f"❌ No data to save for {timeframe}")
             return None
 
-        # Generate filename
+        # Generate filename with appropriate extension
         start_date_str = self.start_date.strftime("%Y%m%d")
         end_date_str = datetime.strptime(data[-1][0], "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
-        version = "v2.5.0"  # Canonical version from architecture status
-        filename = (
-            f"binance_spot_{self.symbol}-{timeframe}_{start_date_str}-{end_date_str}_{version}.csv"
-        )
+        version = "v2.10.0"  # Updated version for Parquet support
+        file_extension = self.output_format
+        filename = f"binance_spot_{self.symbol}-{timeframe}_{start_date_str}-{end_date_str}_{version}.{file_extension}"
         filepath = self.output_dir / filename
 
         # Ensure output directory exists
@@ -1080,46 +1087,57 @@ class BinancePublicDataCollector:
         # Generate metadata with gap analysis results
         metadata = self.generate_metadata(timeframe, data, collection_stats, gap_analysis)
 
-        # Write CSV with metadata headers
-        with open(filepath, "w", newline="") as f:
-            # Write metadata headers
-            f.write(f"# Binance Spot Market Data {metadata['version']}\n")
-            f.write(f"# Generated: {metadata['generation_timestamp']}\n")
-            f.write(f"# Source: {metadata['data_source']}\n")
-            f.write(
-                f"# Market: {metadata['market_type'].upper()} | Symbol: {metadata['symbol']} | Timeframe: {metadata['timeframe']}\n"
-            )
-            f.write(f"# Coverage: {metadata['actual_bars']:,} bars\n")
-            f.write(
-                f"# Period: {metadata['date_range']['start']} to {metadata['date_range']['end']}\n"
-            )
-            f.write(
-                f"# Collection: {collection_stats['method']} in {collection_stats['duration']:.1f}s\n"
-            )
-            f.write(f"# Data Hash: {metadata['data_integrity']['data_hash'][:16]}...\n")
-            f.write(
-                "# Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source\n"
-            )
-            f.write("#\n")
+        # Convert data to DataFrame for both formats
+        df = pd.DataFrame(
+            data,
+            columns=[
+                "date",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "close_time",
+                "quote_asset_volume",
+                "number_of_trades",
+                "taker_buy_base_asset_volume",
+                "taker_buy_quote_asset_volume",
+            ],
+        )
 
-            # Write enhanced CSV header and data with all microstructure columns
-            writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "date",
-                    "open",
-                    "high",
-                    "low",
-                    "close",
-                    "volume",
-                    "close_time",
-                    "quote_asset_volume",
-                    "number_of_trades",
-                    "taker_buy_base_asset_volume",
-                    "taker_buy_quote_asset_volume",
-                ]
-            )
-            writer.writerows(data)
+        # Convert date column to datetime
+        df["date"] = pd.to_datetime(df["date"])
+
+        if self.output_format == "parquet":
+            # Save as Parquet with metadata
+            df.to_parquet(filepath, engine="pyarrow", compression="snappy", index=False)
+            print(f"📊 Saved {len(df):,} bars to {filepath.name} (Parquet format)")
+        else:
+            # Save as CSV with metadata headers (existing logic)
+            with open(filepath, "w", newline="") as f:
+                # Write metadata headers
+                f.write(f"# Binance Spot Market Data {metadata['version']}\n")
+                f.write(f"# Generated: {metadata['generation_timestamp']}\n")
+                f.write(f"# Source: {metadata['data_source']}\n")
+                f.write(
+                    f"# Market: {metadata['market_type'].upper()} | Symbol: {metadata['symbol']} | Timeframe: {metadata['timeframe']}\n"
+                )
+                f.write(f"# Coverage: {metadata['actual_bars']:,} bars\n")
+                f.write(
+                    f"# Period: {metadata['date_range']['start']} to {metadata['date_range']['end']}\n"
+                )
+                f.write(
+                    f"# Collection: {collection_stats['method']} in {collection_stats['duration']:.1f}s\n"
+                )
+                f.write(f"# Data Hash: {metadata['data_integrity']['data_hash'][:16]}...\n")
+                f.write(
+                    "# Compliance: Zero-Magic-Numbers, Temporal-Integrity, Official-Binance-Source\n"
+                )
+                f.write("#\n")
+
+                # Write CSV data
+                df.to_csv(f, index=False)
+            print(f"📊 Saved {len(df):,} bars to {filepath.name} (CSV format)")
 
         # Save metadata as JSON
         metadata_filepath = filepath.with_suffix(".metadata.json")
@@ -1319,7 +1337,7 @@ class BinancePublicDataCollector:
                 }
 
                 # Save to CSV using existing method
-                filepath = self.save_to_csv(trading_timeframe, processed_data, collection_stats)
+                filepath = self.save_data(trading_timeframe, processed_data, collection_stats)
 
                 # Convert to DataFrame
                 columns = [

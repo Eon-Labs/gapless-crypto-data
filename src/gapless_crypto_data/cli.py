@@ -41,7 +41,8 @@ from . import __version__
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.universal_gap_filler import UniversalGapFiller
 from .resume import IntelligentCheckpointManager
-from .streaming import StreamingDataProcessor, StreamingGapFiller
+
+# Streaming module removed - use standard pandas processing
 from .utils import (
     get_standard_logger,
     handle_operation_error,
@@ -251,14 +252,7 @@ def collect_data(command_line_args: Any) -> int:
     total_datasets = 0
     failed_symbols = []
 
-    # Initialize streaming components if enabled
-    streaming_processor = None
-    streaming_gap_filler = None
-    if command_line_args.streaming:
-        streaming_processor = StreamingDataProcessor(
-            chunk_size=command_line_args.chunk_size, memory_limit_mb=command_line_args.memory_limit
-        )
-        streaming_gap_filler = StreamingGapFiller(chunk_size=command_line_args.chunk_size)
+    # Streaming removed - use standard pandas processing
 
     # Process each symbol
     for symbol_index, symbol in enumerate(symbols_to_process, 1):

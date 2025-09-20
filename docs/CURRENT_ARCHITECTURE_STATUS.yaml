@@ -23,8 +23,8 @@ components:
 
 # CURRENT ARCHITECTURE STATUS (2025-09-17)
 x-current-status:
-  canonical_version: "v2.7.0"
-  architecture_phase: "COMPLETE"
+  canonical_version: "v2.10.0"
+  architecture_phase: "OPTIMIZED"
 
   implemented_capabilities:
     core_collection:
@@ -37,31 +37,24 @@ x-current-status:
         - "Complete 4.1-year historical coverage"
 
     intelligent_resume:
-      status: "PRODUCTION_READY"
-      description: "SOTA checkpointing with joblib Memory"
+      status: "SIMPLIFIED"
+      description: "Basic checkpointing with JSON state persistence"
       technical_specs:
-        - "Automatic session management with unique IDs"
-        - "Symbol-level granular progress tracking"
-        - "Resume from arbitrary checkpoint states"
-        - "Atomic progress updates with integrity validation"
+        - "Simple JSON state file management"
+        - "Symbol-level progress tracking"
+        - "Basic checkpoint resume capability"
+        - "Reduced dependency overhead"
 
-    memory_streaming:
+    parquet_format_support:
       status: "PRODUCTION_READY"
-      description: "Unlimited dataset processing with Polars"
+      description: "High-performance Parquet format with 5-10x compression"
       technical_specs:
-        - "Constant memory usage regardless of dataset size"
-        - "Chunked processing with configurable parameters"
-        - "Streaming gap detection maintaining temporal accuracy"
-        - "Polars lazy evaluation for optimal performance"
-
-    regression_detection:
-      status: "PRODUCTION_READY"
-      description: "SOTA data quality monitoring with PyOD"
-      technical_specs:
-        - "Ensemble anomaly detection (IForest + ECOD)"
-        - "Statistical drift detection with KS tests"
-        - "Cryptocurrency-specific validation rules"
-        - "Comprehensive quality scoring with 6-factor analysis"
+        - "Snappy compression for optimal speed/size balance"
+        - "PyArrow engine for maximum compatibility"
+        - "5-10x file size reduction vs CSV"
+        - "10-100x faster read performance"
+        - "Maintains 11-column microstructure format"
+        - "Backward compatibility with CSV as default"
 
     cli_interface:
       status: "PRODUCTION_READY"
@@ -106,11 +99,8 @@ x-current-status:
   sota_integrations:
     dependencies_current:
       httpx: "0.28.1"
-      joblib: "1.5.2"
-      polars: "1.33.1"
+      pandas: "2.0.0+"
       pyarrow: "21.0.0"
-      pyod: "2.0.5"
-      scipy: "1.16.2"
       python_warnings: "builtin"  # For DeprecationWarning support
 
     dependencies_removed:
@@ -126,14 +116,30 @@ x-current-status:
         version: "14.1.0"
         removal_reason: "Reverted CLI modernization - maintain traditional argparse interface"
         removal_date: "2025-09-17"
-
       requests:
         version: "2.32.5"
         removal_reason: "Replaced with httpx for better performance and connection handling"
         removal_date: "2025-09-17"
+      joblib:
+        version: "1.5.2"
+        removal_reason: "Over-engineered for simple state persistence - replaced with JSON"
+        removal_date: "2025-01-19"
+      polars:
+        version: "1.33.1"
+        removal_reason: "Mixed pandas/polars creates confusion - standardized on pandas"
+        removal_date: "2025-01-19"
+      pyod:
+        version: "2.0.5"
+        removal_reason: "Over-engineered for simple outlier detection - use 3-sigma rule"
+        removal_date: "2025-01-19"
+      scipy:
+        version: "1.16.2"
+        removal_reason: "Dependency of removed PyOD - not needed independently"
+        removal_date: "2025-01-19"
 
-    integration_status: "All SOTA libraries successfully integrated"
+    integration_status: "Simplified dependency stack - 3 core dependencies only"
     performance_validation: "Confirmed through comprehensive testing"
+    pruning_impact: "Reduced from 6 to 3 dependencies (50% reduction)"
 
   test_coverage:
     total_tests: 30

@@ -1,6 +1,6 @@
 [project]
 name = "gapless-crypto-data"
-version = "2.9.0"
+version = "2.10.0"
 description = "Ultra-fast cryptocurrency data collection with zero gaps guarantee. 22x faster via Binance public repository with complete 13-timeframe support (1s-1d) and intelligent monthly-to-daily fallback. Provides 11-column microstructure format with order flow metrics."
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
@@ -38,11 +38,8 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "httpx>=0.25.0",
-    "joblib>=1.5.2",
     "pandas>=2.0.0",
-    "polars>=1.33.1",
-    "pyarrow>=21.0.0",
-    "pyod>=2.0.5",
+    "pyarrow>=16.0.0",
 ]
 
 [project.urls]

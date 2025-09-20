@@ -19,8 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from joblib import Memory
-
+# joblib removed - using simple JSON state persistence
 from ..utils import GaplessCryptoError, get_standard_logger
 
 
@@ -55,10 +54,10 @@ class IntelligentCheckpointManager:
         self.cache_dir = Path(cache_dir or ".gapless_checkpoints").resolve()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        # Initialize SOTA joblib Memory with optimized configuration
-        self.memory = Memory(
-            location=str(self.cache_dir / "joblib_cache"), verbose=verbose, compress=compress
-        )
+        # Simple JSON state persistence (joblib removed)
+        # Parameters kept for backward compatibility but ignored
+        self._verbose = verbose
+        self._compress = compress
 
         self.logger = get_standard_logger("checkpoint_manager")
         self.session_id = self._generate_session_id()
@@ -311,8 +310,12 @@ class IntelligentCheckpointManager:
             if self.checkpoint_file.exists():
                 self.checkpoint_file.unlink()
 
-            # Clear joblib cache
-            self.memory.clear()
+            # Clear cache directory (joblib removed)
+            import shutil
+
+            cache_dir = self.cache_dir / "cache"
+            if cache_dir.exists():
+                shutil.rmtree(cache_dir)
 
             self.logger.info("🗑️  Checkpoint cleared - starting fresh")
 
@@ -321,15 +324,16 @@ class IntelligentCheckpointManager:
 
     def get_cached_collection_function(self, func):
         """
-        Create cached version of collection function for automatic resume.
+        Simple wrapper for collection function (joblib caching removed).
 
         Args:
-            func: Function to cache (should be deterministic)
+            func: Function to wrap (deterministic functions recommended)
 
         Returns:
-            Cached function with automatic disk persistence
+            Original function (no caching applied)
         """
-        return self.memory.cache(func)
+        # Return original function - caching removed for simplicity
+        return func
 
     def cleanup_old_sessions(self, max_age_days: int = 7) -> None:
         """Clean up old checkpoint sessions."""

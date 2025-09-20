@@ -62,7 +62,7 @@ Supported Symbols (USDT Spot Only):
     AVAXUSDT, ATOMUSDT, NEARUSDT, FTMUSDT, SANDUSDT, MANAUSDT, etc.
 """
 
-__version__ = "2.9.0"
+__version__ = "2.10.0"
 __author__ = "Eon Labs"
 __email__ = "terry@eonlabs.com"
 
@@ -76,6 +76,8 @@ from .api import (
     get_supported_intervals,
     get_supported_symbols,
     get_supported_timeframes,
+    load_parquet,
+    save_parquet,
 )
 from .collectors.binance_public_data_collector import BinancePublicDataCollector
 from .gap_filling.safe_file_operations import AtomicCSVOperations, SafeCSVMerger
@@ -90,6 +92,8 @@ __all__ = [
     "get_supported_intervals",  # Legacy compatibility
     "fill_gaps",
     "get_info",
+    "save_parquet",
+    "load_parquet",
     # Advanced class-based API (for complex workflows)
     "BinancePublicDataCollector",
     "UniversalGapFiller",

@@ -350,3 +350,45 @@ def get_supported_intervals() -> List[str]:
         stacklevel=2,
     )
     return get_supported_timeframes()
+
+
+def save_parquet(df: pd.DataFrame, path: str) -> None:
+    """Save DataFrame to Parquet format with optimized compression.
+
+    Args:
+        df: DataFrame to save
+        path: Output file path (should end with .parquet)
+
+    Raises:
+        FileNotFoundError: If output directory doesn't exist
+        PermissionError: If cannot write to path
+        ValueError: If DataFrame is invalid
+
+    Examples:
+        >>> df = fetch_data("BTCUSDT", "1h", limit=1000)
+        >>> save_parquet(df, "btc_data.parquet")
+    """
+    if df is None or df.empty:
+        raise ValueError("Cannot save empty DataFrame to Parquet")
+
+    df.to_parquet(path, engine="pyarrow", compression="snappy", index=False)
+
+
+def load_parquet(path: str) -> pd.DataFrame:
+    """Load DataFrame from Parquet file.
+
+    Args:
+        path: Parquet file path
+
+    Returns:
+        DataFrame with original structure and data types
+
+    Raises:
+        FileNotFoundError: If file doesn't exist
+        ParquetError: If file is corrupted or invalid
+
+    Examples:
+        >>> df = load_parquet("btc_data.parquet")
+        >>> print(f"Loaded {len(df)} bars")
+    """
+    return pd.read_parquet(path, engine="pyarrow")
