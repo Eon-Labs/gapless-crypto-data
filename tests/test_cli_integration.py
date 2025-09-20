@@ -43,9 +43,9 @@ class TestCLIIntegration:
             assert "ULTRA-FAST SUCCESS" in result.stdout
 
             # Verify file generation
-            csv_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.csv"
+            csv_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.10.0.csv"
             metadata_file = (
-                Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.metadata.json"
+                Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.10.0.metadata.json"
             )
 
             assert csv_file.exists(), "CSV file not generated"
@@ -75,7 +75,7 @@ class TestCLIIntegration:
                 metadata = json.load(f)
                 assert metadata["symbol"] == "BTCUSDT"
                 assert metadata["timeframe"] == "1h"
-                assert metadata["version"] == "v2.5.0"
+                assert metadata["version"] == "v2.10.0"
                 assert metadata["gap_analysis"]["total_gaps_detected"] == 0
 
     def test_subcommand_cli_ethusdt_single_day(self):
@@ -108,9 +108,9 @@ class TestCLIIntegration:
             assert "ULTRA-FAST SUCCESS" in result.stdout
 
             # Verify file generation
-            csv_file = Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.5.0.csv"
+            csv_file = Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.10.0.csv"
             metadata_file = (
-                Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.5.0.metadata.json"
+                Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.10.0.metadata.json"
             )
 
             assert csv_file.exists(), "CSV file not generated"
@@ -149,8 +149,8 @@ class TestCLIIntegration:
             )
 
             # Verify both files were created
-            btc_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.csv"
-            eth_file = Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.5.0.csv"
+            btc_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.10.0.csv"
+            eth_file = Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.10.0.csv"
 
             assert btc_file.exists(), "BTCUSDT CSV file not generated"
             assert eth_file.exists(), "ETHUSDT CSV file not generated"
@@ -183,8 +183,8 @@ class TestCLIIntegration:
             assert result.returncode == 0, f"CLI failed with: {result.stderr}"
 
             # Verify both timeframe files were created
-            h1_file = Path(temp_dir) / "binance_spot_SOLUSDT-1h_20240101-20240101_v2.5.0.csv"
-            h4_file = Path(temp_dir) / "binance_spot_SOLUSDT-4h_20240101-20240101_v2.5.0.csv"
+            h1_file = Path(temp_dir) / "binance_spot_SOLUSDT-1h_20240101-20240101_v2.10.0.csv"
+            h4_file = Path(temp_dir) / "binance_spot_SOLUSDT-4h_20240101-20240101_v2.10.0.csv"
 
             assert h1_file.exists(), "1h CSV file not generated"
             assert h4_file.exists(), "4h CSV file not generated"
@@ -357,7 +357,7 @@ class TestDataIntegrity:
 
             assert result.returncode == 0, "Data generation failed"
 
-            csv_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.5.0.csv"
+            csv_file = Path(temp_dir) / "binance_spot_BTCUSDT-1h_20240101-20240101_v2.10.0.csv"
 
             with open(csv_file, "r") as f:
                 # Find the header line
@@ -412,7 +412,7 @@ class TestDataIntegrity:
             assert result.returncode == 0, "Data generation failed"
 
             metadata_file = (
-                Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.5.0.metadata.json"
+                Path(temp_dir) / "binance_spot_ETHUSDT-1h_20240101-20240101_v2.10.0.metadata.json"
             )
 
             with open(metadata_file, "r") as f:

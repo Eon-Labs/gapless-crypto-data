@@ -888,7 +888,7 @@ class BinancePublicDataCollector:
             volume_values.append(candle_row[5])
 
         return {
-            "version": "v2.5.0",
+            "version": "v2.10.0",
             "generator": "BinancePublicDataCollector",
             "generation_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "data_source": "Binance Public Data Repository",
@@ -940,7 +940,7 @@ class BinancePublicDataCollector:
                 },
             ),
             "enhanced_microstructure_format": {
-                "format_version": "v2.5.0",
+                "format_version": "v2.10.0",
                 "total_columns": len(candle_data[0]) if candle_data else 11,
                 "enhanced_features": [
                     "quote_asset_volume",
